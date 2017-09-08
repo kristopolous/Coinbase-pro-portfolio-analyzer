@@ -119,8 +119,8 @@ while True:
             ttl += row[5]
 
         ttl_list.append(ttl)
-        if len(ttl_list) > 90:
-            ttl_list = ttl_list[-90:]
+        if len(ttl_list) > 120:
+            ttl_list = ttl_list[-120:]
 
         for x in range(0, row_max):
             row = []

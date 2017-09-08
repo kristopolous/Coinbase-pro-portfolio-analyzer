@@ -60,6 +60,7 @@ def process(tradeList):
         tradeList[i]['total'] = float(tradeList[i]['total'])
         tradeList[i]['amount'] = float(tradeList[i]['amount'])
         tradeList[i]['rate'] = float(tradeList[i]['rate'])
+        tradeList[i]['fee'] = float(tradeList[i]['fee'])
 
 def tally(tradeList):
     btc = 0
@@ -82,7 +83,7 @@ def tally(tradeList):
     break_even = -btc / cur
     return {'break': break_even, 'low': cur_low, 'high': cur_high, 'max_btc_invested': max_btc_invested, 'btc': btc, 'cur': cur, 'len': len(tradeList)}
 
-live_trade()
+#live_trade()
 print("{} {}".format(currency, profit))
 data = cached_trade()
 process(data)
@@ -110,7 +111,6 @@ for trade in sortlist:
     if btc > threshold:
         # break the trade up
 
-        """
         # This amount goes into this tranche
         partial_total = threshold - (btc - trade['total'])
 
@@ -118,18 +118,23 @@ for trade in sortlist:
         frac = partial_total / trade['total']
 
         # now we make a "fake" trade with the partial
-        tranche.append({
+        fake_trade = {
+            'type': 'buy',
             'total': partial_total,
             'rate': trade['rate'],
             'fee': trade['fee'] * frac,
             'amount': trade['amount'] * frac
-        })
-        """
-            
+        }
+        tranche.append(fake_trade)
 
-        if len(tranche) > 0:
-            agg = tally(tranche)
-            tally_print(agg)
+        trade['total'] -= partial_total
+        trade['fee'] -= fake_trade['fee']
+        trade['amount'] -= fake_trade['amount']
+            
+        agg = tally(tranche)
+        tally_print(agg)
+
+
         tranche = []
         btc = 0
     tranche.append(trade)
