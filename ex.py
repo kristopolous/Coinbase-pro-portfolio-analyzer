@@ -6,9 +6,9 @@ import os
 import time
 import sys
 import secret
+import math
 p = Poloniex(*secret.token)
 
-#print(p.returnTicker())
 hist = {}
 step =  86400 * 14 
 start = int(time.time()) - (3 * step)
@@ -75,30 +75,46 @@ while True:
 
             amt = 0.00010001
             amt_cur = ((1-0.0025) * amt) / price
-            btc_ttl1 = btc_ttl + amt
-            cur_ttl1 = cur_ttl + amt_cur
-            my_price1 = btc_ttl1 / cur_ttl1
-            my_ratio1 = price / my_price1
-            my_balance1 = my_balance + amt_cur
+
+            btc_ttl_buy = btc_ttl + amt
+            cur_ttl_buy = cur_ttl + amt_cur
+            my_price_buy = btc_ttl_buy / cur_ttl_buy
+            my_ratio_buy = price / my_price_buy
+            my_balance_buy = my_balance + amt_cur
+
+            btc_ttl_sell = btc_ttl - amt
+            cur_ttl_sell = cur_ttl - amt_cur
+            my_price_sell = btc_ttl_sell / cur_ttl_sell
+            my_ratio_sell = price / my_price_sell
+            my_balance_sell = my_balance - amt_cur
             #print("{:5} {:0.5f} {:10.5f} {:10.5f} {:10.5f} {:0.8f}".format(cur, btc_ttl, btc_ttl1, cur_ttl, cur_ttl1, price))
 
-            hold1 = (price / (btc_ttl1 / cur_ttl1) - 1) * price * my_balance1
+            hold_buy = (price / (btc_ttl_buy / cur_ttl_buy) - 1) * price * my_balance_buy
+            hold_sell = (price / (btc_ttl_sell / cur_ttl_sell) - 1) * price * my_balance_sell
+
             hold = (my_ratio - 1) * price * my_balance
 
-            rows.append([cur, 1000 * my_price, 1000 * price, my_ratio * 100, 1000 * price * my_balance, 1000 * hold, 10000 * (my_ratio1 / my_ratio) - 10000])
+            rows.append([cur, 1000 * my_price, 1000 * price, my_ratio * 100, 1000 * price * my_balance, 1000 * hold, 
+                10000 * (my_ratio_buy / my_ratio) - 10000,
+                10000 * (my_ratio_sell / my_ratio) - 10000,
+                100 * math.pow(abs(((my_ratio_buy / my_ratio) - 1) / ((my_ratio_sell / my_ratio) - 1)), 5)
+                ])
 
 
     l = sorted(rows, key=operator.itemgetter(3))
 
     if len(l)>= len(positive_balances) - 2:
+        if ix % 10 == 0:
+            os.system('clear')
         print("\033[0;0H")
         last_row = 0
         ttl = 0
         row_max = 15
+        print("{:5} {:>8} {:>8} {:>7} {:>9} {:>9} {:>9} {:>9} {:>9}".format('cur', 'avgbuy', 'price', 'roi', 'bal', 'prof', 'buy', 'sell', 'delta'))
         for row in l:
             if row[3] > 100 and last_row < 100:
-                print("-------------------------------------------------------------")
-            print("{:5} {:8.5f} {:8.5f} {:7.3f} {:9.5f} {:9.5f} {:9.4f}".format(*row))
+                print("---------------------------------------------------------------------------------")
+            print("{:5} {:8.5f} {:8.5f} {:7.3f} {:9.5f} {:9.5f} {:9.4f} {:9.4f} {:9.4f}".format(*row))
             last_row = row[3]
             ttl += row[5]
 

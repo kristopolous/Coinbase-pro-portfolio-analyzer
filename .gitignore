@@ -1,3 +1,4 @@
 secret.py
 *.pyc
+trades*txt
 __pycache__
