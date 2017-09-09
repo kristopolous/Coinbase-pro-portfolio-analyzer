@@ -10,7 +10,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--currency", required=True, help="Currency to buy")
 parser.add_argument('-a', "--action", required=True, help="Action, either buy or sell")
 parser.add_argument('-q', "--quantity", default=0, help="Quantity to buy, expressed as in btc")
-parser.add_argument('-r', "--rate", default=None, help="Rate (defaults to market). Also accepts last and percent")
+parser.add_argument('-r', "--rate", default=None, help="Rate (defaults to market). Also accepts last, low and percent")
+parser.add_argument('-n', "--nofee", action='store_true', help="Try to avoid the higher fee")
 parser.add_argument('-f', "--fast", action='store_true', help="Skip the ceremony and do things quickly")
 args = parser.parse_args()
 
@@ -67,19 +68,26 @@ if not fast or rate is None or rate.find('%') > -1 or rate == 'last':
     lowest = float(row['lowestAsk'])
     bid = float(row['highestBid'])
 
-    print(" Bid:  {}\n Last: {}\n Ask:  {}".format(row['highestBid'], row['last'], row['lowestAsk']))
+    print(" Bid:  {}\n Last: {}\n Ask:  {}\n Spread: {}".format(row['highestBid'], row['last'], row['lowestAsk'], 1 - float(row['highestBid']) / float(row['lowestAsk'])))
 
     last = row['last']
     if rate is None:
         rate = row['lowestAsk'] if action == 'buy' else row['highestBid']
+        if args.nofee and action == 'buy':
+            price_pump = 0.00000001
+            print(" Trying to avoid fee by adding {:.8f}".format(price_pump))
+            rate = float(rate) - price_pump
+
     elif rate == 'last':
         rate = last
+    elif rate == 'low' or rate == 'lowest':
+        rate = bid
     elif rate.find('%') > -1:
         perc = float(rate.replace('%', '')) / 100
         rate = perc * float(last)
 
 fl_rate = float(rate)
-print("\nComputed\n Rate  {:.10f}BTC\n Quant {:.10f}BTC".format(fl_rate, float(quantity)))
+print("\nComputed\n Rate  {:.10f}BTC\n Quant {:.10f}BTC\n USD  ${:.2f}".format(fl_rate, float(quantity), float(quantity) * approx_btc_usd))
 
 if not fast:
     balanceMap = p.returnCompleteBalances()
@@ -110,7 +118,11 @@ if action == 'buy':
         if fl_rate > (lowest * 1.2):
             abort("{:.10f}BTC is the lowest ask.\n{:.10f}BTC is over 20% more than this!".format(lowest, fl_rate))
 
-    buy_order = p.buy(exchange, rate, amount_to_trade)
+    if args.nofee:
+        buy_order = p.buy(exchange, rate, amount_to_trade, orderType='postOnly')
+    else:
+        buy_order = p.buy(exchange, rate, amount_to_trade)
+
     show_trade(buy_order)
 
 elif action == 'sell':
