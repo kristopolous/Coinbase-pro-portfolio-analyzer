@@ -80,7 +80,7 @@ def tally(tradeList):
     break_even = -btc / cur
     return {'break': break_even, 'low': cur_low, 'high': cur_high, 'max_btc_invested': max_btc_invested, 'btc': btc, 'cur': cur, 'len': len(tradeList)}
 
-#live_trade()
+live_trade()
 print("{} {}".format(currency, profit))
 data = cached_trade()
 process(data)
