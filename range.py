@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 from poloniex import Poloniex
-import time
 import operator
 import os
 import time

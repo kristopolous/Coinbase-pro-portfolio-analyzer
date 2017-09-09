@@ -1,9 +1,6 @@
 #!/usr/bin/python3
 from poloniex import Poloniex
 import time
-import operator
-import os
-import time
 import sys
 import secret
 import json
@@ -158,14 +155,3 @@ def distrib():
         tally_print(agg)
 
 print(len(data))
-"""
-for row in tlist[:trades]:
-    sell(data, float(row['amount']), float(row['rate']) * 1.02)
-    #buy(data, float(row['amount']), float(row['rate']))
-
-#    sell(data, 0.00010001, 0.00002251 * 1.07)
-
-ttl = tally(data)
-print(ttl)
-"""
-
