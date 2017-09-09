@@ -5,6 +5,7 @@ import sys
 import secret
 import json
 import os
+import lib
 p = Poloniex(*secret.token)
 
 currency = 'BTC_STRAT'
@@ -19,7 +20,7 @@ step =  86400 * 14
 start = int(time.time()) - (3 * step)
 
 def cached_trade():
-    if not os.path.isfile('cache/{}-portfolio.txt'.format(currency)):
+    if lib.need_to_get('cache/{}-portfolio.txt'.format(currency)):
         live_trade()
 
     with open('cache/{}-portfolio.txt'.format(currency)) as data_file:    
