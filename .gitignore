@@ -1,4 +1,5 @@
 secret.py
 *.pyc
 trades*txt
+order-history.json
 __pycache__

@@ -32,7 +32,7 @@ def show_trade(order):
     print("\nSUCCESS:")
 
     for trade in order['resultingTrades']:
-        print(" {}{} at {}BTC.\n Total {}BTC\n\n".format(trade['amount'], currency, trade['rate'], trade['total']))
+        print(" {}\n {}{} at {}BTC.\n Total {}BTC\n\n".format(trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
 
     with open('order-history.json','a') as f:
         f.write("{}\n".format(json.dumps(order)))
@@ -53,6 +53,7 @@ if not fast or rate is None or rate.find('%') > -1 or rate == 'last':
 
     row = priceMap[exchange]
     lowest = float(row['lowestAsk'])
+    bid = float(row['highestBid'])
 
     print(" Bid:  {}\n Last: {}\n Ask:  {}".format(row['highestBid'], row['last'], row['lowestAsk']))
 
@@ -76,33 +77,37 @@ if not fast:
         row['btcValue'], currency, float(row['onOrders']) + float(row['available'])
       ))
 
-amount_to_buy = quantity / fl_rate
-print("\n{}\n {}{} at {:.10f}BTC.\n Total {:.10f}BTC".format(action.upper(), amount_to_buy, currency, fl_rate, quantity))
+amount_to_trade = quantity / fl_rate
+print("\n{}\n {:.8f}{} at {:.8f}BTC.\n Total {:.8f}BTC".format(action.upper(), amount_to_trade, currency, fl_rate, quantity))
 
 if quantity == 0:
     sys.exit(-1)
 
-"""
 if False or not fast:
     wait = 8
     print("\nWaiting {} seconds for user abort".format(wait))
     for i in range(wait, 0, -1):
         print("...{}".format(i - 1), end='', flush=True)
-        time.sleep(1)
-"""
+        try:
+            time.sleep(1)
+        except: 
+            abort("Trade Halted")
 
 if action == 'buy':
     if not fast:
         if fl_rate > (lowest * 1.2):
             abort("{:.10f}BTC is the lowest ask.\n{:.10f}BTC is over 20% more than this!".format(lowest, fl_rate))
 
-    buy_order = p.buy(exchange, rate, amount_to_buy)
+    buy_order = p.buy(exchange, rate, amount_to_trade)
     show_trade(buy_order)
 
 elif action == 'sell':
-    if args.quantity == 0:
-        print("I'd be selling {} at {}. But not right now.".format(currency, rate))
-        sys.exit(-1)
+    if not fast:
+        if fl_rate < (bid * 0.8):
+            abort("{:.10f}BTC is the highest bid.\n{:.10f}BTC is over 20% less than this!".format(lowest, fl_rate))
+    
+    sell_order = p.sell(exchange, rate, amount_to_trade)
+    show_trade(sell_order)
 
 else:
     print("action has to be either buy or sell")
