@@ -47,6 +47,7 @@ def show_trade(order):
     for trade in order['resultingTrades']:
         print(" {}\n {}{} at {}BTC.\n Total {}BTC\n\n".format(trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
 
+    order['exchange'] = exchange
     with open('order-history.json','a') as f:
         f.write("{}\n".format(json.dumps(order)))
 

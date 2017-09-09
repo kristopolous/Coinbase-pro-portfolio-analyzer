@@ -4,6 +4,7 @@ import time
 import sys
 import secret
 import json
+import os
 p = Poloniex(*secret.token)
 
 currency = 'BTC_STRAT'
@@ -18,7 +19,10 @@ step =  86400 * 14
 start = int(time.time()) - (3 * step)
 
 def cached_trade():
-    with open('trades-{}.txt'.format(currency)) as data_file:    
+    if not os.path.isfile('cache/{}-portfolio.txt'.format(currency)):
+        live_trade()
+
+    with open('cache/{}-portfolio.txt'.format(currency)) as data_file:    
         return json.load(data_file)
 
 def live_trade():
@@ -28,7 +32,7 @@ def live_trade():
         if block_trades:
             all_trades += block_trades
 
-    with open('trades-{}.txt'.format(currency), 'w') as outfile:
+    with open('cache/{}-portfolio.txt'.format(currency), 'w') as outfile:
       json.dump(all_trades, outfile)
 
 
@@ -80,7 +84,6 @@ def tally(tradeList):
     break_even = -btc / cur
     return {'break': break_even, 'low': cur_low, 'high': cur_high, 'max_btc_invested': max_btc_invested, 'btc': btc, 'cur': cur, 'len': len(tradeList)}
 
-live_trade()
 print("{} {}".format(currency, profit))
 data = cached_trade()
 process(data)

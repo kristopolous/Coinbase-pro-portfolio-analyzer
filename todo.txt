@@ -1,0 +1,2 @@
+buy/sell distribution along with current bid/ask range, 24 hour high/low and
+volitility metric
