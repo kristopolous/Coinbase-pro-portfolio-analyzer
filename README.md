@@ -11,6 +11,7 @@ This is a cli trader for poloniex, whose website is a little lame at times.
 Here's an example of it in action, buying a very small amount of Riecoin.
 There's a few features and overrides to avoid from doing something stupid.
 
+<pre>
 $ ./trade.py -c RIC -q 0.00010001 -a buy  
 EXCHANGE BTC_RIC
  Bid:  0.00001451
@@ -38,5 +39,4 @@ SUCCESS:
  6.88774104RIC at 0.00001452BTC.
  Total 0.00010000BTC
 
-
-
+</pre>
