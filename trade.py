@@ -20,9 +20,17 @@ currency = args.currency.upper()
 exchange = 'BTC_{}'.format(currency)
 quantity = float(args.quantity)
 rate = args.rate
-action = args.action
+action = args.action.lower()
 fast = args.fast
 lowest = False
+
+# This is only used for the warning message to make sure
+# the fingers don't slip and someone buys/sells the farm
+# (say by leaving out a decimal point)
+approx_btc_usd = 4500
+
+# let's set it really low for now. 
+warn_at_usd = 3.50
 
 def abort(msg):
     print("\nERROR:\n {}\n\n Aborted.".format(msg.replace('\n', '\n ')))
@@ -37,11 +45,15 @@ def show_trade(order):
     with open('order-history.json','a') as f:
         f.write("{}\n".format(json.dumps(order)))
 
-if quantity > 0.001:
-    usd = 4600 * quantity
-    quantity_confirm = input("You're about to trade ${:.2f}!\nConfirm this and enter that again > ".format(usd))
+if quantity > (warn_at_usd / approx_btc_usd):
+    usd = approx_btc_usd * quantity
+    print("Above ${:.2f} warning triggered!".format(warn_at_usd))
+    quantity_confirm = input("You're about to trade ${:.2f}!\nConfirm the quantity in BTC > ".format(usd))
     if quantity_confirm != args.quantity:
-        abort("Numbers don't match. no trade")
+        abort("Numbers don't match.")
+
+if action != 'buy' and action != 'sell':
+    abort('Action must be buy or sell')
 
 print("EXCHANGE {}".format(exchange))
 
@@ -109,5 +121,3 @@ elif action == 'sell':
     sell_order = p.sell(exchange, rate, amount_to_trade)
     show_trade(sell_order)
 
-else:
-    print("action has to be either buy or sell")
