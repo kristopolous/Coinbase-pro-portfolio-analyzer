@@ -6,8 +6,18 @@ import json
 
 one_day = 86400
 
+polo_instance = False
+def polo_connect():
+    global polo_instance
+    if not polo_instance:
+        import secret
+        from poloniex import Poloniex
+        polo_instance = Poloniex(*secret.token)
+    return polo_instance
+
 def need_to_get(path):
-    return os.path.isfile('cache/btc') or now > os.stat('cache/btc').st_mtime + one_day / 2
+    now = time.time()
+    return not (os.path.isfile(path) and now < (os.stat(path).st_mtime + one_day / 2))
 
 def btc_price():
     if not os.path.isfile('cache/btc') or now > os.stat('cache/btc').st_mtime:

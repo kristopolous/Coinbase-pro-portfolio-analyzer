@@ -1,12 +1,9 @@
 #!/usr/bin/python3
-from poloniex import Poloniex
 import time
 import sys
-import secret
 import json
 import os
 import lib
-p = Poloniex(*secret.token)
 
 currency = 'BTC_STRAT'
 
@@ -27,6 +24,7 @@ def cached_trade():
         return json.load(data_file)
 
 def live_trade():
+    p = lib.polo_connect()
     all_trades = []
     for i in range(start, int(time.time()), 86400 * 14):
         block_trades = p.returnTradeHistory(currencyPair=currency, start=i, end=i + step)
