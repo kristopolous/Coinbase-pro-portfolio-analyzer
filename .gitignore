@@ -2,4 +2,5 @@ secret.py
 *.pyc
 trades*txt
 order-history.json
+.btc
 __pycache__

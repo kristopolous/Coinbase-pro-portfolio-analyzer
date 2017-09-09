@@ -5,6 +5,7 @@ import sys
 import time
 import secret
 import argparse
+import lib
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--currency", required=True, help="Currency to buy")
@@ -28,7 +29,10 @@ lowest = False
 # This is only used for the warning message to make sure
 # the fingers don't slip and someone buys/sells the farm
 # (say by leaving out a decimal point)
-approx_btc_usd = 4500
+#
+# curl https://api.coindesk.com/v1/bpi/currentprice.json
+#
+approx_btc_usd = lib.btc_price()
 
 # let's set it really low for now. 
 warn_at_usd = 3.50
