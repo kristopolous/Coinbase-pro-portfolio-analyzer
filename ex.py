@@ -36,8 +36,8 @@ while True:
             ttl = ttl_temp
             all_trades = all_trades_temp
 
-        cur_balances = p.returnBalances()
-        all_balances = {k: float(v) for k,v in cur_balances.items() }
+        cur_balances = p.returnCompleteBalances()
+        all_balances = {k: float(v['available']) + float(v['onOrders']) for k,v in cur_balances.items() }
         positive_balances = {k: v for k, v in all_balances.items() if v > 0}
 
         for k in positive_balances.keys():
