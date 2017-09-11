@@ -103,31 +103,31 @@ while True:
 
     l = sorted(rows, key=operator.itemgetter(3))
 
-    if len(l)>= len(positive_balances) - 2:
-        if ix % 10 == 0:
-            os.system('clear')
-        print("\033[0;0H")
-        last_row = 0
-        ttl = 0
-        row_max = 15
-        print("{:5} {:>8} {:>8} {:>7} {:>9} {:>9} {:>9} {:>9} {:>9}".format('cur', 'avgbuy', 'price', 'roi', 'bal', 'prof', 'buy', 'sell', 'delta'))
-        for row in l:
-            if row[3] > 100 and last_row < 100:
-                print("---------------------------------------------------------------------------------")
-            print("{:5} {:8.5f} {:8.5f} {:7.3f} {:9.5f} {:9.5f} {:9.4f} {:9.4f} {:9.4f}".format(*row))
-            last_row = row[3]
-            ttl += row[5]
+    
+    if ix % 10 == 0:
+        os.system('clear')
+    print("\033[0;0H")
+    last_row = 0
+    ttl = 0
+    row_max = 15
+    print("{:5} {:>8} {:>8} {:>7} {:>9} {:>9} {:>9} {:>9} {:>9}".format('cur', 'avgbuy', 'price', 'roi', 'bal', 'prof', 'buy', 'sell', 'delta'))
+    for row in l:
+        if row[3] > 100 and last_row < 100:
+            print("---------------------------------------------------------------------------------")
+        print("{:5} {:8.5f} {:8.5f} {:7.3f} {:9.5f} {:9.5f} {:9.4f} {:9.4f} {:9.4f}".format(*row))
+        last_row = row[3]
+        ttl += row[5]
 
-        ttl_list.append(ttl)
-        if len(ttl_list) > 120:
-            ttl_list = ttl_list[-120:]
+    ttl_list.append(ttl)
+    if len(ttl_list) > 120:
+        ttl_list = ttl_list[-120:]
 
-        for x in range(0, row_max):
-            row = []
-            for y in range(x, len(ttl_list), row_max):
-                row.append(ttl_list[y])
+    for x in range(0, row_max):
+        row = []
+        for y in range(x, len(ttl_list), row_max):
+            row.append(ttl_list[y])
 
-            print(' '.join(["{:.5f}".format(l) for l in row]))
+        print(' '.join(["{:.5f}".format(l) for l in row]))
 
     ix += 1
     time.sleep(10)

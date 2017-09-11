@@ -20,7 +20,7 @@ def need_to_get(path):
     return not (os.path.isfile(path) and now < (os.stat(path).st_mtime + one_day / 2))
 
 def btc_price():
-    if not os.path.isfile('cache/btc') or now > os.stat('cache/btc').st_mtime:
+    if need_to_get('cache/btc'):
         with open('cache/btc', 'wb') as cache:
             cache.write(urllib.request.urlopen("https://api.coindesk.com/v1/bpi/currentprice.json").read())
 

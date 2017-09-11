@@ -73,11 +73,15 @@ if not fast or rate is None or rate.find('%') > -1 or rate == 'last':
     lowest = float(row['lowestAsk'])
     bid = float(row['highestBid'])
 
-    print(" Bid:  {}\n Last: {}\n Ask:  {}\n Spread: {}".format(row['highestBid'], row['last'], row['lowestAsk'], 1 - float(row['highestBid']) / float(row['lowestAsk'])))
+    spread = 1 - float(row['highestBid']) / float(row['lowestAsk'])
+    print(" Bid:  {}\n Last: {}\n Ask:  {}\n Spread: {}".format(row['highestBid'], row['last'], row['lowestAsk'], spread))
 
     last = row['last']
     if rate is None:
-        rate = row['lowestAsk'] if action == 'buy' else row['highestBid']
+        if spread > 0.005:
+            rate = (1 + spread / 10) * bid if action == 'buy' else row['highestBid']
+        else:
+            rate = row['lowestAsk'] if action == 'buy' else row['highestBid']
         if args.nofee and action == 'buy':
             price_pump = 0.00000001
             print(" Trying to avoid fee by adding {:.8f}".format(price_pump))
