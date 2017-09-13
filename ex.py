@@ -7,6 +7,7 @@ import time
 import sys
 import secret
 import math
+import lib
 p = Poloniex(*secret.token)
 
 hist = {}
@@ -94,11 +95,13 @@ while True:
 
             hold = (my_ratio - 1) * price * my_balance
 
-            rows.append([cur, 1000 * my_price, 1000 * price, my_ratio * 100, 1000 * price * my_balance, 1000 * hold, 
-                10000 * (my_ratio_buy / my_ratio) - 10000,
-                10000 * (my_ratio_sell / my_ratio) - 10000,
-                100 * math.pow(abs(((my_ratio_buy / my_ratio) - 1) / ((my_ratio_sell / my_ratio) - 1)), 5)
-                ])
+            # if the balance is more than 0.000 001 btc (about 1 penny)
+            if 1000 * price * my_balance > 0.001:
+                rows.append([cur, 1000 * my_price, 1000 * price, my_ratio * 100, lib.btc_price() * price * my_balance, lib.btc_price() * hold, 
+                    10000 * (my_ratio_buy / my_ratio) - 10000,
+                    10000 * (my_ratio_sell / my_ratio) - 10000,
+                    100 * math.pow(abs(((my_ratio_buy / my_ratio) - 1) / ((my_ratio_sell / my_ratio) - 1)), 5)
+                    ])
 
 
     l = sorted(rows, key=operator.itemgetter(3))
@@ -114,7 +117,7 @@ while True:
     for row in l:
         if row[3] > 100 and last_row < 100:
             print("---------------------------------------------------------------------------------")
-        print("{:5} {:8.5f} {:8.5f} {:7.3f} {:9.5f} {:9.5f} {:9.4f} {:9.4f} {:9.4f}".format(*row))
+        print("{:5} {:8.5f} {:8.5f} {:7.3f} {:9.3f} {:9.3f} {:9.4f} {:9.4f} {:9.4f}".format(*row))
         last_row = row[3]
         ttl += row[5]
 

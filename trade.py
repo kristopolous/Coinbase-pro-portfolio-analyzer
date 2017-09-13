@@ -96,7 +96,7 @@ if not fast or rate is None or rate.find('%') > -1 or rate == 'last':
         rate = perc * float(last)
 
 fl_rate = float(rate)
-print("\nComputed\n Rate  {:.10f}BTC\n Quant {:.10f}BTC\n USD  ${:.2f}".format(fl_rate, float(quantity), float(quantity) * approx_btc_usd))
+print("\nComputed\n Rate  {:.10f}BTC\n Quant {:.10f}BTC\n USD  ${:.3f} (btc={:.2f})".format(fl_rate, float(quantity), float(quantity) * approx_btc_usd, approx_btc_usd))
 
 if not fast:
     balanceMap = p.returnCompleteBalances()
