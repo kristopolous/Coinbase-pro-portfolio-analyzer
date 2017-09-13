@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--currency", required=True, help="Currency to buy")
 parser.add_argument('-a', "--action", required=True, help="Action, either buy or sell")
 parser.add_argument('-q', "--quantity", default=0, help="Quantity to buy, expressed as in btc")
-parser.add_argument('-r', "--rate", default=None, help="Rate (defaults to market). Also accepts last, low and percent")
+parser.add_argument('-r', "--rate", default=None, help="Rate (defaults to market). Also accepts last, high, low and percent")
 parser.add_argument('-n', "--nofee", action='store_true', help="Try to avoid the higher fee")
 parser.add_argument('-f', "--fast", action='store_true', help="Skip the ceremony and do things quickly")
 args = parser.parse_args()
@@ -71,10 +71,16 @@ if not fast or rate is None or rate.find('%') > -1 or rate == 'last':
 
     row = priceMap[exchange]
     lowest = float(row['lowestAsk'])
-    bid = float(row['highestBid'])
+    ask = bid = float(row['highestBid'])
 
     spread = 1 - float(row['highestBid']) / float(row['lowestAsk'])
-    print(" Bid:  {}\n Last: {}\n Ask:  {}\n Spread: {}".format(row['highestBid'], row['last'], row['lowestAsk'], spread))
+    if rate == 'low':
+        marker = '>  '
+    if rate == 'last':
+        marker = ' > '
+    if rate == 'high':
+        marker = '  >'
+    print("{}Bid:  {}\n{}Last: {}\n{}Ask:  {}\n Spread: {}".format(marker[0], row['highestBid'], marker[1], row['last'], marker[2], row['lowestAsk'], spread))
 
     last = row['last']
     if rate is None:
@@ -89,6 +95,8 @@ if not fast or rate is None or rate.find('%') > -1 or rate == 'last':
 
     elif rate == 'last':
         rate = last
+    elif rate == 'high' or rate == 'highes':
+        rate = lowest
     elif rate == 'low' or rate == 'lowest':
         rate = bid
     elif rate.find('%') > -1:
