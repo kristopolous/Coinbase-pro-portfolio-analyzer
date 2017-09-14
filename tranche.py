@@ -13,41 +13,7 @@ if len(sys.argv) > 1:
 profit = 0.05
 fee = 0.0025
 hist = {}
-step =  86400 * 14 
-start = int(time.time()) - (3 * step)
 
-def cached_trade():
-    if lib.need_to_get('cache/{}-portfolio.txt'.format(currency)):
-        live_trade()
-
-    with open('cache/{}-portfolio.txt'.format(currency)) as data_file:    
-        return json.load(data_file)
-
-def live_trade():
-    p = lib.polo_connect()
-    all_trades = []
-    for i in range(start, int(time.time()), 86400 * 14):
-        block_trades = p.returnTradeHistory(currencyPair=currency, start=i, end=i + step)
-        if block_trades:
-            all_trades += block_trades
-
-    with open('cache/{}-portfolio.txt'.format(currency), 'w') as outfile:
-      json.dump(all_trades, outfile)
-
-
-def trade(what, tradeList, amount, price):
-    tradeList.append({
-      'rate': price,
-      'amount': amount,
-      'total': price * amount,
-      'type': what
-    })
-
-def sell(tradeList, amount, price):
-    trade('sell', tradeList, amount, price)
-
-def buy(tradeList, amount, price):
-    trade('buy', tradeList, amount, price)
 
 def tally_print(tally):
     buy_at = tally['break'] * (1 - (profit - fee) / 2)
@@ -84,7 +50,7 @@ def tally(tradeList):
     return {'break': break_even, 'low': cur_low, 'high': cur_high, 'max_btc_invested': max_btc_invested, 'btc': btc, 'cur': cur, 'len': len(tradeList)}
 
 print("{} {}".format(currency, profit))
-data = cached_trade()
+data = lib.trade_history(currency)
 process(data)
 ttl = tally(data)
 
