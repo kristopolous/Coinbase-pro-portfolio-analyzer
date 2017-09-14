@@ -1,5 +1,10 @@
 #!/usr/bin/python3
 import lib
+import sys
+
+currency = False
+if len(sys.argv) > 1:
+    currency = 'BTC_{}'.format(sys.argv[1].upper())
 
 def show(what, l):
     subset = list(filter(lambda x: x['type'] == what, l))
@@ -11,7 +16,7 @@ def show(what, l):
 p = lib.polo_connect()
 plist = p.returnOpenOrders()
 for k,v in plist.items():
-    if len(v):
+    if ((currency and currency == k) or not currency) and len(v):
         print(k)
         show('buy', v)
         show('sell', v)
