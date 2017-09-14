@@ -33,7 +33,16 @@ def btc_price():
         d = json.load(json_data)
         return d['bpi']['USD']['rate_float']
 
-def trade_history(currency):
+def ticker():
+    with open('cache/ticker') as json_data:
+        d = json.load(json_data)
+        return d
+
+def trade_history(currency = 'all'):
+    if currency != 'all':
+        all_trades = trade_history()
+        return all_trades[currency]
+
     step = one_day * 7
     now = time.time()
     start = math.floor(time.time() / 10000000) * 10000000

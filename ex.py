@@ -8,6 +8,7 @@ import sys
 import secret
 import math
 import lib
+import json
 p = Poloniex(*secret.token)
 
 hist = {}
@@ -45,6 +46,9 @@ while True:
                 #print("{} {} {}".format(trade['date'], k, bal))
 
     all_prices = p.returnTicker()
+    with open('cache/ticker', 'w') as ticker:
+        json.dump(all_prices, ticker)
+
     rows = []
 
     for k,v in all_trades.items():
