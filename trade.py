@@ -6,6 +6,7 @@ import time
 import secret
 import argparse
 import lib
+import re
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--currency", required=True, help="Currency to buy")
@@ -63,7 +64,7 @@ if action != 'buy' and action != 'sell':
 
 print("EXCHANGE {}".format(exchange))
 
-if not fast or rate is None or rate.find('%') > -1 or rate == 'last':
+if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
     priceMap = p.returnTicker()
 
     if exchange not in priceMap:
@@ -73,7 +74,11 @@ if not fast or rate is None or rate.find('%') > -1 or rate == 'last':
     lowest = float(row['lowestAsk'])
     ask = bid = float(row['highestBid'])
 
+    if rate == 'ask':
+        rate = 'high'
+
     spread = 1 - float(row['highestBid']) / float(row['lowestAsk'])
+    marker = '   '
     if rate == 'low':
         marker = '>  '
     if rate == 'last':
@@ -88,10 +93,13 @@ if not fast or rate is None or rate.find('%') > -1 or rate == 'last':
             rate = (1 + spread / 10) * bid if action == 'buy' else row['highestBid']
         else:
             rate = row['lowestAsk'] if action == 'buy' else row['highestBid']
-        if args.nofee and action == 'buy':
+        if args.nofee: 
             price_pump = 0.00000001
             print(" Trying to avoid fee by adding {:.8f}".format(price_pump))
-            rate = float(rate) - price_pump
+            if action == 'buy':
+                rate = float(rate) - price_pump
+            else:
+                rate = float(rate) + price_pump
 
     elif rate == 'last':
         rate = last

@@ -12,7 +12,7 @@ p = Poloniex(*secret.token)
 
 hist = {}
 step =  86400 * 14 
-start = int(time.time()) - (3 * step)
+start = int(time.time()) - (4 * step)
 
 ix = 0
 ttl_list = []
@@ -21,21 +21,7 @@ os.system('clear')
 while True:
 
     if ix % 80 == 0:
-        all_trades_temp = {}
-        ttl_temp = 0
-        for i in range(start, int(time.time()), 86400 * 14):
-            block_trades = p.returnTradeHistory(start=i, end=i + step)
-            if block_trades:
-                for k,v in block_trades.items():
-                    ttl_temp += len(v)
-                    if k not in all_trades_temp:
-                        all_trades_temp[k] = []
-                    all_trades_temp[k] += v
-            time.sleep(1)
-
-        if ttl_temp > ttl:
-            ttl = ttl_temp
-            all_trades = all_trades_temp
+        all_trades = lib.trade_history('all')
 
         cur_balances = p.returnCompleteBalances()
         all_balances = {k: float(v['available']) + float(v['onOrders']) for k,v in cur_balances.items() }
