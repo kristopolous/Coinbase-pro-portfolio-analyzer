@@ -1,18 +1,45 @@
 #!/usr/bin/python3
 import lib
 import sys
+import numpy as np
+import math
 
-def show(what, l):
-    subset = list(filter(lambda x: x['type'] == what, l))
-    if subset:
-        print(what, sum([float(i['total']) for i in subset]))
-        for i in subset:
-            print(i['date'], i['rate'], i['total'])
+currency = False
+if len(sys.argv) > 1:
+    currency = 'BTC_{}'.format(sys.argv[1].upper())
 
-p = lib.polo_connect()
-plist = p.returnOpenOrders()
-for k,v in plist.items():
-    if len(v):
-        print(k)
-        show('buy', v)
-        show('sell', v)
+rows = 20
+data = lib.trade_history(currency)
+lib.to_float(data)
+sortlist = sorted(data, key = lambda x: x['rate'])
+buyList = list(filter(lambda x: x['type'] == 'buy', sortlist))
+sellList = list(filter(lambda x: x['type'] == 'sell', sortlist))
+
+ticker = lib.ticker()
+last = float(ticker[currency]['last'])
+buy_low = min(buyList[0]['rate'], last)
+buy_high = max(buyList[-1]['rate'], last)
+div = (buy_high - buy_low) / rows
+
+ttl = sum([x['total'] for x in buyList])
+grade = ttl / rows / 200
+
+ix = 0
+slot_ttl = 0
+for slot in np.arange(buy_low, buy_high + div, div):
+    cprice = ' '
+    if last >= slot and last < slot + div:
+        cprice = '>'
+    while True:
+        if ix >= len(buyList) or buyList[ix]['rate'] > slot:
+            break
+        slot_ttl += buyList[ix]['total']
+        ix += 1
+
+    dots = int(math.sqrt(slot_ttl / grade))
+    if slot_ttl > 0 and dots == 0:
+        dots = 1
+
+    print("{:.7f}{}{}".format(slot, cprice, "".join(["*"] * dots )))
+    slot_ttl = 0
+
