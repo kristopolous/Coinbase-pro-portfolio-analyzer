@@ -37,6 +37,9 @@ def cache_get(fn):
         if len(data) > 10:
             return json.loads(data)
 
+def returnOpenOrders():
+    return cache_get('returnOpenOrders')
+
 def returnCompleteBalances():
     return cache_get('returnCompleteBalances')
 
@@ -53,6 +56,11 @@ def ticker():
     with open('cache/ticker') as json_data:
         d = json.load(json_data)
         return d
+
+def to_float(tradeList):
+    for i in range(0, len(tradeList)):
+        for term in  ['total', 'amount', 'rate', 'fee']:
+            tradeList[i][term] = float(tradeList[i][term])
 
 def trade_history(currency = 'all'):
     if currency != 'all':
