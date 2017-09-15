@@ -52,6 +52,37 @@ programmers and people making custom hardware. It's admirable to think you can o
 So you probably can't find this and you are unlikely to be able to make it ... or who knows, maybe all those people
 are dumb... it's happened before.
 
+### history.py
+
+A cli histogram for your buys for a currency.  Let's see how foolish I've been with namecoin:
+
+```
+$ ./history.py nmc
+0.0003337>
+0.0003416
+0.0003494
+0.0003573^
+0.0003652 *******
+0.0003730
+0.0003809 ***
+0.0003888 ******
+0.0003966
+0.0004045 ******
+0.0004124 ***
+0.0004202
+0.0004281 **********
+0.0004360 ***************
+0.0004438 *********************
+0.0004517 **********************
+0.0004596
+0.0004674
+0.0004753 *******************************
+0.0004831 **********************
+```
+
+The `>` sign is where the last trade happened. The *s are my distributions of that inclusive range.  The caret symbol, '^' is the lowest
+buy I've made up to this point. So we can see that namecoin is trading at 0.0003337 and my lowest buy is at 0.0003652. Oops! Trading can be difficult!
+
 ### trade.py
 
 This is a cli trader for poloniex, whose website is a little lame at times.

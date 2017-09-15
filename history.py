@@ -8,7 +8,7 @@ currency = False
 if len(sys.argv) > 1:
     currency = 'BTC_{}'.format(sys.argv[1].upper())
 
-rows = 20
+rows = 15
 data = lib.trade_history(currency)
 lib.to_float(data)
 sortlist = sorted(data, key = lambda x: x['rate'])
@@ -17,7 +17,8 @@ sellList = list(filter(lambda x: x['type'] == 'sell', sortlist))
 
 ticker = lib.ticker()
 last = float(ticker[currency]['last'])
-buy_low = min(buyList[0]['rate'], last)
+buy_low = buyList[0]['rate']
+lowest = min(buy_low, last)
 buy_high = max(buyList[-1]['rate'], last)
 div = (buy_high - buy_low) / rows
 
@@ -26,10 +27,14 @@ grade = ttl / rows / 200
 
 ix = 0
 slot_ttl = 0
-for slot in np.arange(buy_low, buy_high + div, div):
+for slot in np.arange(lowest, buy_high + div, div):
     cprice = ' '
     if last >= slot and last < slot + div:
         cprice = '>'
+
+    if buy_low >= slot and buy_low < slot + div:
+        cprice = '^'
+
     while True:
         if ix >= len(buyList) or buyList[ix]['rate'] > slot:
             break
