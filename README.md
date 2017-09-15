@@ -32,7 +32,7 @@ point becaues you've profited.
 So you can tranche your holdings of some asset into different pricing tiers based on your holdings and then you
 consider the prospect of buying or selling based on each tier + variability in the market place.
 
-This is the current work in progress and it's mathematically sound and likely to work. 
+This is the current work in progress and it's mathematically sound and likely to work.  (see running.py and tranche.py)
 
 I'm pretty sure this is a known strategy and there's wikipedia page with lots of solid math on it, but then
 it wouldn't be as much fun.
@@ -58,30 +58,36 @@ A cli histogram for your buys for a currency.  Let's see how foolish I've been w
 
 ```
 $ ./history.py nmc
-0.0003337>
-0.0003416
-0.0003494
-0.0003573^
-0.0003652 *******
-0.0003730
-0.0003809 ***
-0.0003888 ******
-0.0003966
-0.0004045 ******
-0.0004124 ***
-0.0004202
-0.0004281 **********
-0.0004360 ***************
-0.0004438 *********************
-0.0004517 **********************
-0.0004596
-0.0004674
-0.0004753 *******************************
-0.0004831 **********************
+_.___3253>
+_.___3331
+_.___3410
+_.___3489
+_.___3567^
+_.___3646 *******
+_.___3725
+_.___3803 ***
+_.___3882 ******
+_.___3961
+_.___4039 ******
+_.___4118 ***
+_.___4197
+_.___4275 **********
+_.___4354 ***************
+_.___4432 *********************
+_.___4511 **********************
+_.___4590
+_.___4668
+_.___4747 *******************************
+_.___4826 **********************
 ```
 
-The `>` sign is where the last trade happened. The *s are my distributions of that inclusive range.  The caret symbol, '^' is the lowest
-buy I've made up to this point. So we can see that namecoin is trading at 0.0003337 and my lowest buy is at 0.0003652. Oops! Trading can be difficult!
+Key:
+ * `>` - where the last trade happened. 
+ * `*` - my distributions of that inclusive range.  
+ * `^` - the lowest buy I've made up to this point. 
+ * `_` - Replacements for 0s to make things easier to see at a glance
+
+So we can see that namecoin is trading at 0.0003253 and my lowest buy is at 0.0003652. Oops! Trading can be difficult!
 
 ### trade.py
 
@@ -111,8 +117,8 @@ BUY
  6.88774105RIC at 0.00001452BTC.
  Total 0.00010001BTC
 
-Waiting 8 seconds for user abort
-...7...6...5...4...3...2...1...0
+Waiting 2 seconds for user abort
+1...0
 SUCCESS:
  buy
  6.88774104RIC at 0.00001452BTC.
@@ -121,3 +127,24 @@ SUCCESS:
 </pre>
 
 
+### open.py
+
+Shows the open orders on a given currency or all.  
+
+For instance, here are my hopes and dreams for Ripple (stars have been added to this example to provide a futile cloak of anonymity):
+
+```
+$ ./open.py xrp
+BTC_XRP
+ buy  0.00084000
+  7517406**** 2017-08-30 02:42:** 0.00004200 0.00084000
+ sell 0.00050000
+  7876304**** 2017-09-15 07:32:** 0.00005500 0.00010000
+  7876665**** 2017-09-15 07:50:** 0.00005550 0.00010000
+  7876308**** 2017-09-15 07:33:** 0.00005600 0.00010000
+  7876668**** 2017-09-15 07:50:** 0.00006500 0.00010000
+  7876673**** 2017-09-15 07:51:** 0.00007000 0.00010000
+```
+
+So if the price gets to 0.00005600, I'm going to sell a whole 0.0001 btc of it. 
+That's Big money now - like parking-meter change. Those are UTC times there.
