@@ -5,10 +5,22 @@ import urllib.request
 import json
 import secret
 import math
+import re
+import sys
 
 one_day = 86400
 
 polo_instance = False
+
+def bprint(what):
+    # there's probably smarter ways to do this ... but
+    # I can't think of one
+    for i in range(6, 0, -1):
+        what = re.sub('^0\.{}'.format('0' * i), '_.{}'.format('_' * i), what)
+        what = re.sub(' 0\.{}'.format('0' * i), ' _.{}'.format('_' * i), what)
+    
+    print(what)
+
 def polo_connect():
     global polo_instance
     if not polo_instance:
@@ -19,10 +31,12 @@ def polo_connect():
 
 def need_to_get(path, doesExpire = True, expiry = one_day / 2):
     now = time.time()
+
+    if not os.path.isfile(path):
+        return True
+
     if doesExpire:
-        return not (os.path.isfile(path) and now < (os.stat(path).st_mtime + expiry))
-    else:
-        return not os.path.isfile(path)
+        return now < (os.stat(path).st_mtime + expiry)
 
 def cache_get(fn):
     name = "cache/{}".format(fn)
@@ -52,6 +66,7 @@ def btc_price():
         d = json.load(json_data)
         return d['bpi']['USD']['rate_float']
 
+
 def ticker():
     with open('cache/ticker') as json_data:
         d = json.load(json_data)
@@ -75,11 +90,15 @@ def trade_history(currency = 'all'):
     for i in range(start, int(now), step):
         if now - start < step:
             doesExpire = true
+
         name = 'cache/{}-{}.txt'.format(currency, i)
         if need_to_get(name, doesExpire = doesExpire, expiry = 300):
             with open(name, 'w') as cache:
                 p = polo_connect() 
-                history = p.returnTradeHistory(currencyPair=currency, start=i, end=i + step)
+                end = i + step
+                if end > now:
+                    end = False
+                history = p.returnTradeHistory(currencyPair=currency, start=i, end=end)
                 json.dump(history, cache)
 
         with open(name) as handle:
