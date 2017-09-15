@@ -24,6 +24,22 @@ def need_to_get(path, doesExpire = True, expiry = one_day / 2):
     else:
         return not os.path.isfile(path)
 
+def cache_get(fn):
+    name = "cache/{}".format(fn)
+    if need_to_get(name, expiry=300):
+        with open(name, 'w') as cache:
+            p = polo_connect() 
+            data = getattr(p, fn)()
+            json.dump(data, cache)
+
+    with open(name) as handle:
+        data = handle.read()
+        if len(data) > 10:
+            return json.loads(data)
+
+def returnCompleteBalances():
+    return cache_get('returnCompleteBalances')
+
 def btc_price():
     if need_to_get('cache/btc'):
         with open('cache/btc', 'wb') as cache:
