@@ -34,14 +34,9 @@ def find_next(data):
         ttl_buy_currency += x['amount']
         ttl_buy_btc += x['total'] 
 
-def process(tradeList):
-    for i in range(0, len(tradeList)):
-        for term in  ['total', 'amount', 'rate', 'fee']:
-            tradeList[i][term] = float(tradeList[i][term])
-
 print("{} @ {:.8f}".format(currency, rate))
 data = lib.trade_history(currency)
-process(data)
+lib.to_float(data)
 
 next_price = []
 for i in range(0,10):
