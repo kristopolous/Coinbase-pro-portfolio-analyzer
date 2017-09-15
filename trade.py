@@ -115,7 +115,7 @@ fl_rate = float(rate)
 print("\nComputed\n Rate  {:.10f}BTC\n Quant {:.10f}BTC\n USD  ${:.3f} (btc={:.2f})".format(fl_rate, float(quantity), float(quantity) * approx_btc_usd, approx_btc_usd))
 
 if not fast:
-    balanceMap = p.returnCompleteBalances()
+    balanceMap = lib.returnCompleteBalances()
     row = balanceMap[currency]
 
     print("\nBalance:\n BTC   {:>13}\n {:6}{:13.8f}".format(
@@ -129,7 +129,7 @@ if quantity == 0:
     sys.exit(-1)
 
 if False or not fast:
-    wait = 8
+    wait = 2
     print("\nWaiting {} seconds for user abort".format(wait))
     for i in range(wait, 0, -1):
         print("...{}".format(i - 1), end='', flush=True)
