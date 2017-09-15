@@ -60,7 +60,7 @@ def trade_history(currency = 'all'):
 
         with open(name) as handle:
             data = handle.read()
-            if len(data):
+            if len(data) > 10:
                 json_data = json.loads(data)
                 if isinstance(json_data, dict):
                     if not isinstance(all_trades, dict):
