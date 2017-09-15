@@ -38,7 +38,13 @@ I'm pretty sure this is a known strategy and there's wikipedia page with lots of
 it wouldn't be as much fun.
 
 Besides, all of these tools here essentially trade in 0.0001 btc at a time (which is as of this writing, about
-$.45).  Again, I was never in it to make money (although I've made a bit).
+$.35).  Again, I was never in it to make money (although I've made a bit).
+
+> The big hypothesis here is since the fees are small, to try to make small profits from large holdings in short times and then re-invest.
+
+As an investor in traditional stocks, I've been screwed one too many times using the preferential lump-sum investment strategy where the companies I invested in end up dissappearing in 10 years or get bought or merged and I'm out of investment. I've come to appreciate the idea that a long-term hold in some 40% gain expectation is almost more risk than an expectation of 3-5% return in a matter of days or weeks. It also locks your liquid funds away in something you are just waiting for a sunny day on. Yeah, fuck that.
+
+#### disclaimer
 
 If you're looking for a set-it-and-forget-it make-money-while-i-sleep magic trading bot, then I've got two 
 pieces of news for you:
@@ -148,3 +154,49 @@ BTC_XRP
 
 So if the price gets to 0.00005600, I'm going to sell a whole 0.0001 btc of it. 
 That's Big money now - like parking-meter change. Those are UTC times there.
+
+### monitor.py
+
+Part reality, part snake oil, this tool shows an overview of your current holdings and is updated in a polite-to-poloniex approximation
+of real-time (every 10 seconds as of this writing):
+
+It runs full screen and does an update. There's a lot to be wanted but it's not bad right now. Here's an example with  --- 8< ---
+signifying truncation of output. Things have also been numbered for the description below
+
+```
+  cur     avgbuy    price     roi       bal      prof       buy      sell     delta
+  XPM    0.09638  0.03831  39.748    44.303   -26.693   47.6239  -47.9263   96.8847
+  SC     0.00243  0.00131  53.862    60.357   -27.848   28.4528  -28.6441   96.7046
+  --- 8< ---
+  REP    5.25056  4.91170  93.546    95.799    -6.183    3.8704   -3.9161   94.2984
+  XRP    0.05311  0.05015  94.420    38.945    -2.173    2.0197   -2.0342   96.4731
+  --------------------------------------------------------------------------------- (profit line)
+  OMG    2.67470  2.73046 102.085     2.390     0.050  -24.8359   31.7263   29.3971
+  ETH   60.68039 69.85933 115.127   128.092    19.376   -1.4543    1.4575   98.9159
+  --- 8< ---
+  -235.09363 -235.26934 -237.22884  (running balance)
+  -235.15078 -236.92644 -237.39766
+  -235.57001 -235.96676 -237.31935
+  -234.47959 -237.30898
+  --- 8< ---
+```
+
+The tool lists all of your `BTC_*` market holdings along with the following real columns:
+
+  * avgbuy - What your average buy is in 1/1000 btc
+  * price - The last traded price in 1/1000 btc
+  * roi - Return on investment of current holdings, in percent, essentially the price / avgbuy
+  * bal - Estimated USD of holdings based on a twice daily update of btc price from coindesk
+  * prof - Estimated USD profit if you were able to sell off all holdings at `price`
+
+And the following snake-oil columns:
+  * buy - How a 0.0001btc buy of the currency would change your avgbuy number. If this number is big then your average buy will go down if you buy the currency ... this means that profit may be closer in reach.
+  * sell - How a 0.0001btc sell of the currency would change your avgbuy number on your remaining holdings. This is not considering any average sell or profit and is likely complete nonsense.
+  * delta - the fractional difference between the two expressed as a triple squareroot. Since the sell number is likely a bad computation, this is also probably a bad thing.
+
+
+Other properties:
+
+  * the "profit line" is where outright profit can be made without any hedging. This is currently a deceiving line if you have fully invested and divested in a currency at multiple points. In the future this should somehow consider buy/sell pairings and wash out that profit to make sure that the number below the line represents an increase, not a decrease in the outright margin. So it's currently somewhat correct 
+
+  * the "running balance" is estimated USD ROI of your current holdings.  How I trade this runs negative because as the strategy in the intro was discussing, the point is to sell off at profit and invest at loss.
