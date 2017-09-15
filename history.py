@@ -3,6 +3,7 @@ import lib
 import sys
 import numpy as np
 import math
+from lib import bprint
 
 currency = False
 if len(sys.argv) > 1:
@@ -45,6 +46,6 @@ for slot in np.arange(lowest, buy_high + div, div):
     if slot_ttl > 0 and dots == 0:
         dots = 1
 
-    print("{:.7f}{}{}".format(slot, cprice, "".join(["*"] * dots )))
+    bprint("{:.7f}{}{}".format(slot, cprice, "".join(["*"] * dots )))
     slot_ttl = 0
 
