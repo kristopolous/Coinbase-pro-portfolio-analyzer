@@ -11,10 +11,6 @@ import lib
 import json
 p = Poloniex(*secret.token)
 
-hist = {}
-step =  86400 * 14 
-start = int(time.time()) - (4 * step)
-
 ix = 0
 ttl_list = []
 ttl = 0
