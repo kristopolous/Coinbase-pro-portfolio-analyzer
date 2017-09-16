@@ -32,15 +32,15 @@ def polo_connect():
 def need_to_get(path, doesExpire = True, expiry = one_day / 2):
     now = time.time()
 
-    if not os.path.isfile(path):
+    if not os.path.isfile(path) or os.path.getsize(path) < 10:
         return True
 
     if doesExpire:
-        return now < (os.stat(path).st_mtime + expiry)
+        return now > (os.stat(path).st_mtime + expiry)
 
-def cache_get(fn):
+def cache_get(fn, expiry=300):
     name = "cache/{}".format(fn)
-    if need_to_get(name, expiry=300):
+    if need_to_get(name, expiry=expiry):
         with open(name, 'w') as cache:
             p = polo_connect() 
             data = getattr(p, fn)()
@@ -52,7 +52,7 @@ def cache_get(fn):
             return json.loads(data)
 
 def returnOpenOrders():
-    return cache_get('returnOpenOrders')
+    return cache_get('returnOpenOrders', expiry=30)
 
 def returnCompleteBalances():
     return cache_get('returnCompleteBalances')

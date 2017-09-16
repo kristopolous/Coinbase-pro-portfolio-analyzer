@@ -93,13 +93,6 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
             rate = (1 + spread / 10) * bid if action == 'buy' else row['highestBid']
         else:
             rate = row['lowestAsk'] if action == 'buy' else row['highestBid']
-        if args.nofee: 
-            price_pump = 0.00000001
-            print(" Trying to avoid fee by adding {:.8f}".format(price_pump))
-            if action == 'buy':
-                rate = float(rate) - price_pump
-            else:
-                rate = float(rate) + price_pump
 
     elif rate == 'last':
         rate = last
@@ -110,6 +103,14 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
     elif rate.find('%') > -1:
         perc = float(rate.replace('%', '')) / 100
         rate = perc * float(last)
+
+    if args.nofee: 
+        price_pump = 0.00000001
+        print(" Trying to avoid fee by adding {:.8f}".format(price_pump))
+        if action == 'buy':
+            rate = float(rate) - price_pump
+        else:
+            rate = float(rate) + price_pump
 
 fl_rate = float(rate)
 print("\nComputed\n Rate  {:.10f}BTC\n Quant {:.10f}BTC\n USD  ${:.3f} (btc={:.2f})".format(fl_rate, float(quantity), float(quantity) * approx_btc_usd, approx_btc_usd))
