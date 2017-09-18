@@ -9,9 +9,9 @@ if len(sys.argv) > 1:
 def show(what, l):
     subset = list(filter(lambda x: x['type'] == what, l))
     if subset:
-        print(" {:4} {:.8f}".format(what, sum([float(i['total']) for i in subset])))
+        lib.bprint(" {:4} {:.8f}".format(what, sum([float(i['total']) for i in subset])))
         for i in subset:
-            print("  {} {} {} {}".format(i['orderNumber'], i['date'], i['rate'], i['total']))
+            lib.bprint("  {} {} {} {}".format(i['orderNumber'], i['date'], i['rate'], i['total']))
 
 plist = lib.returnOpenOrders()
 

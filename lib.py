@@ -77,6 +77,16 @@ def btc_price():
         return d['bpi']['USD']['rate_float']
 
 
+def recent(currency):
+    data = trade_history(currency)
+    buyList = list(filter(lambda x: x['type'] == 'buy', data))
+    sellList = list(filter(lambda x: x['type'] == 'sell', data))
+
+    print("Last buy")
+    bprint("\n".join([" {} {:.8f} {:.8f}".format(i['date'], i['rate'], i['btc']) for i in reversed(buyList[-5:])]))
+    print("Last sell")
+    bprint("\n".join([" {} {:.8f} {:.8f}".format(i['date'], i['rate'], i['btc']) for i in reversed(sellList[-5:])]))
+
 def ignorePriorExits(tradeList):
     ttl_btc = 0
     ttl_cur = 0

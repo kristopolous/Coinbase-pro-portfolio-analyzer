@@ -48,3 +48,4 @@ for slot in np.arange(lowest, buy_high + div, div):
     bprint("{:.7f}{}{}".format(slot, cprice, "".join(["*"] * dots )))
     slot_ttl = 0
 
+lib.recent(currency)

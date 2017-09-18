@@ -18,10 +18,10 @@ os.system('clear')
 
 rowOrderList = [
     [ 'cur', '{:5}', '{:5}'],
-    [ 'buy', '{:>9}', '{:9.4f}'],
-    [ 'last', '{:>8}', '{:8.5f}'],
+    [ 'buy', '{:>9}', '{:9.2f}'],
+    [ 'last', '{:>9}', '{}'],
     [ 'price', '{:>8}', '{:8.5f}'],
-    [ 'roi', '{:>7}', '{:7.3f}'],
+    [ 'roi', '{:>7}', '{:7.2f}'],
     [ 'bal', '{:>8}', '{:8.3f}'],
     [ 'prof', '{:>8}', '{:8.3f}'],
     [ 'sell', '{:>9}', '{:9.4f}'],
@@ -80,7 +80,7 @@ while True:
 
             rows.append({
                 'cur': cur, 
-                'last': v[-1]['rate'] * 1000,
+                'last': "{:8.5f}{}".format(v[-1]['rate'] * 1000, 'b' if v[-1]['type'][0] == 'b' else ' '),
                 'price': 1000 * price, 
                 'roi': my_ratio * 100, 
                 'bal': lib.btc_price() * price * my_balance, 
