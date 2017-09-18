@@ -36,7 +36,6 @@ def find_next(data):
 
 print("{} @ {:.8f}".format(currency, rate))
 data = lib.trade_history(currency)
-lib.to_float(data)
 
 next_price = []
 for i in range(0,10):
@@ -49,3 +48,11 @@ for p_int in range(100,110):
     p = float(p_int)/ 100
     print ("{:.2f} {}".format(p, "\t".join(["{:.8f}".format(i * p) for i in next_price])))
 
+data = lib.trade_history(currency)
+buyList = list(filter(lambda x: x['type'] == 'buy', data))
+sellList = list(filter(lambda x: x['type'] == 'sell', data))
+
+print("Last buy")
+print("\n".join([" {} {:.8f} {:.8f}".format(i['date'], i['rate'], i['btc']) for i in reversed(buyList[-5:])]))
+print("Last sell")
+print("\n".join([" {} {:.8f} {:.8f}".format(i['date'], i['rate'], i['btc']) for i in reversed(sellList[-5:])]))

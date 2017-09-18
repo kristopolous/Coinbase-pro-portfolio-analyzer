@@ -78,14 +78,6 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
         rate = 'high'
 
     spread = 1 - float(row['highestBid']) / float(row['lowestAsk'])
-    marker = '   '
-    if rate == 'low':
-        marker = '>  '
-    if rate == 'last':
-        marker = ' > '
-    if rate == 'high':
-        marker = '  >'
-    lib.bprint("{}Bid:  {}\n{}Last: {}\n{}Ask:  {}\n Sprd: {:.7}".format(marker[0], row['highestBid'], marker[1], row['last'], marker[2], row['lowestAsk'], spread))
 
     last = row['last']
     if rate is None:
@@ -98,6 +90,8 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
         rate = last
     elif rate == 'high' or rate == 'highes':
         rate = lowest
+        # we don't need to price pump at the ask price
+        args.nofee = False
     elif rate == 'low' or rate == 'lowest':
         rate = bid
     elif rate.find('%') > -1:
@@ -111,6 +105,15 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
             rate = float(rate) - price_pump
         else:
             rate = float(rate) + price_pump
+
+    marker = '   '
+    if rate == 'low':
+        marker = '>  '
+    if rate == 'last':
+        marker = ' > '
+    if rate == 'high':
+        marker = '  >'
+    lib.bprint("{}Bid:  {}\n{}Last: {}\n{}Ask:  {}\n Sprd: {:.6}".format(marker[0], row['highestBid'], marker[1], row['last'], marker[2], row['lowestAsk'], spread))
 
 fl_rate = float(rate)
 lib.bprint("\nComputed\n Rate  {:.8f}\n Quant {:.8f}\n USD   {:.3f} (btc={:.2f})".format(fl_rate, float(quantity), float(quantity) * approx_btc_usd, approx_btc_usd))

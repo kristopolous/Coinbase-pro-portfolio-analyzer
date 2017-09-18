@@ -33,9 +33,8 @@ while True:
     if ix % 80 == 0:
         all_trades = lib.trade_history('all')
 
-        cur_balances = lib.returnCompleteBalances()
-        all_balances = {k: float(v['available']) + float(v['onOrders']) for k,v in cur_balances.items() }
-        positive_balances = {k: v for k, v in all_balances.items() if v > 0.0001}
+        cur_balances = {k: v for k, v in lib.returnCompleteBalances().items() if float(v['btcValue']) > 0.0001}
+        positive_balances = {k: float(v['available']) + float(v['onOrders']) for k,v in cur_balances.items() }
 
         for k, v in all_trades.items():
             all_trades[k] = lib.ignorePriorExits(v)
