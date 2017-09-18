@@ -7,6 +7,8 @@ import secret
 import math
 import re
 import sys
+from datetime import datetime
+from operator import itemgetter, attrgetter
 
 one_day = 86400
 
@@ -18,6 +20,9 @@ def bprint(what):
     for i in range(6, 0, -1):
         what = re.sub('^0\.{}'.format('0' * i), '_.{}'.format('_' * i), what)
         what = re.sub(' 0\.{}'.format('0' * i), ' _.{}'.format('_' * i), what)
+
+    what = re.sub('^0\.', '_.', what)
+    what = re.sub(' 0\.', ' _.', what)
     
     print(what)
 
@@ -67,6 +72,27 @@ def btc_price():
         return d['bpi']['USD']['rate_float']
 
 
+def ignorePriorExits(tradeList):
+    ttl_btc = 0
+    ttl_cur = 0
+    recent = []
+
+    for row in tradeList:
+        if row['type'] == 'buy':
+            ttl_cur += row['cur']
+        if row['type'] == 'sell':
+            ttl_cur -= row['cur']
+
+        # if we've exited the currency then we reset our
+        # counters
+        if ttl_cur < 0.0000000001:
+            recent = []
+        else:
+            recent.append(row)
+
+    return recent
+
+
 def ticker():
     with open('cache/ticker') as json_data:
         d = json.load(json_data)
@@ -77,6 +103,19 @@ def to_float(tradeList):
         for term in  ['total', 'amount', 'rate', 'fee']:
             tradeList[i][term] = float(tradeList[i][term])
 
+        tradeList[i]['btc'] = tradeList[i]['total']
+        tradeList[i]['cur'] = tradeList[i]['amount']
+
+        if tradeList[i]['type'] == 'sell':
+            tradeList[i]['btc'] -= tradeList[i]['total'] * tradeList[i]['fee']
+
+        if tradeList[i]['type'] == 'buy':
+            tradeList[i]['cur'] -= tradeList[i]['cur'] * tradeList[i]['fee']
+
+        tradeList[i]['date'] = datetime.strptime( tradeList[i]['date'], '%Y-%m-%d %H:%M:%S' )
+
+    return tradeList
+
 def trade_history(currency = 'all'):
     if currency != 'all':
         all_trades = trade_history()
@@ -84,12 +123,12 @@ def trade_history(currency = 'all'):
 
     step = one_day * 7
     now = time.time()
-    start = math.floor(time.time() / 10000000) * 10000000
+    start = 1501209600
     doesExpire = False
     all_trades = []
     for i in range(start, int(now), step):
-        if now - start < step:
-            doesExpire = true
+        if now - i < step:
+            doesExpire = True
 
         name = 'cache/{}-{}.txt'.format(currency, i)
         if need_to_get(name, doesExpire = doesExpire, expiry = 300):
@@ -115,5 +154,8 @@ def trade_history(currency = 'all'):
                         all_trades[k] += v
                 else:
                     all_trades += json_data
+
+    for k,v in all_trades.items():
+        all_trades[k] = sorted(to_float(v), key=itemgetter('date'))
 
     return all_trades

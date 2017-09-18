@@ -85,7 +85,7 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
         marker = ' > '
     if rate == 'high':
         marker = '  >'
-    print("{}Bid:  {}\n{}Last: {}\n{}Ask:  {}\n Spread: {}".format(marker[0], row['highestBid'], marker[1], row['last'], marker[2], row['lowestAsk'], spread))
+    lib.bprint("{}Bid:  {}\n{}Last: {}\n{}Ask:  {}\n Sprd: {:.7}".format(marker[0], row['highestBid'], marker[1], row['last'], marker[2], row['lowestAsk'], spread))
 
     last = row['last']
     if rate is None:
@@ -113,7 +113,7 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
             rate = float(rate) + price_pump
 
 fl_rate = float(rate)
-print("\nComputed\n Rate  {:.10f}BTC\n Quant {:.10f}BTC\n USD  ${:.3f} (btc={:.2f})".format(fl_rate, float(quantity), float(quantity) * approx_btc_usd, approx_btc_usd))
+lib.bprint("\nComputed\n Rate  {:.8f}\n Quant {:.8f}\n USD   {:.3f} (btc={:.2f})".format(fl_rate, float(quantity), float(quantity) * approx_btc_usd, approx_btc_usd))
 
 if not fast:
     balanceMap = lib.returnCompleteBalances()
@@ -124,7 +124,7 @@ if not fast:
       ))
 
 amount_to_trade = quantity / fl_rate
-print("\n{}\n {:.8f}{} at {:.8f}BTC.\n Total {:.8f}BTC".format(action.upper(), amount_to_trade, currency, fl_rate, quantity))
+lib.bprint("\n{}\n   {:12.8f}\n * {:12.8f}BTC\n = {:12.8f}BTC".format(action.upper(), amount_to_trade, fl_rate, quantity))
 
 if quantity == 0:
     sys.exit(-1)

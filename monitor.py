@@ -15,6 +15,19 @@ ix = 0
 ttl_list = []
 ttl = 0
 os.system('clear')
+
+rowOrderList = [
+    [ 'cur', '{:5}', '{:5}'],
+    [ 'buy', '{:>9}', '{:9.4f}'],
+    [ 'avgbuy', '{:>8}', '{:8.5f}'],
+    [ 'price', '{:>8}', '{:8.5f}'],
+    [ 'roi', '{:>7}', '{:7.3f}'],
+    [ 'bal', '{:>8}', '{:8.3f}'],
+    [ 'prof', '{:>8}', '{:8.3f}'],
+    [ 'sell', '{:>9}', '{:9.4f}'],
+    [ 'delta','{:>9}', '{:9.4f}']
+]
+
 while True:
 
     if ix % 80 == 0:
@@ -22,24 +35,11 @@ while True:
 
         cur_balances = lib.returnCompleteBalances()
         all_balances = {k: float(v['available']) + float(v['onOrders']) for k,v in cur_balances.items() }
-        positive_balances = {k: v for k, v in all_balances.items() if v > 0}
+        positive_balances = {k: v for k, v in all_balances.items() if v > 0.0001}
 
-        for k in positive_balances.keys():
-            key = 'BTC_' + k
-            if not key in all_trades:
-                continue
-            v = all_trades['BTC_' + k]
-            bal = 0
-            off = 0
-            v.reverse()
-            for trade in v:
-                fee = float(trade['fee'])
-                amount = float(trade['total'])
-                if trade['type'] == 'buy':
-                    bal += amount
-                if trade['type'] == 'sell':
-                    bal -= amount * (1 - fee)
-                #print("{} {} {}".format(trade['date'], k, bal))
+        for k, v in all_trades.items():
+            all_trades[k] = lib.ignorePriorExits(v)
+
 
     all_prices = p.returnTicker()
     with open('cache/ticker', 'w') as ticker:
@@ -81,31 +81,44 @@ while True:
 
             hold = (my_ratio - 1) * price * my_balance
 
-            # if the balance is more than 0.000 001 btc (about 1 penny)
-            if 1000 * price * my_balance > 0.001:
-                rows.append([cur, 1000 * my_price, 1000 * price, my_ratio * 100, lib.btc_price() * price * my_balance, lib.btc_price() * hold, 
-                    10000 * (my_ratio_buy / my_ratio) - 10000,
-                    10000 * (my_ratio_sell / my_ratio) - 10000,
-                    100 * math.pow(abs(((my_ratio_buy / my_ratio) - 1) / ((my_ratio_sell / my_ratio) - 1)), 5)
-                    ])
+            rows.append({
+                'cur': cur, 
+                'avgbuy': 1000 * my_price, 
+                'price': 1000 * price, 
+                'roi': my_ratio * 100, 
+                'bal': lib.btc_price() * price * my_balance, 
+                'prof': lib.btc_price() * hold, 
+                'buy': 10000 * (my_ratio_buy / my_ratio) - 10000,
+                'sell': 10000 * (my_ratio_sell / my_ratio) - 10000,
+                'delta': 100 * math.pow(abs(((my_ratio_buy / my_ratio) - 1) / ((my_ratio_sell / my_ratio) - 1)), 5)
+            })
 
-
-    l = sorted(rows, key=operator.itemgetter(3))
-
+    l = sorted(rows, key=operator.itemgetter('roi'))
     
     if ix % 10 == 0:
         os.system('clear')
     print("\033[0;0H")
     last_row = 0
     ttl = 0
-    row_max = 15
-    print("{:5} {:>8} {:>8} {:>7} {:>9} {:>9} {:>9} {:>9} {:>9}".format('cur', 'avgbuy', 'price', 'roi', 'bal', 'prof', 'buy', 'sell', 'delta'))
+    row_max = 10
+    header = []
+    for column in rowOrderList:
+        header.append(column[1].format(column[0]))
+    header = " ".join(header)
+    rowlen = len(header)
+    print(header)
+
     for row in l:
-        if row[3] > 100 and last_row < 100:
-            print("---------------------------------------------------------------------------------")
-        print("{:5} {:8.5f} {:8.5f} {:7.3f} {:9.3f} {:9.3f} {:9.4f} {:9.4f} {:9.4f}".format(*row))
-        last_row = row[3]
-        ttl += row[5]
+        if row['roi'] > 100 and last_row < 100:
+            print("-" * rowlen)
+
+        output = []
+        for column in rowOrderList:
+            output.append(column[2].format(row[column[0]]))
+        print(" ".join(output))
+
+        last_row = row['roi']
+        ttl += row['prof']
 
     ttl_list.append(ttl)
     if len(ttl_list) > 120:

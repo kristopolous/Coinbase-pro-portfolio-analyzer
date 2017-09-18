@@ -191,12 +191,12 @@ The tool lists all of your `BTC_*` market holdings along with the following real
 
 And the following snake-oil columns:
   * buy - How a 0.0001btc buy of the currency would change your avgbuy number. If this number is big then your average buy will go down if you buy the currency ... this means that profit may be closer in reach.
-  * sell - How a 0.0001btc sell of the currency would change your avgbuy number on your remaining holdings. This is not considering any average sell or profit and is likely complete nonsense.
+  * sell - How a 0.0001btc sell of the currency would change your avgsell number on your remaining holdings. This is not considering any profit and is likely complete nonsense.
   * delta - the fractional difference between the two expressed as a triple squareroot. Since the sell number is likely a bad computation, this is also probably a bad thing.
 
 
 Other properties:
 
-  * the "profit line" is where outright profit can be made without any hedging. This is currently a deceiving line if you have fully invested and divested in a currency at multiple points. In the future this should somehow consider buy/sell pairings and wash out that profit to make sure that the number below the line represents an increase, not a decrease in the outright margin. So it's currently somewhat correct 
+  * the "profit line" is where outright profit can be made without any hedging. This is currently a deceiving line if you have fully invested and divested in a currency at multiple points. It ignores what's called "prior exits" which is if you sold off all of your holdings at a profit at a prior date. This attempts to treat your current holdings as an isolated set.
 
   * the "running balance" is estimated USD ROI of your current holdings.  How I trade this runs negative because as the strategy in the intro was discussing, the point is to sell off at profit and invest at loss.
