@@ -19,7 +19,7 @@ os.system('clear')
 rowOrderList = [
     [ 'cur', '{:5}', '{:5}'],
     [ 'buy', '{:>9}', '{:9.4f}'],
-    [ 'avgbuy', '{:>8}', '{:8.5f}'],
+    [ 'last', '{:>8}', '{:8.5f}'],
     [ 'price', '{:>8}', '{:8.5f}'],
     [ 'roi', '{:>7}', '{:7.3f}'],
     [ 'bal', '{:>8}', '{:8.3f}'],
@@ -40,9 +40,7 @@ while True:
             all_trades[k] = lib.ignorePriorExits(v)
 
 
-    all_prices = p.returnTicker()
-    with open('cache/ticker', 'w') as ticker:
-        json.dump(all_prices, ticker)
+    all_prices = lib.returnTicker(forceUpdate = True)
 
     rows = []
 
@@ -82,7 +80,7 @@ while True:
 
             rows.append({
                 'cur': cur, 
-                'avgbuy': 1000 * my_price, 
+                'last': v[-1]['rate'] * 1000,
                 'price': 1000 * price, 
                 'roi': my_ratio * 100, 
                 'bal': lib.btc_price() * price * my_balance, 
@@ -113,7 +111,7 @@ while True:
 
         output = []
         for column in rowOrderList:
-            output.append(column[2].format(row[column[0]]))
+            output.append(lib.bstr(column[2].format(row[column[0]])))
         print(" ".join(output))
 
         last_row = row['roi']

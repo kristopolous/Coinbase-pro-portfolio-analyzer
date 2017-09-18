@@ -11,12 +11,11 @@ if len(sys.argv) > 1:
 
 rows = 15
 data = lib.trade_history(currency)
-lib.to_float(data)
 sortlist = sorted(data, key = lambda x: x['rate'])
 buyList = list(filter(lambda x: x['type'] == 'buy', sortlist))
 sellList = list(filter(lambda x: x['type'] == 'sell', sortlist))
 
-ticker = lib.ticker()
+ticker = lib.returnTicker()
 last = float(ticker[currency]['last'])
 buy_low = buyList[0]['rate']
 lowest = min(buy_low, last)

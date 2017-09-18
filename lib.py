@@ -14,17 +14,19 @@ one_day = 86400
 
 polo_instance = False
 
-def bprint(what):
+def bstr(what):
     # there's probably smarter ways to do this ... but
     # I can't think of one
     for i in range(6, 0, -1):
         what = re.sub('^0\.{}'.format('0' * i), '_.{}'.format('_' * i), what)
-        what = re.sub(' 0\.{}'.format('0' * i), ' _.{}'.format('_' * i), what)
+        what = re.sub('(\s)0\.{}'.format('0' * i), r'\1_.{}'.format('_' * i), what)
 
     what = re.sub('^0\.', '_.', what)
     what = re.sub(' 0\.', ' _.', what)
-    
-    print(what)
+    return what 
+
+def bprint(what):
+    print(bstr(what))
 
 def polo_connect():
     global polo_instance
@@ -43,9 +45,9 @@ def need_to_get(path, doesExpire = True, expiry = one_day / 2):
     if doesExpire:
         return now > (os.stat(path).st_mtime + expiry)
 
-def cache_get(fn, expiry=300):
+def cache_get(fn, expiry=300, forceUpdate = False):
     name = "cache/{}".format(fn)
-    if need_to_get(name, expiry=expiry):
+    if need_to_get(name, expiry=expiry) or forceUpdate:
         with open(name, 'w') as cache:
             p = polo_connect() 
             data = getattr(p, fn)()
@@ -61,6 +63,9 @@ def returnOpenOrders():
 
 def returnCompleteBalances():
     return cache_get('returnCompleteBalances')
+
+def returnTicker(forceUpdate = False):
+    return cache_get('returnTicker', forceUpdate)
 
 def btc_price():
     if need_to_get('cache/btc'):
@@ -92,12 +97,6 @@ def ignorePriorExits(tradeList):
 
     return recent
 
-
-def ticker():
-    with open('cache/ticker') as json_data:
-        d = json.load(json_data)
-        return d
-
 def to_float(tradeList):
     for i in range(0, len(tradeList)):
         for term in  ['total', 'amount', 'rate', 'fee']:
@@ -116,9 +115,9 @@ def to_float(tradeList):
 
     return tradeList
 
-def trade_history(currency = 'all'):
+def trade_history(currency = 'all', forceUpdate = False):
     if currency != 'all':
-        all_trades = trade_history()
+        all_trades = trade_history(forceUpdate = forceUpdate)
         return all_trades[currency]
 
     step = one_day * 7
@@ -131,7 +130,7 @@ def trade_history(currency = 'all'):
             doesExpire = True
 
         name = 'cache/{}-{}.txt'.format(currency, i)
-        if need_to_get(name, doesExpire = doesExpire, expiry = 300):
+        if need_to_get(name, doesExpire = doesExpire, expiry = 300) or (doesExpire and forceUpdate):
             with open(name, 'w') as cache:
                 p = polo_connect() 
                 end = i + step
