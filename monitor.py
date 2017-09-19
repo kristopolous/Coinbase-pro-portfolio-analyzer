@@ -14,24 +14,34 @@ p = Poloniex(*secret.token)
 ix = 0
 ttl_list = []
 ttl = 0
+all_prices_last = False
+waitTime = 10 
+tradeUpdate = 600
+
+tradeUpdate = round(tradeUpdate / waitTime)
+
 os.system('clear')
 
 rowOrderList = [
     [ 'cur', '{:5}', '{:5}'],
     [ 'buy', '{:>9}', '{:9.2f}'],
-    [ 'last', '{:>9}', '{}'],
+    [ 'move', '{:>7}', '{:7.3f}'],
+    [ '24h', '{:>7}', '{:7.2f}'],
     [ 'price', '{:>8}', '{:8.5f}'],
+    [ 'last', '{:>9}', '{}'],
     [ 'roi', '{:>7}', '{:7.2f}'],
     [ 'bal', '{:>8}', '{:8.3f}'],
     [ 'prof', '{:>8}', '{:8.3f}'],
     [ 'sell', '{:>9}', '{:9.4f}'],
-    [ 'delta','{:>9}', '{:9.4f}']
+    [ 'to','{:>9}', '{:9.4f}']
 ]
 
 while True:
 
-    if ix % 80 == 0:
+    last_update = time.time()
+    if ix % tradeUpdate == 0:
         all_trades = lib.trade_history('all')
+        last_portfolio = time.strftime("%Y-%m-%d %H:%M:%S")
 
         cur_balances = {k: v for k, v in lib.returnCompleteBalances().items() if float(v['btcValue']) > 0.0001}
         positive_balances = {k: float(v['available']) + float(v['onOrders']) for k,v in cur_balances.items() }
@@ -41,13 +51,16 @@ while True:
 
 
     all_prices = lib.returnTicker(forceUpdate = True)
+    last_ticker = time.strftime("%Y-%m-%d %H:%M:%S")
+    if not all_prices_last:
+        all_prices_last = all_prices
 
     rows = []
 
     for k,v in all_trades.items():
         buys = list(filter(lambda x: x['type'] == 'buy', v))
-        btc_ttl = sum([float(t['total']) for t in buys])
-        cur_ttl = sum([float(t['amount']) * (1 - float(t['fee'])) for t in buys])
+        btc_ttl = sum([t['btc'] for t in buys])
+        cur_ttl = sum([t['cur'] for t in buys])
         price = float(all_prices[k]['last'])
         if k[:3] == 'ETH' or cur_ttl == 0: 
             continue
@@ -80,24 +93,26 @@ while True:
 
             rows.append({
                 'cur': cur, 
-                'last': "{:8.5f}{}".format(v[-1]['rate'] * 1000, 'b' if v[-1]['type'][0] == 'b' else ' '),
+                'last': "{:8.5f}{}".format(v[-1]['rate'] * 1000, '*' if v[-1]['type'][0] == 'b' else ' '),
                 'price': 1000 * price, 
                 'roi': my_ratio * 100, 
+                '24h': all_prices[k]['percentChange'] * 100,
                 'bal': lib.btc_price() * price * my_balance, 
                 'prof': lib.btc_price() * hold, 
                 'buy': 10000 * (my_ratio_buy / my_ratio) - 10000,
                 'sell': 10000 * (my_ratio_sell / my_ratio) - 10000,
-                'delta': 100 * math.pow(abs(((my_ratio_buy / my_ratio) - 1) / ((my_ratio_sell / my_ratio) - 1)), 5)
+                'move': 100 - (100 * all_prices_last[k]['last'] / all_prices[k]['last']),
+                'to': 100 * math.pow(abs(((my_ratio_buy / my_ratio) - 1) / ((my_ratio_sell / my_ratio) - 1)), 5)
             })
 
     l = sorted(rows, key=operator.itemgetter('roi'))
     
     if ix % 10 == 0:
         os.system('clear')
-    print("\033[0;0H")
+    print("\033[0;0H0.0 price:{} | portfolio:{}".format(time.strftime("%Y-%m-%d %H:%M:%S"), last_portfolio))
     last_row = 0
     ttl = 0
-    row_max = 10
+    row_max = 19
     header = []
     for column in rowOrderList:
         header.append(column[1].format(column[0]))
@@ -117,16 +132,33 @@ while True:
         last_row = row['roi']
         ttl += row['prof']
 
-    ttl_list.append(ttl)
-    if len(ttl_list) > 120:
-        ttl_list = ttl_list[-120:]
+    if ix % (row_max - 1) == 0:
+        ttl_list.append("{:>9}".format(time.strftime("%H:%M:%S")))
+        ttl_base = ttl
+        ttl_list.append("{:>9}".format("{:.3f}".format(ttl)))
+
+        if ix % (3 * (row_max - 1)) == 0:
+            all_prices_last = all_prices
+    else:
+        toadd = lib.bstr("{:>9}".format("{:.5f}".format(100 - (100 * ttl / ttl_base))))
+        ttl_list.append(toadd)
+
+
+    if len(ttl_list) > (row_max * 9):
+        ttl_list = ttl_list[-(row_max * 9):]
 
     for x in range(0, row_max):
         row = []
         for y in range(x, len(ttl_list), row_max):
             row.append(ttl_list[y])
 
-        print(' '.join(["{:.5f}".format(l) for l in row]))
+        print(' '.join(row))
 
     ix += 1
-    time.sleep(10)
+
+    update = 10 
+    waitfor = ((last_update + waitTime) - time.time()) 
+    for i in range(round(waitfor * update), 0, -1):
+        print("\033[0;0H{:2.1f} price:{} | portfolio:{}".format(i / update, last_ticker, last_portfolio))
+        time.sleep(1 / update)
+

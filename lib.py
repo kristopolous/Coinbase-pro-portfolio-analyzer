@@ -11,6 +11,7 @@ from datetime import datetime
 from operator import itemgetter, attrgetter
 
 one_day = 86400
+first_day = 1501209600
 
 polo_instance = False
 
@@ -18,11 +19,11 @@ def bstr(what):
     # there's probably smarter ways to do this ... but
     # I can't think of one
     for i in range(6, 0, -1):
-        what = re.sub('^0\.{}'.format('0' * i), '_.{}'.format('_' * i), what)
-        what = re.sub('(\s)0\.{}'.format('0' * i), r'\1_.{}'.format('_' * i), what)
+        what = re.sub('^(-?)0\.{}'.format('0' * i), r'\1 .{}'.format('_' * i), what)
+        what = re.sub('(\s)(-?)0\.{}'.format('0' * i), r'\1\2 .{}'.format('_' * i), what)
 
-    what = re.sub('^0\.', '_.', what)
-    what = re.sub(' 0\.', ' _.', what)
+    what = re.sub('^0\.', ' .', what)
+    what = re.sub(' (-?)0\.', r' \1 .', what)
     return what 
 
 def bprint(what):
@@ -65,7 +66,7 @@ def returnCompleteBalances():
     return cache_get('returnCompleteBalances')
 
 def returnTicker(forceUpdate = False):
-    return cache_get('returnTicker', forceUpdate)
+    return toFloat(cache_get('returnTicker', forceUpdate), ['last', 'percentChange'])
 
 def btc_price():
     if need_to_get('cache/btc'):
@@ -102,15 +103,28 @@ def ignorePriorExits(tradeList):
         # counters
         if ttl_cur < 0.0000000001:
             recent = []
+            ttl_cur = 0
         else:
             recent.append(row)
 
     return recent
 
-def to_float(tradeList):
+
+def toFloat(tradeList, termList):
+    if isinstance(tradeList, dict):
+        for k, v in tradeList.items():
+            for term in termList:
+                tradeList[k][term] = float(tradeList[k][term])
+    else:
+        for i in range(0, len(tradeList)):
+            for term in termList:
+                tradeList[i][term] = float(tradeList[i][term])
+
+    return tradeList
+
+def historyFloat(tradeList):
+    toFloat(tradeList, ['total', 'amount', 'rate', 'fee'])
     for i in range(0, len(tradeList)):
-        for term in  ['total', 'amount', 'rate', 'fee']:
-            tradeList[i][term] = float(tradeList[i][term])
 
         tradeList[i]['btc'] = tradeList[i]['total']
         tradeList[i]['cur'] = tradeList[i]['amount']
@@ -132,7 +146,7 @@ def trade_history(currency = 'all', forceUpdate = False):
 
     step = one_day * 7
     now = time.time()
-    start = 1501209600
+    start = first_day
     doesExpire = False
     all_trades = []
     for i in range(start, int(now), step):
@@ -165,6 +179,6 @@ def trade_history(currency = 'all', forceUpdate = False):
                     all_trades += json_data
 
     for k,v in all_trades.items():
-        all_trades[k] = sorted(to_float(v), key=itemgetter('date'))
+        all_trades[k] = sorted(historyFloat(v), key=itemgetter('date'))
 
     return all_trades
