@@ -50,7 +50,7 @@ def tally(tradeList):
     return {'break': break_even, 'low': cur_low, 'high': cur_high, 'max_btc_invested': max_btc_invested, 'btc': btc, 'cur': cur, 'len': len(tradeList)}
 
 print("{} {}".format(currency, profit))
-data = lib.trade_history(currency)
+data = lib.tradeHistory(currency)
 process(data)
 ttl = tally(data)
 

@@ -10,7 +10,7 @@ if len(sys.argv) > 1:
     currency = 'BTC_{}'.format(sys.argv[1].upper())
 
 rows = 20 
-data = lib.trade_history(currency)
+data = lib.tradeHistory(currency)
 sortlist = sorted(data, key = lambda x: x['rate'])
 buyList = list(filter(lambda x: x['type'] == 'buy', sortlist))
 sellList = list(filter(lambda x: x['type'] == 'sell', sortlist))

@@ -81,8 +81,29 @@ def btc_price():
         return d['bpi']['USD']['rate_float']
 
 
+def analyze(data):
+    data = sorted(data, key = lambda x: x['rate'])
+    buyList = list(filter(lambda x: x['type'] == 'buy', data))
+    sellList = list(filter(lambda x: x['type'] == 'sell', data))
+
+    res = {
+        'buyList': buyList,
+        'sellList': sellList,
+        'lowestBuy': buyList[0]['rate'],
+        'highestBuy': buyList[-1]['rate']
+    }
+
+    if len(sellList) > 0:
+        res['lowestSell'] = sellList[0]['rate']
+        res['highestSell'] = sellList[-1]['rate']
+        res['avgSell'] = sum([ x['btc'] for x in sellList]) / sum([ x['cur'] for x in sellList]) 
+
+    res['avgBuy'] = sum([ x['btc'] for x in buyList]) / sum([ x['cur'] for x in buyList]) 
+    return res
+
+
 def recent(currency):
-    data = trade_history(currency)
+    data = tradeHistory(currency)
     buyList = list(filter(lambda x: x['type'] == 'buy', data))
     sellList = list(filter(lambda x: x['type'] == 'sell', data))
 
@@ -97,6 +118,10 @@ def show_trade(order, exchange, source='human'):
     for trade in order['resultingTrades']:
         plog("{:9} {}  {}{} at {}BTC. Total {}BTC".format(exchange, trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
 
+    if len(order['resultingTrades']) == 0:
+        plog("{:9} Open order".format(exchange, currency))
+
+    order['time'] = time.strftime("%Y-%m-%d %H:%M:%S")
     order['exchange'] = exchange
     order['source'] = source
 
@@ -155,9 +180,9 @@ def historyFloat(tradeList):
 
     return tradeList
 
-def trade_history(currency = 'all', forceUpdate = False):
+def tradeHistory(currency = 'all', forceUpdate = False):
     if currency != 'all':
-        all_trades = trade_history(forceUpdate = forceUpdate)
+        all_trades = tradeHistory(forceUpdate = forceUpdate)
         return all_trades[currency]
 
     step = one_day * 7

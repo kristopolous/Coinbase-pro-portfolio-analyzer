@@ -6,8 +6,6 @@ import os
 import lib
 import fake
 
-currency = 'BTC_STRAT'
-
 if len(sys.argv) > 1:
     currency = 'BTC_{}'.format(sys.argv[1].upper())
 
@@ -19,14 +17,24 @@ unit = 0.0001001
 
 def should_act(currency, margin=0.05):
     pList = lib.returnTicker(forceUpdate = True)
-    data = lib.trade_history(currency)
+    data = lib.tradeHistory(currency)
     strike = find_next(data)
-    sell_price = strike * (1 + margin)
-    buy_price = strike * (1 - margin)
+    if strike:
+        sell_price = strike * (1 + margin)
+        buy_price = strike * (1 - margin)
+    # if we can't find anything then we can go off our averages
+    else:
+        analyzed = lib.analyze(data)
+        sortlist = sorted(data, key = lambda x: x['rate'])
+        sell_price = analyzed['avgBuy'] * (1 + margin)
+        if not 'avgSell' in analyzed:
+            buy_price = analyzed['avgBuy'] - (1 + margin)
+        else:
+            buy_price = analyzed['avgSell'] - (1 + margin)
     order = False
     
-    buy_rate = pList[currency]['lowestAsk']
-    sell_rate = pList[currency]['highestBid']
+    buy_rate = pList[currency]['lowestAsk'] - 0.00000001
+    sell_rate = pList[currency]['highestBid'] + 0.00000001
     if buy_rate < buy_price:
 
         p = lib.polo_connect() 
@@ -38,6 +46,7 @@ def should_act(currency, margin=0.05):
         p = lib.polo_connect() 
         amount_to_trade = unit / sell_rate
         order = p.sell(currency, sell_rate, amount_to_trade)
+
     else:
         lib.plog("{:9} Nothing".format(currency))
         return False
@@ -67,7 +76,7 @@ def find_next(data):
 
 if __name__ == "__main__":
     lib.bprint("{} @ {:.8f}".format(currency, rate))
-    data = lib.trade_history(currency, forceUpdate = True)
+    data = lib.tradeHistory(currency, forceUpdate = True)
 
     next_price = []
     for i in range(0,10):

@@ -43,7 +43,7 @@ while True:
 
     last_update = time.time()
     if ix % tradeUpdate == 0:
-        all_trades = lib.trade_history('all')
+        all_trades = lib.tradeHistory('all')
         last_portfolio = time.strftime("%Y-%m-%d %H:%M:%S")
 
         cur_balances = {k: v for k, v in lib.returnCompleteBalances().items() if float(v['btcValue']) > 0.0001}
