@@ -66,7 +66,11 @@ def returnOpenOrders():
     return cache_get('returnOpenOrders', expiry=30)
 
 def returnCompleteBalances():
-    return cache_get('returnCompleteBalances')
+    balanceMap = toFloat(cache_get('returnCompleteBalances'), ['available', 'onOrders', 'btcValue'])
+    for k,v in balanceMap.items():
+        balanceMap[k]['cur'] = v['available'] + v['onOrders']
+
+    return balanceMap
 
 def returnTicker(forceUpdate = False):
     return toFloat(cache_get('returnTicker', forceUpdate), ['highestBid', 'lowestAsk', 'last', 'percentChange'])

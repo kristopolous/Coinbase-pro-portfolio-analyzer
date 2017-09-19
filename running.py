@@ -15,9 +15,12 @@ rate = pList[currency]['lowestAsk']
 fee = 0.0025
 unit = 0.0001001
 
-def should_act(currency, margin=0.05):
+def should_act(exchange, margin=0.05):
+    currency = exchange[4:]
     pList = lib.returnTicker(forceUpdate = True)
-    data = lib.tradeHistory(currency)
+    data = lib.tradeHistory(exchange)
+    balanceMap = lib.returnCompleteBalances()
+
     strike = find_next(data)
     if strike:
         sell_price = strike * (1 + margin)
@@ -33,14 +36,14 @@ def should_act(currency, margin=0.05):
             buy_price = analyzed['avgSell'] - (1 + margin)
     order = False
     
-    buy_rate = pList[currency]['lowestAsk'] - 0.00000001
-    sell_rate = pList[currency]['highestBid'] + 0.00000001
+    buy_rate = pList[exchange]['lowestAsk'] - 0.00000001
+    sell_rate = pList[exchange]['highestBid'] + 0.00000001
     
     if buy_rate < buy_price:
 
         p = lib.polo_connect() 
         amount_to_trade = unit / buy_rate
-        order = p.buy(currency, buy_rate, amount_to_trade)
+        order = p.buy(exchange, buy_rate, amount_to_trade)
         rate = buy_rate
         trade_type = 'buy'
 
@@ -48,16 +51,20 @@ def should_act(currency, margin=0.05):
 
         p = lib.polo_connect() 
         amount_to_trade = unit / sell_rate
-        order = p.sell(currency, sell_rate, amount_to_trade)
-        rate = sell_rate
-        trade_type = 'sell'
+        if amount_to_trade > balanceMap[currency]['cur']:
+            try:
+                order = p.sell(exchange, sell_rate, amount_to_trade)
+                rate = sell_rate
+                trade_type = 'sell'
+            except:
+                lib.plog("{:9} Failed to sell (buy {:.8f} (now {:.8f}) sell {:.8f} (now {:.8f}))".format(exchange, buy_rate, buy_price, sell_rate, sell_price))
 
     else:
-        lib.plog("{:9} Nothing (buy {:.8f} (now {:.8f}) sell {:.8f} (now {:.8f}))".format(currency, buy_rate, buy_price, sell_rate, sell_price))
+        lib.plog("{:9} Nothing (buy {:.8f} (now {:.8f}) sell {:.8f} (now {:.8f}))".format(exchange, buy_rate, buy_price, sell_rate, sell_price))
         return False
 
     if order:
-        lib.showTrade(order, currency, source='bot', trade_type=trade_type, rate=rate, amount=amount_to_trade)
+        lib.showTrade(order, exchange, source='bot', trade_type=trade_type, rate=rate, amount=amount_to_trade)
         return True
 
 
