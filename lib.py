@@ -15,6 +15,9 @@ first_day = 1501209600
 
 polo_instance = False
 
+def plog(what):
+    print("{} {}".format(time.strftime("%Y-%m-%d %H:%M:%S"), what))
+
 def bstr(what):
     # there's probably smarter ways to do this ... but
     # I can't think of one
@@ -92,7 +95,7 @@ def show_trade(order, exchange, source='human'):
     currency = exchange[4:]
 
     for trade in order['resultingTrades']:
-        print("{} {}  {}{} at {}BTC. Total {}BTC".format(exchange, trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
+        plog("{:9} {}  {}{} at {}BTC. Total {}BTC".format(exchange, trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
 
     order['exchange'] = exchange
     order['source'] = source

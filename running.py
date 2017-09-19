@@ -39,7 +39,7 @@ def should_act(currency, margin=0.05):
         amount_to_trade = unit / sell_rate
         order = p.sell(currency, sell_rate, amount_to_trade)
     else:
-        print("{} Doing Nothing".format(currency))
+        lib.plog("{:9} Nothing".format(currency))
         return False
 
     if order:
