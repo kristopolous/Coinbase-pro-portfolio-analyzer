@@ -35,24 +35,29 @@ def should_act(currency, margin=0.05):
     
     buy_rate = pList[currency]['lowestAsk'] - 0.00000001
     sell_rate = pList[currency]['highestBid'] + 0.00000001
+    
     if buy_rate < buy_price:
 
         p = lib.polo_connect() 
         amount_to_trade = unit / buy_rate
         order = p.buy(currency, buy_rate, amount_to_trade)
+        rate = buy_rate
+        trade_type = 'buy'
 
     elif sell_rate > sell_price:
 
         p = lib.polo_connect() 
         amount_to_trade = unit / sell_rate
         order = p.sell(currency, sell_rate, amount_to_trade)
+        rate = sell_rate
+        trade_type = 'sell'
 
     else:
-        lib.plog("{:9} Nothing".format(currency))
+        lib.plog("{:9} Nothing (buy {:.8f} (now {:.8f}) sell {:.8f} (now {:.8f}))".format(currency, buy_rate, buy_price, sell_rate, sell_price))
         return False
 
     if order:
-        lib.show_trade(order, currency, source='bot')
+        lib.showTrade(order, currency, source='bot', trade_type=trade_type, rate=rate, amount=amount_to_trade)
         return True
 
 

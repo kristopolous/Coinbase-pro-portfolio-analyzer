@@ -6,8 +6,8 @@ import sys
 import lib
 
 currency_list = []
-wait = 210
-margin = 0.06
+wait = 180
+margin = 0.05
 
 for i in sys.argv[1:]:
     currency_list.append('BTC_{}'.format(i.upper()))

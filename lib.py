@@ -16,7 +16,7 @@ first_day = 1501209600
 polo_instance = False
 
 def plog(what):
-    print("{} {}".format(time.strftime("%Y-%m-%d %H:%M:%S"), what))
+    print(bstr("{} {}".format(time.strftime("%Y-%m-%d %H:%M:%S"), what)))
 
 def bstr(what):
     # there's probably smarter ways to do this ... but
@@ -112,14 +112,18 @@ def recent(currency):
     print("Last sell")
     bprint("\n".join([" {} {:.8f} {:.8f}".format(i['date'], i['rate'], i['btc']) for i in reversed(sellList[-5:])]))
 
-def show_trade(order, exchange, source='human'):
+def showTrade(order, exchange, trade_type, rate, amount, source='human'):
     currency = exchange[4:]
 
     for trade in order['resultingTrades']:
         plog("{:9} {}  {}{} at {}BTC. Total {}BTC".format(exchange, trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
 
     if len(order['resultingTrades']) == 0:
-        plog("{:9} Open order".format(exchange, currency))
+        plog("{:9} Open {} {:.8f} * {:.8f} = {:.8f}btc".format(exchange, trade_type, rate, amount, rate * amount))
+
+    order['type'] = trade_type
+    order['rate'] = rate
+    order['amount'] = amount
 
     order['time'] = time.strftime("%Y-%m-%d %H:%M:%S")
     order['exchange'] = exchange
