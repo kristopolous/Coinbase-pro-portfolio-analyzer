@@ -12,9 +12,37 @@ if len(sys.argv) > 1:
     currency = 'BTC_{}'.format(sys.argv[1].upper())
 
 pList = lib.returnTicker(forceUpdate = True)
-rate = float(pList[currency]['lowestAsk'])
+rate = pList[currency]['lowestAsk']
 
 fee = 0.0025
+unit = 0.000101
+
+def should_act(currency, margin=0.05):
+    data = lib.trade_history(currency, forceUpdate = True)
+    strike = find_next(data)
+    sell_price = strike * (1 + margin)
+    buy_price = strike * (1 - margin)
+    order = False
+    
+    buy_rate = pList[currency]['lowestAsk']
+    sell_rate = pList[currency]['highestBid']
+    if buy_rate < buy_price:
+
+        p = lib.polo_connect() 
+        amount_to_trade = unit / buy_rate
+        order = p.buy(currency, buy_rate, amount_to_trade)
+
+    elif sell_rate > sell_price:
+
+        p = lib.polo_connect() 
+        amount_to_trade = unit / sell_rate
+        order = p.sell(currency, sell_rate, amount_to_trade)
+    else:
+        print("Doing Nothing")
+
+    if order:
+        lib.show_trade(order, currency, source='bot')
+
 
 def find_next(data):
     sortlist = sorted(data, key = lambda x: x['rate'])
@@ -34,19 +62,20 @@ def find_next(data):
         ttl_buy_currency += x['amount']
         ttl_buy_btc += x['total'] 
 
-lib.bprint("{} @ {:.8f}".format(currency, rate))
-data = lib.trade_history(currency, forceUpdate = True)
+if __name__ == "__main__":
+    lib.bprint("{} @ {:.8f}".format(currency, rate))
+    data = lib.trade_history(currency, forceUpdate = True)
 
-next_price = []
-for i in range(0,10):
-    strike = find_next(data)
-    if strike:
-        next_price.append(find_next(data))
-    fake.sell(data, 0.0005 / rate, rate)
+    next_price = []
+    for i in range(0,10):
+        strike = find_next(data)
+        if strike:
+            next_price.append(find_next(data))
+        fake.sell(data, 0.0005 / rate, rate)
 
-marker = {True: '*', False: ' '}
-for p_int in range(100,120,2):
-    p = float(p_int)/ 100
-    lib.bprint ("{:.2f} {}".format(p, "\t".join(["{} {:.8f}".format(marker[rate > i * p], i * p) for i in next_price])))
+    marker = {True: '*', False: ' '}
+    for p_int in range(100,120,2):
+        p = float(p_int)/ 100
+        lib.bprint ("{:.2f} {}".format(p, "\t".join(["{} {:.8f}".format(marker[rate > i * p], i * p) for i in next_price])))
 
-lib.recent(currency)
+    lib.recent(currency)

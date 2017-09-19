@@ -66,7 +66,7 @@ def returnCompleteBalances():
     return cache_get('returnCompleteBalances')
 
 def returnTicker(forceUpdate = False):
-    return toFloat(cache_get('returnTicker', forceUpdate), ['last', 'percentChange'])
+    return toFloat(cache_get('returnTicker', forceUpdate), ['highestBid', 'lowestAsk', 'last', 'percentChange'])
 
 def btc_price():
     if need_to_get('cache/btc'):
@@ -87,6 +87,20 @@ def recent(currency):
     bprint("\n".join([" {} {:.8f} {:.8f}".format(i['date'], i['rate'], i['btc']) for i in reversed(buyList[-5:])]))
     print("Last sell")
     bprint("\n".join([" {} {:.8f} {:.8f}".format(i['date'], i['rate'], i['btc']) for i in reversed(sellList[-5:])]))
+
+def show_trade(order, exchange, source='human'):
+    currency = exchange[3:]
+    print("\nSUCCESS:")
+
+    for trade in order['resultingTrades']:
+        print(" {}\n {}{} at {}BTC.\n Total {}BTC\n\n".format(trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
+
+    order['exchange'] = exchange
+    order['source'] = source
+
+    with open('order-history.json','a') as f:
+        f.write("{}\n".format(json.dumps(order)))
+
 
 def ignorePriorExits(tradeList):
     ttl_btc = 0

@@ -42,16 +42,6 @@ def abort(msg):
     print("\nERROR:\n {}\n\n Aborted.".format(msg.replace('\n', '\n ')))
     sys.exit(-1)
 
-def show_trade(order):
-    print("\nSUCCESS:")
-
-    for trade in order['resultingTrades']:
-        print(" {}\n {}{} at {}BTC.\n Total {}BTC\n\n".format(trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
-
-    order['exchange'] = exchange
-    with open('order-history.json','a') as f:
-        f.write("{}\n".format(json.dumps(order)))
-
 if quantity > (warn_at_usd / approx_btc_usd):
     usd = approx_btc_usd * quantity
     print("Above ${:.2f} warning triggered!".format(warn_at_usd))
@@ -152,7 +142,7 @@ if action == 'buy':
     else:
         buy_order = p.buy(exchange, rate, amount_to_trade)
 
-    show_trade(buy_order)
+    lib.show_trade(buy_order, exchange)
 
 elif action == 'sell':
     if not fast:
@@ -160,5 +150,5 @@ elif action == 'sell':
             abort("{:.10f}BTC is the highest bid.\n{:.10f}BTC is over 20% less than this!".format(lowest, fl_rate))
     
     sell_order = p.sell(exchange, rate, amount_to_trade)
-    show_trade(sell_order)
+    lib.show_trade(sell_order, exchange)
 

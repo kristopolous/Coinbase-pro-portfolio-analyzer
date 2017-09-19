@@ -14,9 +14,12 @@ p = Poloniex(*secret.token)
 ix = 0
 ttl_list = []
 ttl = 0
+all_prices_last_list = False
 all_prices_last = False
-waitTime = 10 
+
+waitTime =  15
 tradeUpdate = 600
+start_time = time.time()
 
 tradeUpdate = round(tradeUpdate / waitTime)
 
@@ -54,6 +57,7 @@ while True:
     last_ticker = time.strftime("%Y-%m-%d %H:%M:%S")
     if not all_prices_last:
         all_prices_last = all_prices
+        all_prices_last_list = [all_prices]
 
     rows = []
 
@@ -109,7 +113,7 @@ while True:
     
     if ix % 10 == 0:
         os.system('clear')
-    print("\033[0;0H0.0 price:{} | portfolio:{}".format(time.strftime("%Y-%m-%d %H:%M:%S"), last_portfolio))
+    print("\033[0;0H 0 price:{} | portfolio:{}".format(time.strftime("%Y-%m-%d %H:%M:%S"), last_portfolio))
     last_row = 0
     ttl = 0
     row_max = 19
@@ -133,19 +137,20 @@ while True:
         ttl += row['prof']
 
     if ix % (row_max - 1) == 0:
-        ttl_list.append("{:>9}".format(time.strftime("%H:%M:%S")))
+        ttl_list.append("{:>8}".format(time.strftime("%H:%M")))
         ttl_base = ttl
-        ttl_list.append("{:>9}".format("{:.3f}".format(ttl)))
+        ttl_list.append("{:>8}".format("{:.2f}".format(ttl)))
+        all_prices_last_list.append(all_prices)
 
-        if ix % (3 * (row_max - 1)) == 0:
-            all_prices_last = all_prices
+        if ix > (4 * (row_max - 1)):
+            all_prices_last = all_prices_last_list.pop(0)
     else:
-        toadd = lib.bstr("{:>9}".format("{:.5f}".format(100 - (100 * ttl / ttl_base))))
+        toadd = lib.bstr("{:>8}".format("{:.4f}".format(100 - (100 * ttl / ttl_base))))
         ttl_list.append(toadd)
 
 
-    if len(ttl_list) > (row_max * 9):
-        ttl_list = ttl_list[-(row_max * 9):]
+    if len(ttl_list) > (row_max * 11):
+        ttl_list = ttl_list[-(row_max * 11):]
 
     for x in range(0, row_max):
         row = []
@@ -156,9 +161,10 @@ while True:
 
     ix += 1
 
-    update = 10 
-    waitfor = ((last_update + waitTime) - time.time()) 
-    for i in range(round(waitfor * update), 0, -1):
-        print("\033[0;0H{:2.1f} price:{} | portfolio:{}".format(i / update, last_ticker, last_portfolio))
-        time.sleep(1 / update)
+    # might as well be delay accurate as if it matters (it doesn't)
+    waitfor = start_time + ix * waitTime - time.time()
+    precision = 10 
+    for i in range(round(waitfor * precision), 0, -1):
+        print("\033[0;0H{:2.0f} price:{} | portfolio:{}".format(i / precision, last_ticker, last_portfolio))
+        time.sleep(1 / precision)
 
