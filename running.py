@@ -15,9 +15,10 @@ pList = lib.returnTicker(forceUpdate = True)
 rate = pList[currency]['lowestAsk']
 
 fee = 0.0025
-unit = 0.0001009
+unit = 0.000101
 
 def should_act(currency, margin=0.05):
+    pList = lib.returnTicker(forceUpdate = True)
     data = lib.trade_history(currency)
     strike = find_next(data)
     sell_price = strike * (1 + margin)
