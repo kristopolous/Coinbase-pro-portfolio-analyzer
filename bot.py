@@ -4,7 +4,7 @@ import time
 import sys
 
 currency_list = []
-wait = 300
+wait = 240
 
 for i in sys.argv[1:]:
     currency_list.append('BTC_{}'.format(i.upper()))
@@ -23,7 +23,7 @@ while True:
     print("{} {}".format(time.strftime("%Y-%m-%d %H:%M:%S"), "".join(row)))
     running.should_act(currency, margin=0.08)
 
-    delay = wait / 45
+    delay = wait / 5
     for i in range(round(wait / delay), 0, -1):
         print("{:4d} {}".format(i, time.strftime("%Y-%m-%d %H:%M:%S")))
         time.sleep(delay)

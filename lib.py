@@ -90,10 +90,9 @@ def recent(currency):
 
 def show_trade(order, exchange, source='human'):
     currency = exchange[3:]
-    print("\nSUCCESS:")
 
     for trade in order['resultingTrades']:
-        print(" {}\n {}{} at {}BTC.\n Total {}BTC\n\n".format(trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
+        print(" {}   {}{} at {}BTC. Total {}BTC\n".format(trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
 
     order['exchange'] = exchange
     order['source'] = source
