@@ -15,10 +15,10 @@ pList = lib.returnTicker(forceUpdate = True)
 rate = pList[currency]['lowestAsk']
 
 fee = 0.0025
-unit = 0.0001001
+unit = 0.0001009
 
 def should_act(currency, margin=0.05):
-    data = lib.trade_history(currency, forceUpdate = True)
+    data = lib.trade_history(currency)
     strike = find_next(data)
     sell_price = strike * (1 + margin)
     buy_price = strike * (1 - margin)
@@ -39,9 +39,11 @@ def should_act(currency, margin=0.05):
         order = p.sell(currency, sell_rate, amount_to_trade)
     else:
         print("{} Doing Nothing".format(currency))
+        return False
 
     if order:
         lib.show_trade(order, currency, source='bot')
+        return True
 
 
 def find_next(data):

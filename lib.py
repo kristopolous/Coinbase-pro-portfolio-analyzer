@@ -89,10 +89,10 @@ def recent(currency):
     bprint("\n".join([" {} {:.8f} {:.8f}".format(i['date'], i['rate'], i['btc']) for i in reversed(sellList[-5:])]))
 
 def show_trade(order, exchange, source='human'):
-    currency = exchange[3:]
+    currency = exchange[4:]
 
     for trade in order['resultingTrades']:
-        print(" {}   {}{} at {}BTC. Total {}BTC\n".format(trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
+        print("{} {}   {}{} at {}BTC. Total {}BTC\n".format(exchange, trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
 
     order['exchange'] = exchange
     order['source'] = source
