@@ -31,10 +31,10 @@ while True:
 
     if not did_act:
         my_wait = wait / 20
+        delay = my_wait / 2
     else:
         my_wait = wait
-
-    delay = my_wait / 3
+        delay = my_wait / 3
     for i in range(round(my_wait / delay), 0, -1):
         print("{:4d} {}".format(i, time.strftime("%Y-%m-%d %H:%M:%S")))
         time.sleep(delay)

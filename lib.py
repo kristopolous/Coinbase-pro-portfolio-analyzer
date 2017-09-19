@@ -92,7 +92,7 @@ def show_trade(order, exchange, source='human'):
     currency = exchange[4:]
 
     for trade in order['resultingTrades']:
-        print("{} {}   {}{} at {}BTC. Total {}BTC\n".format(exchange, trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
+        print("{} {}  {}{} at {}BTC. Total {}BTC".format(exchange, trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
 
     order['exchange'] = exchange
     order['source'] = source
