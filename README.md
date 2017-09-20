@@ -58,40 +58,41 @@ programmers and people making custom hardware. It's admirable to think you can o
 So you probably can't find this and you are unlikely to be able to make it ... or who knows, maybe all those people
 are dumb... it's happened before.
 
+In most of the tools, leading 0s are replaced with _ to make things easier to read. You'll get used to it real fast.
+
 ### history.py
 
 A cli histogram for your buys for a currency.  Let's see how foolish I've been with namecoin:
 
 ```
 $ ./history.py nmc
-_.___3253>
-_.___3331
-_.___3410
-_.___3489
-_.___3567^
-_.___3646 *******
-_.___3725
-_.___3803 ***
-_.___3882 ******
-_.___3961
-_.___4039 ******
-_.___4118 ***
-_.___4197
-_.___4275 **********
-_.___4354 ***************
-_.___4432 *********************
-_.___4511 **********************
-_.___4590
-_.___4668
-_.___4747 *******************************
-_.___4826 **********************
+.___3253>
+.___3331
+.___3410
+.___3489
+.___3567^
+.___3646 *******
+.___3725
+.___3803 ***
+.___3882 ******
+.___3961
+.___4039 ******
+.___4118 ***
+.___4197
+.___4275 **********
+.___4354 ***************
+.___4432 *********************
+.___4511 **********************
+.___4590
+.___4668
+.___4747 *******************************
+.___4826 **********************
 ```
 
 Key:
  * `>` - where the last trade happened. 
  * `*` - my distributions of that inclusive range.  
- * `^` - the lowest buy I've made up to this point. 
- * `_` - Replacements for 0s to make things easier to see at a glance
+ * `^` - the lowest buy you've made up to this point. 
 
 So we can see that namecoin is trading at 0.0003253 and my lowest buy is at 0.0003652. Oops! Trading can be difficult!
 
@@ -103,33 +104,24 @@ Here's an example of it in action, buying a very small amount of Riecoin.
 There's a few features and overrides to avoid from doing something stupid.
 
 <pre>
-$ ./trade.py -c RIC -q 0.00010001 -a buy  
-EXCHANGE BTC_RIC
- Bid:  0.00001451
- Last: 0.00001452
- Ask:  0.00001452
- Spread: 0.0006887052341597588
+$ ./trade.py -a sell -q 0.0001001 -c AMP -fn
+EXCHANGE BTC_AMP
+ Trying to avoid fee by adding 0.00000001
+ Bid:   .____4621
+ Last:  .____4621
+ Ask:   .____4649
+ Sprd:  .__60228
 
 Computed
- Rate  0.0000145200BTC
- Quant 0.0001000100BTC
- USD  $0.43
+ Rate   .____4622
+ Quant  .___10010
+ USD    .393 (btc=393 .76)
 
-Balance:
- BTC      0.00815788
- RIC    562.22479665
-
-BUY
- 6.88774105RIC at 0.00001452BTC.
- Total 0.00010001BTC
-
-Waiting 2 seconds for user abort
-1...0
-SUCCESS:
- buy
- 6.88774104RIC at 0.00001452BTC.
- Total 0.00010000BTC
-
+SELL
+     2.16572912
+ *    .____4622BTC
+ =    .___10010BTC
+BTC_AMP   Open sell  .____4622 * 2.16572912 = .___10010btc
 </pre>
 
 
@@ -184,8 +176,8 @@ XMR       -1.00    .256   - .39 24.27688 30.04500    37.11  144.177   53.507    
 
 Properties:
 
-  * update - a countdown timer along with two timestamps, the first is the last time a tickers was updated, and the second is the last time the portfolio was.
-  * profit line - where outright profit can be made without any hedging. This is currently a deceiving line if you have fully invested and divested in a currency at multiple points. It ignores what's called "prior exits" which is if you sold off all of your holdings at a profit at a prior date. This attempts to treat your current holdings as an isolated set.
+  * update - a countdown timer along with two timestamps, the first is the last time a ticker was updated, and the second is the last time the portfolio was.
+  * profit line - where outright profit can be made without any hedging. This may be a deceiving line if you have fully invested and partially divested in a currency at multiple points. It ignores what's called "prior exits" which is if you sold off *all* of your holdings at a profit at a prior date. This attempts to treat your current holdings as an isolated set.
   * running balance - estimated USD ROI of your current holdings. The subsequent rows of a column are relative percentages for that "period". So you can look across at one row and see how things have been going for the past 4 hours in this case, and then look down to see how your portfolio did relatively.
 
 The columns:
