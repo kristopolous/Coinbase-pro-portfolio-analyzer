@@ -142,7 +142,7 @@ if action == 'buy':
     else:
         buy_order = p.buy(exchange, rate, amount_to_trade)
 
-    lib.show_trade(buy_order, exchange)
+    lib.showTrade(buy_order, exchange, trade_type='buy', rate=rate, amount=amount_to_trade)
 
 elif action == 'sell':
     if not fast:
@@ -150,5 +150,5 @@ elif action == 'sell':
             abort("{:.10f}BTC is the highest bid.\n{:.10f}BTC is over 20% less than this!".format(lowest, fl_rate))
     
     sell_order = p.sell(exchange, rate, amount_to_trade)
-    lib.show_trade(sell_order, exchange)
+    lib.showTrade(sell_order, exchange, trade_type='sell', rate=rate, amount=amount_to_trade)
 
