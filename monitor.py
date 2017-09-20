@@ -17,8 +17,8 @@ ttl = 0
 all_prices_last_list = False
 all_prices_last = False
 
-waitTime =  15
-tradeUpdate = 600
+waitTime =  120
+tradeUpdate = 900
 start_time = time.time()
 
 tradeUpdate = round(tradeUpdate / waitTime)
@@ -99,7 +99,7 @@ while True:
                 'cur': cur, 
                 'last': "{:8.5f}{}".format(v[-1]['rate'] * 1000, '*' if v[-1]['type'][0] == 'b' else ' '),
                 'price': 1000 * price, 
-                'roi': my_ratio * 100, 
+                'roi': my_ratio * 100 - 100, 
                 '24h': all_prices[k]['percentChange'] * 100,
                 'bal': lib.btc_price() * price * my_balance, 
                 'prof': lib.btc_price() * hold, 
@@ -113,7 +113,7 @@ while True:
     
     if ix % 10 == 0:
         os.system('clear')
-    print("\033[0;0H 0 price:{} | portfolio:{}".format(time.strftime("%Y-%m-%d %H:%M:%S"), last_portfolio))
+    print("\033[0;0H  0 price:{} | portfolio:{}".format(time.strftime("%Y-%m-%d %H:%M:%S"), last_portfolio))
     last_row = 0
     ttl = 0
     row_max = 19
@@ -125,7 +125,7 @@ while True:
     print(header)
 
     for row in l:
-        if row['roi'] > 100 and last_row < 100:
+        if row['roi'] > 0 and last_row < 0:
             print("-" * rowlen)
 
         output = []
@@ -165,6 +165,6 @@ while True:
     waitfor = start_time + ix * waitTime - time.time()
     precision = 10 
     for i in range(round(waitfor * precision), 0, -1):
-        print("\033[0;0H{:2.0f} price:{} | portfolio:{}".format(i / precision, last_ticker, last_portfolio))
+        print("\033[0;0H{:3.0f} price:{} | portfolio:{}".format(i / precision, last_ticker, last_portfolio))
         time.sleep(1 / precision)
 
