@@ -11,7 +11,7 @@ wait = 600
 update = 7
 
 margin_buy = 0.05
-margin_sell = 0.03
+margin_sell = 0.02
 next_act = {}
 
 for i in sys.argv[1:]:
@@ -29,8 +29,8 @@ while True:
         lib.returnCompleteBalances()
         if ctr % 5 == 0:
             os.system('clear')
+            print("")
         ctr += 1
-        print("\033[0;0Hmargin: {}/{} wait: {} (noact: {:.2f}) {} ".format(margin_buy, margin_sell, wait, update, time.strftime("%Y-%m-%d %H:%M:%S")))
 
     currency = currency_list[index]
     index = (index + 1) % mod 
@@ -48,4 +48,6 @@ while True:
         next_act[currency] = time.time() + wait
 
     if index == 0:
-        time.sleep(update)
+        for i in range(update, 0, -1):
+            print("\033[0;0Hmargin: {}/{} wait: {} {} {} ".format(margin_buy, margin_sell, wait, i, time.strftime("%Y-%m-%d %H:%M:%S")))
+            time.sleep(1)

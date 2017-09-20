@@ -14,13 +14,13 @@ pList = lib.returnTicker(forceUpdate = True)
 rate = pList[currency]['lowestAsk']
 
 fee = 0.0025
-unit = 0.0001001
+unit = 0.00010003
 
-def graph_make(buy_price, market_low, market_high, sell_price):
-    tmp_avg = sum([buy_price, sell_price])/2
+def graph_make(buy_price, market_low, market_high, sell_price, margin_buy, margin_sell):
+    tmp_avg = sum([buy_price, sell_price])/2 * (1 - (margin_sell - margin_buy) / 2 )
     tmp_len = 125
 
-    delta = 0.1
+    delta = 1.25 * (margin_buy + margin_sell)
     low_bar = (1 - delta) * tmp_avg
     high_bar = (1 + delta) * tmp_avg
     tmp_range = high_bar - low_bar
@@ -77,7 +77,7 @@ def should_act(exchange, margin_buy, margin_sell, please_skip = False, extra = "
     buy_rate = pList[exchange]['lowestAsk'] - 0.00000001
     sell_rate = pList[exchange]['highestBid'] + 0.00000001
     
-    graph = graph_make(buy_price, market_low, market_high, sell_price)
+    graph = graph_make(buy_price, market_low, market_high, sell_price, margin_buy, margin_sell)
     market_graphic = "{:.8f} ({:.8f}{:.8f} ){:.8f} {}".format(buy_price, market_low, market_high, sell_price, graph)
 
     if please_skip:
