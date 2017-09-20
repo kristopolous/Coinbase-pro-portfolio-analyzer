@@ -5,6 +5,7 @@ import json
 import os
 import lib
 import fake
+from colors import *
 
 if len(sys.argv) > 1:
     currency = 'BTC_{}'.format(sys.argv[1].upper())
@@ -15,30 +16,74 @@ rate = pList[currency]['lowestAsk']
 fee = 0.0025
 unit = 0.0001001
 
-def should_act(exchange, margin=0.05):
+def graph_make(buy_price, market_low, market_high, sell_price):
+    tmp_avg = sum([buy_price, sell_price])/2
+    tmp_len = 125
+
+    delta = 0.1
+    low_bar = (1 - delta) * tmp_avg
+    high_bar = (1 + delta) * tmp_avg
+    tmp_range = high_bar - low_bar
+    graph = [""] * tmp_len
+
+    point = lambda val: int((tmp_len - 1) * min(max(val - low_bar, 0), tmp_range) / tmp_range)
+
+    low_index = point(buy_price)
+    high_index = point(sell_price)
+
+    graph[0] = '\x1b[35m'
+    graph[high_index] = '\x1b[36m'
+
+    for i in range(0, tmp_len):
+        if i < low_index or i > high_index:
+            graph[i] += '-' 
+        else: 
+            graph[i] += ' '  
+
+    low_index = point(market_low)
+    high_index = point(market_high)
+    graph[low_index] += '\x1b[42m'
+    if high_index == low_index:
+        high_index = min(1 + low_index, tmp_len - 1)
+    graph[high_index] += '\x1b[49m'
+    
+    graph[tmp_len - 1] += '\x1b[0m'
+    return "".join(graph)
+
+def please_skip(exchange, margin_buy, margin_sell, extra = ""):
+    return should_act(exchange, margin_buy, margin_sell, please_skip = True, extra = extra)
+
+def should_act(exchange, margin_buy, margin_sell, please_skip = False, extra = ""):
     currency = exchange[4:]
-    pList = lib.returnTicker(forceUpdate = True)
-    data = lib.tradeHistory(exchange)
-    balanceMap = lib.returnCompleteBalances()
+    pList = lib.returnTicker()
+    data = lib.tradeHistory(exchange, forceCache=True)
+    balanceMap = lib.returnCompleteBalances(forceCache = True)
 
     strike = find_next(data)
     if strike:
-        sell_price = strike * (1 + margin)
-        buy_price = strike * (1 - margin)
+        sell_price = strike * (1 + margin_sell)
+        buy_price = strike * (1 - margin_buy)
     # if we can't find anything then we can go off our averages
     else:
         analyzed = lib.analyze(data)
         sortlist = sorted(data, key = lambda x: x['rate'])
-        sell_price = analyzed['avgBuy'] * (1 + margin)
-        if not 'avgSell' in analyzed:
-            buy_price = analyzed['avgBuy'] - (1 + margin)
-        else:
-            buy_price = analyzed['avgSell'] - (1 + margin)
+        sell_price = analyzed['lowestBuy'] * (1 + margin_sell)
+        buy_price = analyzed['lowestBuy'] * (1 - margin_buy)
+
     order = False
     
+    market_low =  pList[exchange]['highestBid']
+    market_high = pList[exchange]['lowestAsk'] 
     buy_rate = pList[exchange]['lowestAsk'] - 0.00000001
     sell_rate = pList[exchange]['highestBid'] + 0.00000001
     
+    graph = graph_make(buy_price, market_low, market_high, sell_price)
+    market_graphic = "{:.8f} ({:.8f}{:.8f} ){:.8f} {}".format(buy_price, market_low, market_high, sell_price, graph)
+
+    if please_skip:
+        lib.plog("{:5} {:6} {} {:4}".format(currency, '*SKIP*', market_graphic, extra))
+        return False
+
     if buy_rate < buy_price:
 
         p = lib.polo_connect() 
@@ -51,20 +96,21 @@ def should_act(exchange, margin=0.05):
 
         p = lib.polo_connect() 
         amount_to_trade = unit / sell_rate
-        if amount_to_trade > balanceMap[currency]['cur']:
+        if amount_to_trade < balanceMap[currency]['available']:
             try:
                 order = p.sell(exchange, sell_rate, amount_to_trade)
                 rate = sell_rate
                 trade_type = 'sell'
             except:
-                lib.plog("{:9} Failed to sell (buy {:.8f} (now {:.8f}) sell {:.8f} (now {:.8f}))".format(exchange, buy_rate, buy_price, sell_rate, sell_price))
+                lib.plog("{:9} Failed sell {:.8f} @ {:.8f} (bal: {:.8f})".format(exchange, amount_to_trade, buy_price, balanceMap[currency]['available']))
 
     else:
-        lib.plog("{:9} Nothing (buy {:.8f} (now {:.8f}) sell {:.8f} (now {:.8f}))".format(exchange, buy_rate, buy_price, sell_rate, sell_price))
+        lib.plog("{:5} {:6} {} {:4}".format(currency, "", market_graphic, extra))
         return False
 
     if order:
-        lib.showTrade(order, exchange, source='bot', trade_type=trade_type, rate=rate, amount=amount_to_trade)
+        lib.showTrade(order, exchange, source='bot', trade_type=trade_type, rate=rate, amount=amount_to_trade, doPrint=False)
+        lib.plog("{:5} {:6} {}".format(currency, trade_type, market_graphic))
         return True
 
 
