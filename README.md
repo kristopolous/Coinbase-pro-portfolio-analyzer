@@ -100,7 +100,7 @@ So we can see that namecoin is trading at 0.0003253 and my lowest buy is at 0.00
 
 This is a cli trader for poloniex, whose website is a little lame at times.
 
-Here's an example of it in action, buying a very small amount of Riecoin.
+Here's an example of it in action, buying a very small amount. 
 There's a few features and overrides to avoid from doing something stupid.
 
 <pre>
@@ -115,7 +115,7 @@ EXCHANGE BTC_AMP
 Computed
  Rate   .____4622
  Quant  .___10010
- USD    .393 (btc=393 .76)
+ USD    .393 (btc=3930.76)
 
 SELL
      2.16572912
