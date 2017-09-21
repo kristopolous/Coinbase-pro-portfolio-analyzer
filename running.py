@@ -14,18 +14,18 @@ rate = pList[currency]['lowestAsk']
 
 fee = 0.0025
 unit = 0.00010003
+graph_len = 125
 
 def graph_make(buy_price, market_low, market_high, sell_price, margin_buy, margin_sell):
-    tmp_avg = sum([buy_price, sell_price])/2 * (1 - (margin_sell - margin_buy) / 2 )
-    tmp_len = 125
+    tmp_avg = sum([buy_price, sell_price])/2 * (1 - (margin_sell - margin_buy) / 1.5 )
 
-    delta = 1.25 * (margin_buy + margin_sell)
+    delta = 1 * (margin_buy + margin_sell)
     low_bar = (1 - delta) * tmp_avg
     high_bar = (1 + delta) * tmp_avg
     tmp_range = high_bar - low_bar
-    graph = [""] * tmp_len
+    graph = [""] * graph_len
 
-    point = lambda val: int((tmp_len - 1) * min(max(val - low_bar, 0), tmp_range) / tmp_range)
+    point = lambda val: int((graph_len - 1) * min(max(val - low_bar, 0), tmp_range) / tmp_range)
 
     low_index = point(buy_price)
     high_index = point(sell_price)
@@ -33,20 +33,25 @@ def graph_make(buy_price, market_low, market_high, sell_price, margin_buy, margi
     graph[0] = '\x1b[35m'
     graph[high_index] = '\x1b[36m'
 
-    for i in range(0, tmp_len):
+    midpoint = point(sum([buy_price, sell_price])/2 )
+    for i in range(0, graph_len):
         if i < low_index or i > high_index:
-            graph[i] += '-' 
-        else: 
+            graph[i] += '\u2015' 
+        elif i == low_index or i == high_index:
+            graph[i] += '-'
+        elif i == midpoint: 
+            graph[i] += '\u00b7'
+        else:
             graph[i] += ' '  
 
     low_index = point(market_low)
     high_index = point(market_high)
     graph[low_index] += '\x1b[42m'
     if high_index == low_index:
-        high_index = min(1 + low_index, tmp_len - 1)
+        high_index = min(1 + low_index, graph_len - 1)
     graph[high_index] += '\x1b[49m'
     
-    graph[tmp_len - 1] += '\x1b[0m'
+    graph[graph_len - 1] += '\x1b[0m'
     return "".join(graph)
 
 def please_skip(exchange, margin_buy, margin_sell, extra = ""):
@@ -54,7 +59,7 @@ def please_skip(exchange, margin_buy, margin_sell, extra = ""):
 
 def should_act(exchange, margin_buy, margin_sell, please_skip = False, extra = ""):
     currency = exchange[4:]
-    pList = lib.returnTicker()
+    pList = lib.returnTicker(forceCache=True)
     data = lib.tradeHistory(exchange, forceCache=True)
     balanceMap = lib.returnCompleteBalances(forceCache = True)
 
@@ -77,7 +82,7 @@ def should_act(exchange, margin_buy, margin_sell, please_skip = False, extra = "
     sell_rate = pList[exchange]['highestBid'] + 0.00000001
     
     graph = graph_make(buy_price, market_low, market_high, sell_price, margin_buy, margin_sell)
-    market_graphic = "{:.8f} ({:.8f}{:.8f} ){:.8f} {}".format(buy_price, market_low, market_high, sell_price, graph)
+    market_graphic = "{:.8f} {}{:.8f}{:.8f} {}{:.8f} {}".format(buy_price, ' ' if buy_price < buy_rate else '>', buy_rate, sell_rate, ' ' if sell_price > sell_rate else '>', sell_price, graph)
 
     if please_skip:
         lib.plog("{:5} {:6} {} {:4}".format(currency, '*SKIP*', market_graphic, extra))
