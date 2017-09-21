@@ -35,10 +35,10 @@ def bstr(what):
     # I can't think of one
     for i in range(6, 0, -1):
         what = re.sub('^(-?)0\.{}'.format('0' * i), r'\1 .{}'.format('_' * i), what)
-        what = re.sub('([^-0-9]?)(-?)0\.{}'.format('0' * i), r'\1\2 .{}'.format('_' * i), what)
+        what = re.sub('([^0-9])0\.{}'.format('0' * i), r'\1 .{}'.format('_' * i), what)
 
     what = re.sub('^0\.', ' .', what)
-    what = re.sub('([^-0-9]?)(-?)0\.', r'\1\2 .', what)
+    what = re.sub('([^0-9])0\.', r'\1 .', what)
     return what 
 
 def bprint(what):
