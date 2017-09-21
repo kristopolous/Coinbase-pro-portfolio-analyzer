@@ -7,15 +7,24 @@ import secret
 import math
 import re
 import sys
+import fake
 from datetime import datetime
 from operator import itemgetter, attrgetter
 
 one_day = 86400
 first_day = 1501209600
+is_fake = False
+polo_instance = False
 
 _cache = {}
 
-polo_instance = False
+
+def wait(sec):
+    if is_fake:
+        connect().time += sec
+        time.sleep(0.0001)
+    else:
+        time.sleep(sec)
 
 def plog(what):
     print(bstr("{}".format(what)))
@@ -35,7 +44,10 @@ def bstr(what):
 def bprint(what):
     print(bstr(what))
 
-def polo_connect():
+def connect():
+    if is_fake:
+        return fake.connect()
+
     global polo_instance
     if not polo_instance:
         import secret
@@ -52,12 +64,16 @@ def need_to_get(path, doesExpire = True, expiry = one_day / 2):
     if doesExpire:
         return now > (os.stat(path).st_mtime + expiry)
 
-def cache_get(fn, expiry=300, forceUpdate = False):
+def cache_get(fn, expiry=300, forceUpdate = False, forceCache = False):
     name = "cache/{}".format(fn)
-    if need_to_get(name, expiry=expiry) or forceUpdate:
+    if not forceCache and ( need_to_get(name, expiry=expiry) or forceUpdate ):
+        p = connect() 
+        data = getattr(p, fn)()
+
+        if is_fake:
+            return data
+
         with open(name, 'w') as cache:
-            p = polo_connect() 
-            data = getattr(p, fn)()
             json.dump(data, cache)
 
     with open(name) as handle:
@@ -84,7 +100,7 @@ def returnTicker(forceUpdate = False, forceCache = False):
         return _cache['ticker']
 
     tickerMap = toFloat(cache_get('returnTicker', forceUpdate = forceUpdate), ['highestBid', 'lowestAsk', 'last', 'percentChange'])
-    _cache['tickerMap'] = tickerMap
+    _cache['ticker'] = tickerMap
     return tickerMap
 
 def btc_price():
@@ -97,17 +113,19 @@ def btc_price():
         return d['bpi']['USD']['rate_float']
 
 
-def analyze(data):
+def analyze(data, brief = False):
     data = sorted(data, key = lambda x: x['rate'])
     buyList = list(filter(lambda x: x['type'] == 'buy', data))
     sellList = list(filter(lambda x: x['type'] == 'sell', data))
 
     res = {
-        'buyList': buyList,
-        'sellList': sellList,
         'lowestBuy': buyList[0]['rate'],
         'highestBuy': buyList[-1]['rate']
     }
+
+    if not brief:
+        res['buyList'] = buyList
+        res['sellList'] = sellList
 
     if len(sellList) > 0:
         res['lowestSell'] = sellList[0]['rate']
@@ -115,8 +133,20 @@ def analyze(data):
         res['avgSell'] = sum([ x['btc'] for x in sellList]) / sum([ x['cur'] for x in sellList]) 
 
     res['avgBuy'] = sum([ x['btc'] for x in buyList]) / sum([ x['cur'] for x in buyList]) 
+    res['cur'] = sum([ x['cur'] for x in buyList]) - sum([ x['cur'] for x in sellList]) 
+    res['btc'] = sum([ x['btc'] for x in buyList]) - sum([ x['btc'] for x in sellList]) 
+    res['avg'] = res['btc'] / res['cur'] 
     return res
 
+def unixtime():
+    if is_fake:
+        return connect().time
+    return time.time()
+
+def now():
+    if is_fake:
+        return datetime.fromtimestamp(connect().time).timetuple()
+    return time.localtime()
 
 def recent(currency):
     data = tradeHistory(currency)
@@ -146,8 +176,9 @@ def showTrade(order, exchange, trade_type, rate, amount, source='human', doPrint
     order['exchange'] = exchange
     order['source'] = source
 
-    with open('order-history.json','a') as f:
-        f.write("{}\n".format(json.dumps(order)))
+    if not is_fake:
+        with open('order-history.json','a') as f:
+            f.write("{}\n".format(json.dumps(order)))
 
 
 def ignorePriorExits(tradeList):
@@ -202,6 +233,9 @@ def historyFloat(tradeList):
     return tradeList
 
 def tradeHistory(currency = 'all', forceUpdate = False, forceCache = False):
+    if is_fake:
+        forceCache = True
+
     if currency != 'all':
         all_trades = tradeHistory(forceUpdate = forceUpdate, forceCache = forceCache)
         return all_trades[currency]
@@ -219,9 +253,9 @@ def tradeHistory(currency = 'all', forceUpdate = False, forceCache = False):
             doesExpire = True
 
         name = 'cache/{}-{}.txt'.format(currency, i)
-        if need_to_get(name, doesExpire = doesExpire, expiry = 300) or (doesExpire and forceUpdate):
+        if (need_to_get(name, doesExpire = doesExpire, expiry = 300) or (doesExpire and forceUpdate)) and not forceCache:
             with open(name, 'w') as cache:
-                p = polo_connect() 
+                p = connect() 
                 end = i + step
                 if end > now:
                     end = False
