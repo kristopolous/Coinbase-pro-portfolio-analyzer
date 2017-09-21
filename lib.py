@@ -79,8 +79,13 @@ def returnCompleteBalances(forceCache = False):
     _cache['balances'] = balanceMap
     return balanceMap
 
-def returnTicker(forceUpdate = False):
-    return toFloat(cache_get('returnTicker', forceUpdate = forceUpdate), ['highestBid', 'lowestAsk', 'last', 'percentChange'])
+def returnTicker(forceUpdate = False, forceCache = False):
+    if forceCache and 'ticker' in _cache:
+        return _cache['ticker']
+
+    tickerMap = toFloat(cache_get('returnTicker', forceUpdate = forceUpdate), ['highestBid', 'lowestAsk', 'last', 'percentChange'])
+    _cache['tickerMap'] = tickerMap
+    return tickerMap
 
 def btc_price():
     if need_to_get('cache/btc'):
