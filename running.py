@@ -5,7 +5,6 @@ import json
 import os
 import lib
 import fake
-from colors import *
 
 if len(sys.argv) > 1:
     currency = 'BTC_{}'.format(sys.argv[1].upper())
