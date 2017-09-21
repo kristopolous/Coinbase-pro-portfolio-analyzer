@@ -9,7 +9,15 @@ currency = False
 if len(sys.argv) > 1:
     currency = 'BTC_{}'.format(sys.argv[1].upper())
 
+"""
+graph[low_index] += '\x1b[42m'
+if high_index == low_index:
+    high_index = min(1 + low_index, graph_len - 1)
+graph[high_index] += '\x1b[49m'
+"""
+
 rows = 20 
+cols = 160
 data = lib.tradeHistory(currency)
 sortlist = sorted(data, key = lambda x: x['rate'])
 buyList = list(filter(lambda x: x['type'] == 'buy', sortlist))
@@ -17,17 +25,30 @@ sellList = list(filter(lambda x: x['type'] == 'sell', sortlist))
 
 ticker = lib.returnTicker()
 last = float(ticker[currency]['last'])
+
 buy_low = buyList[0]['rate']
-lowest = min(buy_low, last)
-buy_high = max(buyList[-1]['rate'], last)
-div = (buy_high - buy_low) / rows
+buy_high = buyList[-1]['rate']
+
+if len(sellList) > 0:
+    sell_low = sellList[0]['rate']
+    sell_high = sellList[-1]['rate']
+else:
+    sell_low = buy_low
+    sell_high = buy_high
+
+lowest = min(buy_low, sell_low, last)
+highest = max(buy_high, sell_high, last)
+
+div = (highest - lowest) / rows
 
 ttl = sum([x['total'] for x in buyList])
-grade = ttl / rows / 200
+grade = ttl / rows / 400
 
-ix = 0
-slot_ttl = 0
-for slot in np.arange(lowest, buy_high + div, div):
+buy_ix = 0
+buy_ttl = 0
+sell_ix = 0
+sell_ttl = 0
+for slot in np.arange(lowest, highest + div, div):
     cprice = ' '
     if last >= slot and last < slot + div:
         cprice = '>'
@@ -36,16 +57,31 @@ for slot in np.arange(lowest, buy_high + div, div):
         cprice = '^'
 
     while True:
-        if ix >= len(buyList) or buyList[ix]['rate'] > slot:
+        if buy_ix >= len(buyList) or buyList[buy_ix]['rate'] > slot:
             break
-        slot_ttl += buyList[ix]['total']
-        ix += 1
+        buy_ttl += buyList[buy_ix]['total']
+        buy_ix += 1
 
-    dots = int(math.sqrt(slot_ttl / grade))
-    if slot_ttl > 0 and dots == 0:
+    while True:
+        if sell_ix >= len(sellList) or sellList[sell_ix]['rate'] > slot:
+            break
+        sell_ttl += sellList[sell_ix]['total']
+        sell_ix += 1
+
+    dots = min(int(math.sqrt(buy_ttl / grade)), cols)
+    if buy_ttl > 0 and dots == 0:
         dots = 1
 
-    bprint("{:.7f}{}{}".format(slot, cprice, "".join(["*"] * dots )))
-    slot_ttl = 0
+    row = ["*"] * dots + (cols - dots) * [" "]
+
+    if sell_ttl > 0: 
+        row[0] = '\x1b[42m{}'.format(row[0])
+        cbar = min(int(math.sqrt(sell_ttl / grade)), cols)
+        cbar = max(cbar, 1) 
+        row[cbar] = '\x1b[49m{}'.format(row[cbar])
+
+    bprint("{:.7f}{}{}".format(slot, cprice, "".join(row)))
+    buy_ttl = 0
+    sell_ttl = 0
 
 lib.recent(currency)
