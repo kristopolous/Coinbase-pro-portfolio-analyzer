@@ -91,7 +91,7 @@ def should_act(exchange, margin_buy, margin_sell, please_skip = False, extra = "
 
     if buy_rate < buy_price:
 
-        p = lib.polo_connect() 
+        p = lib.connect() 
         amount_to_trade = unit / buy_rate
         order = p.buy(exchange, buy_rate, amount_to_trade)
         rate = buy_rate
@@ -99,15 +99,15 @@ def should_act(exchange, margin_buy, margin_sell, please_skip = False, extra = "
 
     elif sell_rate > sell_price:
 
-        p = lib.polo_connect() 
+        p = lib.connect() 
         amount_to_trade = unit / sell_rate
         if amount_to_trade < balanceMap[currency]['available']:
-            try:
-                order = p.sell(exchange, sell_rate, amount_to_trade)
-                rate = sell_rate
-                trade_type = 'sell'
-            except:
-                lib.plog("{:9} Failed sell {:.8f} @ {:.8f} (bal: {:.8f})".format(exchange, amount_to_trade, buy_price, balanceMap[currency]['available']))
+            #try:
+            order = p.sell(exchange, sell_rate, amount_to_trade)
+            rate = sell_rate
+            trade_type = 'sell'
+            #except:
+            #    lib.plog("{:9} Failed sell {:.8f} @ {:.8f} (bal: {:.8f})".format(exchange, amount_to_trade, buy_price, balanceMap[currency]['available']))
 
     else:
         lib.plog("{:5} {:6} {} {:4}".format(currency, "", market_graphic, extra))
