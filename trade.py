@@ -72,6 +72,7 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
     last = row['last']
     if rate is None:
         if spread > 0.005:
+            print("Spread is over threshold, trying to not do a stupid bid")
             rate = (1 + spread / 10) * bid if action == 'buy' else row['highestBid']
         else:
             rate = row['lowestAsk'] if action == 'buy' else row['highestBid']

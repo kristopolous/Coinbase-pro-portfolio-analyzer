@@ -153,10 +153,22 @@ def recent(currency):
     buyList = list(filter(lambda x: x['type'] == 'buy', data))
     sellList = list(filter(lambda x: x['type'] == 'sell', data))
 
-    print("Last buy")
-    bprint("\n".join([" {} {:.8f} {:.8f}".format(i['date'], i['rate'], i['btc']) for i in reversed(buyList[-5:])]))
-    print("Last sell")
-    bprint("\n".join([" {} {:.8f} {:.8f}".format(i['date'], i['rate'], i['btc']) for i in reversed(sellList[-5:])]))
+    buy_recent = [" {} {:.8f} {:.8f}".format(i['date'], i['btc'], i['rate']) for i in reversed(buyList[-5:])]
+    sell_recent = [" {:.8f} {:.8f} {}".format(i['rate'], i['btc'], i['date']) for i in reversed(sellList[-5:])]
+    col_wid = len(buy_recent[0])
+    print(("{:>" + str(col_wid) + "}   {}").format("Last Buy", "Last Sell"))
+    for i in range(0, 5):
+        row = ''
+        if i < len(buy_recent):
+            row += buy_recent[i]
+        else:
+            row += " " * col_wid
+        row += " "
+        if i < len(sell_recent):
+            row += sell_recent[i]
+
+        bprint(row)
+
 
 def showTrade(order, exchange, trade_type, rate, amount, source='human', doPrint=True):
     currency = exchange[4:]

@@ -17,7 +17,7 @@ ttl = 0
 all_prices_last_list = False
 all_prices_last = False
 
-waitTime =  120
+waitTime =  20
 tradeUpdate = 900
 start_time = time.time()
 

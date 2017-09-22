@@ -62,39 +62,13 @@ In most of the tools, leading 0s are replaced with _ to make things easier to re
 
 ### history.py
 
-A cli histogram for your buys for a currency.  Let's see how foolish I've been with namecoin:
+A cli histogram for your buys for a currency.  I've gotten a bit lucky with Bitcoin Plus here.
 
-```
-$ ./history.py nmc
-.___3253>
-.___3331
-.___3410
-.___3489
-.___3567^
-.___3646 *******
-.___3725
-.___3803 ***
-.___3882 ******
-.___3961
-.___4039 ******
-.___4118 ***
-.___4197
-.___4275 **********
-.___4354 ***************
-.___4432 *********************
-.___4511 **********************
-.___4590
-.___4668
-.___4747 *******************************
-.___4826 **********************
-```
+ * magenta bars are the buy points
+ * green area is the sell points. 
+ * number with the blue background is where the last trade happened.
 
-Key:
- * `>` - where the last trade happened. 
- * `*` - my distributions of that inclusive range.  
- * `^` - the lowest buy you've made up to this point. 
-
-So we can see that namecoin is trading at 0.0003253 and my lowest buy is at 0.0003652. Oops! Trading can be difficult!
+<img src=https://i.imgur.com/tSNqfyF.png>
 
 ### trade.py
 
