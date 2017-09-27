@@ -11,8 +11,9 @@ import fake
 import json
 
 currency_list = []
-wait = 600
-update = 240
+wait_before_next_trade = 300
+ui_update = 3
+cycles_before_data_update = 20
 
 margin_buy = 0.015
 margin_sell = 0.015
@@ -46,7 +47,7 @@ print("\033?25l")
 os.system('clear')
 while True:
     if index == 0:
-        if True or ctr % 2 == 0:
+        if ctr % cycles_before_data_update == 0:
             if not lib.is_fake:
                 print("                                    ")
                 print("   ... refreshing data source ...   ")
@@ -83,17 +84,17 @@ while True:
         """
 
     if did_act:
-        next_act[currency] = lib.unixtime() + wait
+        next_act[currency] = lib.unixtime() + wait_before_next_trade
 
     if index == 0:
         oldline = ""
         line = ""
-        for i in range(max(update * subtime, 1), 0, -1):
+        for i in range(max(ui_update * subtime, 1), 0, -1):
             if line != oldline:
                 print(line)
                 oldline = line
 
-            line = ("\033[0;0H {} {:35} {:.3f}{:>" + str(running.graph_len - 5) + "}  {}").format( time.strftime("%Y-%m-%d %H:%M:%S", lib.now()), "", margin_buy, "{:.3f}".format(margin_sell), wait)
+            line = ("\033[0;0H {} {:35} {:.3f}{:>" + str(running.graph_len - 5) + "}  {}").format( time.strftime("%Y-%m-%d %H:%M:%S", lib.now()), "", margin_buy, "{:.3f}".format(margin_sell), wait_before_next_trade)
             lib.wait(1 / subtime)
 
             if select.select([sys.stdin,],[],[],0.0)[0]:
@@ -108,10 +109,10 @@ while True:
                     margin_sell += 0.001
 
                 if kc == 'x': 
-                    wait -= 5
+                    wait_before_next_trade -= 5
                     next_act = {k: v - 5 for k,v in next_act.items()}
                 if kc == 'c': 
-                    wait += 5
+                    wait_before_next_trade += 5
                     next_act = {k: v + 5 for k,v in next_act.items()}
 
                 margin_buy = max(margin_buy, 0.0030)
