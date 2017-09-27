@@ -3,20 +3,15 @@ import time
 import sys
 import os
 import lib
-import csv
 import json
 from datetime import datetime
-import fake
 import sqlite3
 from operator import itemgetter, attrgetter
 import urllib.request
 
-
 now = int(time.time()) 
 
-p = lib.connect()
-pbal = lib.returnCompleteBalances()
-exList = [ 'BTC_{}'.format(k) for k,v in pbal.items() if k != 'BTC' and v['cur'] > 0]
+exList  = lib.returnTicker().keys()
 
 dt = lambda x: datetime.fromtimestamp(x).strftime('(%Y-%m-%d.%H:%M:%S) ')
 
@@ -29,9 +24,6 @@ def data_to_sql(cur):
         data = handle.read()
         jsonData = json.loads(data)
         conn = sqlite3.connect("{}.sql".format(name))
-        """
-        "tradeID": 985843, "date": "2017-05-30 08:48:41", "total": "0.09633736", "type": "buy", "rate": "0.00009308", "globalTradeID": 148066353, "unix": 1496159321, "amount": "1034.99532304"
-        """
         c = conn.cursor()
         c.execute('''CREATE TABLE history (
                 gid integer not null, 
@@ -56,7 +48,6 @@ def data_to_sql(cur):
 
 
 for ex in exList:
-    priceHistoryName = "test/{}-price".format(ex)
     fullHistoryName = "test/{}-full".format(ex)
     start = now - lib.one_day * 120
     uniqueIdList = set()
@@ -64,15 +55,13 @@ for ex in exList:
     historyPrice = []
     
     lastEnd = 0
-    if os.path.exists(fullHistoryName):
-        data_to_sql(ex)
-    else:
+    if not os.path.exists(fullHistoryName):
         while True:
             end = min(now, start + 0.8 * lib.one_day)
             #print("{} {}  {}".format(ex, dt(start), dt(end)))
             snapRaw = urllib.request.urlopen('https://poloniex.com/public?command=returnTradeHistory&currencyPair={}&start={}&end={}'.format(ex, start, end)).read().decode('utf-8')
             snap = json.loads(snapRaw)
-            #p.marketTradeHist(ex, start=start, end=end)
+
             if len(snap) == 0:
                 start = min(now, start + (28 * lib.one_day))
                 if start == now:
@@ -103,10 +92,8 @@ for ex in exList:
                     start += 900
 
 
-        historyPrice = [ (v['unix'], float(v['rate'])) for v in historyFull ]
-        with open(priceHistoryName, 'w') as cache:
-            handle = csv.writer(cache)
-            handle.writerows(sorted(historyPrice, key=itemgetter(0)))
-
         with open(fullHistoryName, 'w') as cache:
             json.dump(sorted(historyFull, key=itemgetter('unix')), cache)  
+
+    if os.path.exists(fullHistoryName):
+        data_to_sql(ex)
