@@ -3,43 +3,108 @@ import time
 import sys
 import os
 import lib
-import csv
+import json
 from datetime import datetime
-import fake
+import sqlite3
 from operator import itemgetter, attrgetter
-
+import urllib.request
 
 now = int(time.time()) 
 
-p = lib.connect()
-pbal = lib.returnCompleteBalances()
-exList = [ 'BTC_{}'.format(k) for k,v in pbal.items() if k != 'BTC' and v['cur'] > 0]
+exList  = lib.returnTicker().keys()
 
 dt = lambda x: datetime.fromtimestamp(x).strftime('(%Y-%m-%d.%H:%M:%S) ')
 
+BUY = 0
+SELL = 1
+def data_to_sql(cur):
+    name = "test/{}-full".format(cur)
+    sqlname = "{}.sql".format(name)
+    ix = 0
+
+    if os.path.exists(sqlname) and os.path.getsize(sqlname) > 100000:
+        return
+
+    with open(name, 'r') as handle:
+        data = handle.read()
+        jsonData = json.loads(data)
+        conn = sqlite3.connect(sqlname)
+        c = conn.cursor()
+        c.execute('''CREATE TABLE history (
+                gid integer not null, 
+                date integer not null, 
+                total real not null, 
+                rate real not null, 
+                amount real not null,
+                type integer)''')
+        c.execute('CREATE UNIQUE INDEX idx_history_gid ON history (gid)');
+
+        ttl = len(jsonData)
+        for row in jsonData:
+            if ix % 10000 == 0:
+                print("{} {:5.2f}% {}".format(cur, ix * 100 / ttl, ix))
+
+            ix += 1
+            c.execute("INSERT INTO history VALUES ({}, {}, {}, {}, {}, {})".format(
+                row['globalTradeID'], row['unix'], row['total'], row['rate'], row['amount'], BUY if row['type'] == 'buy' else SELL))
+
+        conn.commit()
+        conn.close()
+
+
 for ex in exList:
-    name = "test/{}".format(ex)
-    start = now - lib.one_day * 20
-    history = []
-    if not os.path.exists(name):
+    fullHistoryName = "test/{}-full".format(ex)
+    start = now - lib.one_day * 120
+    uniqueIdList = set()
+    historyFull = []
+    historyPrice = []
+    
+    lastEnd = 0
+    if not os.path.exists(fullHistoryName):
         while True:
-            end = min(now, start + 0.25 * lib.one_day)
-            snap =  p.marketTradeHist(ex, start=start, end=end)
+            end = min(now, start + 0.8 * lib.one_day)
+            #print("{} {}  {}".format(ex, dt(start), dt(end)))
+            snapRaw = urllib.request.urlopen('https://poloniex.com/public?command=returnTradeHistory&currencyPair={}&start={}&end={}'.format(ex, start, end)).read().decode('utf-8')
+            snap = json.loads(snapRaw)
+
             if len(snap) == 0:
                 start = min(now, start + (28 * lib.one_day))
                 if start == now:
                     break
             else:
+                snapOrig = snap
+                snapFull = list(filter(lambda x: x['globalTradeID'] not in uniqueIdList, snapOrig))
 
-                snap = [ (int(time.mktime(datetime.strptime(v['date'], '%Y-%m-%d %H:%M:%S').timetuple())), float(v['rate'])) for v in snap ]
-                snap = sorted(snap, key=itemgetter(0))
+                for v in snapFull:
+                    v['unix'] = int(time.mktime(datetime.strptime(v['date'], '%Y-%m-%d %H:%M:%S').timetuple()))
+                    uniqueIdList.add(v['globalTradeID'])
 
-                print(*[dt(x) for x in [snap[0][0], snap[-1][0], start, end]])
-                history += snap
-                start = snap[-1][0] + 1
+                snapFull = sorted(snapFull, key=itemgetter('unix'))
+
+                #print(*[dt(x) for x in [snapPrice[1][0], snapPrice[-1][0], start, end]])
+
+                if len(snapFull) > 0:
+                    deltaSinceLast = (snapFull[0]['unix'] - lastEnd) / 60
+
+                    historyFull += snapFull
+                    oldStart = start
+                    frac = 1/3
+                    if len(snap) == 50000:
+                        frac /= 20
+
+                    if deltaSinceLast > 15 and lastEnd > 0 and len(snapOrig) - len(snapFull) == 0:
+                        start -= (60 * 45)
+                    else:
+                        start = max(start + 1, (snapFull[-1]['unix'] - snapFull[0]['unix']) * (frac) + snapFull[0]['unix'] - (9 * 3600))
+
+                    print("{}  {}    {} {:8d} {:.2f}".format(ex, snapFull[0]['date'], snapFull[-1]['date'], len(snapOrig) - len(snapFull), deltaSinceLast))
+                    lastEnd = snapFull[-1]['unix'] 
+                else: 
+                    start += 900
 
 
-        with open(name, 'w') as cache:
-            handle = csv.writer(cache)
-            handle.writerows(sorted(history, key=itemgetter(0)))
+        with open(fullHistoryName, 'w') as cache:
+            json.dump(sorted(historyFull, key=itemgetter('unix')), cache)  
 
+    if os.path.exists(fullHistoryName):
+        data_to_sql(ex)

@@ -78,8 +78,8 @@ def should_act(exchange, margin_buy, margin_sell, please_skip = False, extra = "
     
     market_low =  pList[exchange]['highestBid']
     market_high = pList[exchange]['lowestAsk'] 
-    buy_rate = pList[exchange]['lowestAsk'] - 0.00000001
-    sell_rate = pList[exchange]['highestBid'] + 0.00000001
+    buy_rate = pList[exchange]['highestBid'] + 0.00000001
+    sell_rate = pList[exchange]['lowestAsk'] - 0.00000001
     
     graph = graph_make(buy_price, market_low, market_high, sell_price, margin_buy, margin_sell)
     market_graphic = "{:.8f} {}{:.8f}{:.8f} {}{:.8f} {}".format(buy_price, ' ' if buy_price < buy_rate else '>', buy_rate, sell_rate, ' ' if sell_price > sell_rate else '>', sell_price, graph)
