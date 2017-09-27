@@ -154,7 +154,7 @@ def recent(currency):
     sellList = list(filter(lambda x: x['type'] == 'sell', data))
 
     buy_recent = [" {} {:.8f} {:.8f}".format(i['date'], i['btc'], i['rate']) for i in reversed(buyList[-5:])]
-    sell_recent = [" {:.8f} {:.8f} {}".format(i['rate'], i['btc'], i['date']) for i in reversed(sellList[-5:])]
+    sell_recent = [" {:.8f} {:.8f} {}".format(i['rate'], i['btc'], i['date']) for i in reversed(sellList[-8:]) if i['btc'] > 0.00009]
     col_wid = len(buy_recent[0])
     print(("{:>" + str(col_wid) + "}   {}").format("Last Buy", "Last Sell"))
     for i in range(0, 5):
@@ -178,6 +178,8 @@ def showTrade(order, exchange, trade_type, rate, amount, source='human', doPrint
             plog("{:9} {:4}  {}{} at {}BTC. Total {}BTC".format(exchange, trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
 
         if len(order['resultingTrades']) == 0:
+            amount = float(amount)
+            rate = float(rate)
             plog("{:9} Open {:4} {:.8f} * {:.8f} ={:.8f}btc".format(exchange, trade_type, rate, amount, rate * amount))
 
     order['type'] = trade_type
