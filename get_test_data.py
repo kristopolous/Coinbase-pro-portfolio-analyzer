@@ -19,11 +19,16 @@ BUY = 0
 SELL = 1
 def data_to_sql(cur):
     name = "test/{}-full".format(cur)
+    sqlname = "{}.sql".format(name)
     ix = 0
+
+    if os.path.exists(sqlname) and os.path.getsize(sqlname) > 100000:
+        return
+
     with open(name, 'r') as handle:
         data = handle.read()
         jsonData = json.loads(data)
-        conn = sqlite3.connect("{}.sql".format(name))
+        conn = sqlite3.connect(sqlname)
         c = conn.cursor()
         c.execute('''CREATE TABLE history (
                 gid integer not null, 
@@ -79,14 +84,20 @@ for ex in exList:
                 #print(*[dt(x) for x in [snapPrice[1][0], snapPrice[-1][0], start, end]])
 
                 if len(snapFull) > 0:
+                    deltaSinceLast = (snapFull[0]['unix'] - lastEnd) / 60
+
                     historyFull += snapFull
                     oldStart = start
                     frac = 1/3
                     if len(snap) == 50000:
                         frac /= 20
-                    start = max(start + 1, (snapFull[-1]['unix'] - snapFull[0]['unix']) * (frac) + snapFull[0]['unix'] - (9 * 3600))
 
-                    print("{}  {}    {} {:8d} {:.2f}".format(ex, snapFull[0]['date'], snapFull[-1]['date'], len(snapOrig) - len(snapFull), (snapFull[0]['unix'] - lastEnd) / 60))
+                    if deltaSinceLast > 15 and lastEnd > 0 and len(snapOrig) - len(snapFull) == 0:
+                        start -= (60 * 45)
+                    else:
+                        start = max(start + 1, (snapFull[-1]['unix'] - snapFull[0]['unix']) * (frac) + snapFull[0]['unix'] - (9 * 3600))
+
+                    print("{}  {}    {} {:8d} {:.2f}".format(ex, snapFull[0]['date'], snapFull[-1]['date'], len(snapOrig) - len(snapFull), deltaSinceLast))
                     lastEnd = snapFull[-1]['unix'] 
                 else: 
                     start += 900
