@@ -4,3 +4,4 @@ trades*txt
 order-history.json
 __pycache__
 cache/*
+test/*
