@@ -26,7 +26,7 @@ for k,b,v in in_order:
         stats = lib.analyze(history, brief=True)
         prof = 0
         if stats['buyAvg'] > 0:
-            prof = stats['sellBtc'] * ( stats['sellAvg'] / stats['buyAvg']  - 1 )
+            prof = stats['sellCur'] * ( stats['sellAvg'] - stats['buyAvg'] )
             # Based on the current price, we see how far off the breakprice we are
             # and then push it out over our total holdings.
             loss = (ticker[market]['last'] - stats['break']) * stats['cur']

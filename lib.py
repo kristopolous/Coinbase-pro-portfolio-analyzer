@@ -303,10 +303,10 @@ def tradeHistory(currency = 'all', forceUpdate = False, forceCache = False):
     doesExpire = False
     all_trades = []
     for i in range(start, int(now), step):
+        name = 'cache/{}-{}.txt'.format(currency, i)
         if now - i < step:
             doesExpire = True
 
-        name = 'cache/{}-{}.txt'.format(currency, i)
         if (need_to_get(name, doesExpire = doesExpire, expiry = 300, failOnSmall = False) or (doesExpire and forceUpdate)) and not forceCache:
             with open(name, 'w') as cache:
                 p = connect() 
