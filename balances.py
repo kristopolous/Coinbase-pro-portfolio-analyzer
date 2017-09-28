@@ -29,7 +29,7 @@ for k,b,v in in_order:
             prof = stats['sellCur'] * ( stats['sellAvg'] - stats['buyAvg'] )
             # Based on the current price, we see how far off the breakprice we are
             # and then push it out over our total holdings.
-            loss = (ticker[market]['last'] - stats['break']) * stats['cur']
+            loss = (ticker[market]['last'] - stats['buyAvg']) * stats['cur']
             ttl = prof + loss
         else:
             continue
