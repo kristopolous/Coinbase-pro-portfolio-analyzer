@@ -33,7 +33,7 @@ def plog(what):
 def bstr(what):
     # there's probably smarter ways to do this ... but
     # I can't think of one
-    for i in range(6, 0, -1):
+    for i in range(8, 0, -1):
         what = re.sub('^(-?)0\.{}'.format('0' * i), r'\1 .{}'.format('_' * i), what)
         what = re.sub('([^0-9])0\.{}'.format('0' * i), r'\1 .{}'.format('_' * i), what)
 
@@ -119,9 +119,20 @@ def analyze(data, brief = False):
     sellList = list(filter(lambda x: x['type'] == 'sell', data))
 
     res = {
-        'lowestBuy': buyList[0]['rate'],
-        'highestBuy': buyList[-1]['rate']
+        'lowestBuy': 0,
+        'highestBuy': 0,
+    	'lowestSell': 0,
+    	'highestSell': 0,
+    	'sellBtc': 0,
+    	'sellCur': 0,
+    	'avgBuy': 0,
+    	'avgSell': 0,
+    	'avg': 0
     }
+
+    if len(buyList) > 0:
+        res['lowestBuy'] = buyList[0]['rate']
+        res['highestBuy'] = buyList[-1]['rate']
 
     if not brief:
         res['buyList'] = buyList
@@ -130,12 +141,20 @@ def analyze(data, brief = False):
     if len(sellList) > 0:
         res['lowestSell'] = sellList[0]['rate']
         res['highestSell'] = sellList[-1]['rate']
-        res['avgSell'] = sum([ x['btc'] for x in sellList]) / sum([ x['cur'] for x in sellList]) 
+        res['sellBtc'] = sum([ x['btc'] for x in sellList])
+        res['sellCur'] = sum([ x['cur'] for x in sellList]) 
+        res['avgSell'] = res['sellBtc'] / res['sellCur']
 
-    res['avgBuy'] = sum([ x['btc'] for x in buyList]) / sum([ x['cur'] for x in buyList]) 
-    res['cur'] = sum([ x['cur'] for x in buyList]) - sum([ x['cur'] for x in sellList]) 
+    res['ttlCur'] = sum([ x['cur'] for x in buyList])
+    if res['ttlCur'] > 0:
+        res['avgBuy'] = sum([ x['btc'] for x in buyList]) / res['ttlCur']
+
+    res['cur'] = res['ttlCur'] - sum([ x['cur'] for x in sellList]) 
     res['btc'] = sum([ x['btc'] for x in buyList]) - sum([ x['btc'] for x in sellList]) 
-    res['avg'] = res['btc'] / res['cur'] 
+
+    if res['cur'] > 0:
+        res['avg'] = res['btc'] / res['cur'] 
+
     return res
 
 def unixtime():
