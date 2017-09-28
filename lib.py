@@ -145,12 +145,13 @@ def analyze(data, brief = False):
         res['sellCur'] = sum([ x['cur'] for x in sellList]) 
         res['avgSell'] = res['sellBtc'] / res['sellCur']
 
-    res['ttlCur'] = sum([ x['cur'] for x in buyList])
-    if res['ttlCur'] > 0:
-        res['avgBuy'] = sum([ x['btc'] for x in buyList]) / res['ttlCur']
+    res['buyCur'] = sum([ x['cur'] for x in buyList])
+    res['buyBtc'] = sum([ x['btc'] for x in buyList])
+    if res['buyCur'] > 0:
+        res['avgBuy'] = res['buyBtc'] / res['buyCur']
 
-    res['cur'] = res['ttlCur'] - sum([ x['cur'] for x in sellList]) 
-    res['btc'] = sum([ x['btc'] for x in buyList]) - sum([ x['btc'] for x in sellList]) 
+    res['cur'] = res['buyCur'] - sum([ x['cur'] for x in sellList]) 
+    res['btc'] = res['buyBtc'] - sum([ x['btc'] for x in sellList]) 
 
     if res['cur'] > 0:
         res['avg'] = res['btc'] / res['cur'] 
@@ -255,10 +256,10 @@ def historyFloat(tradeList):
         tradeList[i]['btc'] = tradeList[i]['total']
         tradeList[i]['cur'] = tradeList[i]['amount']
 
-        if tradeList[i]['type'] == 'sell':
+        if tradeList[i]['type'] == 'buy':
             tradeList[i]['btc'] -= tradeList[i]['total'] * tradeList[i]['fee']
 
-        if tradeList[i]['type'] == 'buy':
+        if tradeList[i]['type'] == 'sell':
             tradeList[i]['cur'] -= tradeList[i]['cur'] * tradeList[i]['fee']
 
         tradeList[i]['date'] = datetime.strptime( tradeList[i]['date'], '%Y-%m-%d %H:%M:%S' )
