@@ -31,12 +31,13 @@ rowOrderList = [
     [ 'move', '{:>7}', '{:7.3f}'],
     [ '24h', '{:>7}', '{:7.2f}'],
     [ 'price', '{:>8}', '{:8.5f}'],
+    [ 'brk', '{:>8}', '{:8.5f}'],
+    [ 'bprof', '{:>7}', '{:7.2f}'],
     [ 'last', '{:>9}', '{}'],
     [ 'roi', '{:>7}', '{:7.2f}'],
     [ 'bal', '{:>8}', '{:8.3f}'],
     [ 'prof', '{:>8}', '{:8.3f}'],
-    [ 'sell', '{:>9}', '{:9.4f}'],
-    [ 'to','{:>9}', '{:9.4f}']
+    [ 'sell', '{:>9}', '{:9.4f}']
 ]
 
 while True:
@@ -62,9 +63,11 @@ while True:
     rows = []
 
     for k,v in all_trades.items():
-        buys = list(filter(lambda x: x['type'] == 'buy', v))
-        btc_ttl = sum([t['btc'] for t in buys])
-        cur_ttl = sum([t['cur'] for t in buys])
+        stats = lib.analyze(v, brief=True)
+        btc_ttl = stats['buyBtc']
+        btc_ttl_sell = stats['sellBtc']
+
+        cur_ttl = stats['buyCur']
         price = float(all_prices[k]['last'])
         if k[:3] == 'ETH' or cur_ttl == 0: 
             continue
@@ -95,6 +98,7 @@ while True:
 
             hold = (my_ratio - 1) * price * my_balance
 
+            break_price = 1000 * (btc_ttl - stats['sellBtc']) / stats['cur']
             rows.append({
                 'cur': cur, 
                 'last': "{:8.5f}{}".format(v[-1]['rate'] * 1000, '*' if v[-1]['type'][0] == 'b' else ' '),
@@ -103,6 +107,8 @@ while True:
                 '24h': all_prices[k]['percentChange'] * 100,
                 'bal': lib.btc_price() * price * my_balance, 
                 'prof': lib.btc_price() * hold, 
+                'brk': break_price,
+                'bprof': 100000 * (price / break_price),
                 'buy': 10000 * (my_ratio_buy / my_ratio) - 10000,
                 'sell': 10000 * (my_ratio_sell / my_ratio) - 10000,
                 'move': 100 - (100 * all_prices_last[k]['last'] / all_prices[k]['last']),
