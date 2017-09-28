@@ -19,6 +19,17 @@ polo_instance = False
 _cache = {}
 
 
+def getCurrency():
+    currency_list = []
+    for i in sys.argv[1:]:
+        currency_list.append('BTC_{}'.format(i.upper()))
+
+    if len(currency_list) == 1:
+        return currency_list[0]
+    if len(currency_list) == 0:
+        return False
+    return currency_list
+
 def wait(sec):
     if is_fake:
         connect().time += sec
