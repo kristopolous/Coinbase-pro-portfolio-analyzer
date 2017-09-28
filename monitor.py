@@ -31,9 +31,9 @@ rowOrderList = [
     [ 'move', '{:>7}', '{:7.3f}'],
     [ '24h', '{:>7}', '{:7.2f}'],
     [ 'price', '{:>8}', '{:8.5f}'],
+    [ 'last', '{:>9}', '{}'],
     [ 'brk', '{:>8}', '{:8.5f}'],
     [ 'bprof', '{:>7}', '{:7.2f}'],
-    [ 'last', '{:>9}', '{}'],
     [ 'roi', '{:>7}', '{:7.2f}'],
     [ 'bal', '{:>8}', '{:8.3f}'],
     [ 'prof', '{:>8}', '{:8.3f}'],
@@ -98,7 +98,7 @@ while True:
 
             hold = (my_ratio - 1) * price * my_balance
 
-            break_price = 1000 * (btc_ttl - stats['sellBtc']) / stats['cur']
+            break_price = 1000.0 * stats['pl'] / (stats['buyCur'] - stats['sellCur']) 
             rows.append({
                 'cur': cur, 
                 'last': "{:8.5f}{}".format(v[-1]['rate'] * 1000, '*' if v[-1]['type'][0] == 'b' else ' '),
@@ -108,7 +108,7 @@ while True:
                 'bal': lib.btc_price() * price * my_balance, 
                 'prof': lib.btc_price() * hold, 
                 'brk': break_price,
-                'bprof': 100000 * (price / break_price),
+                'bprof': (100000 * (price / break_price)) - 100,
                 'buy': 10000 * (my_ratio_buy / my_ratio) - 10000,
                 'sell': 10000 * (my_ratio_sell / my_ratio) - 10000,
                 'move': 100 - (100 * all_prices_last[k]['last'] / all_prices[k]['last']),

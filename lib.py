@@ -55,10 +55,10 @@ def connect():
         polo_instance = Poloniex(*secret.token)
     return polo_instance
 
-def need_to_get(path, doesExpire = True, expiry = one_day / 2):
+def need_to_get(path, doesExpire = True, failOnSmall = True, expiry = one_day / 2):
     now = time.time()
 
-    if not os.path.isfile(path) or os.path.getsize(path) < 10:
+    if not os.path.isfile(path) or (failOnSmall and os.path.getsize(path) < 10):
         return True
 
     if doesExpire:
@@ -113,8 +113,8 @@ def btc_price():
         return d['bpi']['USD']['rate_float']
 
 
-def analyze(data, brief = False):
-    data = sorted(data, key = lambda x: x['rate'])
+def analyze(data, brief = False, sort = 'rate'):
+    data = sorted(data, key = lambda x: x[sort])
     buyList = list(filter(lambda x: x['type'] == 'buy', data))
     sellList = list(filter(lambda x: x['type'] == 'sell', data))
 
@@ -127,7 +127,8 @@ def analyze(data, brief = False):
     	'sellCur': 0,
     	'avgBuy': 0,
     	'avgSell': 0,
-    	'avg': 0
+    	'avg': 0,
+        'pl': 0
     }
 
     if len(buyList) > 0:
@@ -152,6 +153,7 @@ def analyze(data, brief = False):
 
     res['cur'] = res['buyCur'] - sum([ x['cur'] for x in sellList]) 
     res['btc'] = res['buyBtc'] - sum([ x['btc'] for x in sellList]) 
+    res['pl'] = res['buyBtc'] - res['sellBtc']
 
     if res['cur'] > 0:
         res['avg'] = res['btc'] / res['cur'] 
@@ -257,10 +259,10 @@ def historyFloat(tradeList):
         tradeList[i]['cur'] = tradeList[i]['amount']
 
         if tradeList[i]['type'] == 'buy':
-            tradeList[i]['btc'] -= tradeList[i]['total'] * tradeList[i]['fee']
+            tradeList[i]['cur'] -= tradeList[i]['cur'] * tradeList[i]['fee']
 
         if tradeList[i]['type'] == 'sell':
-            tradeList[i]['cur'] -= tradeList[i]['cur'] * tradeList[i]['fee']
+            tradeList[i]['btc'] -= tradeList[i]['total'] * tradeList[i]['fee']
 
         tradeList[i]['date'] = datetime.strptime( tradeList[i]['date'], '%Y-%m-%d %H:%M:%S' )
 
@@ -277,7 +279,7 @@ def tradeHistory(currency = 'all', forceUpdate = False, forceCache = False):
     if forceCache and 'all_trades' in _cache:
         return _cache['all_trades']
 
-    step = one_day * 7
+    step = one_day 
     now = time.time()
     start = first_day
     doesExpire = False
@@ -287,7 +289,7 @@ def tradeHistory(currency = 'all', forceUpdate = False, forceCache = False):
             doesExpire = True
 
         name = 'cache/{}-{}.txt'.format(currency, i)
-        if (need_to_get(name, doesExpire = doesExpire, expiry = 300) or (doesExpire and forceUpdate)) and not forceCache:
+        if (need_to_get(name, doesExpire = doesExpire, expiry = 300, failOnSmall = False) or (doesExpire and forceUpdate)) and not forceCache:
             with open(name, 'w') as cache:
                 p = connect() 
                 end = i + step
