@@ -128,6 +128,7 @@ def analyze(data, brief = False, sort = 'rate'):
     	'avgBuy': 0,
     	'avgSell': 0,
     	'avg': 0,
+        'break': 0,
         'pl': 0
     }
 
@@ -151,11 +152,17 @@ def analyze(data, brief = False, sort = 'rate'):
     if res['buyCur'] > 0:
         res['avgBuy'] = res['buyBtc'] / res['buyCur']
 
-    res['cur'] = res['buyCur'] - sum([ x['cur'] for x in sellList]) 
-    res['btc'] = res['buyBtc'] - sum([ x['btc'] for x in sellList]) 
-    res['pl'] = res['buyBtc'] - res['sellBtc']
+    res['cur'] = res['buyCur'] - res['sellCur']
+    res['btc'] = res['buyBtc'] - res['sellBtc']
+
+    if res['cur'] < 1e-11 and res['cur'] > 0:
+        res['cur'] = 0
+        res['btc'] = 0
+
+    res['pl'] = res['sellBtc'] - res['buyBtc']
 
     if res['cur'] > 0:
+        res['break'] = -res['pl'] / res['cur']
         res['avg'] = res['btc'] / res['cur'] 
 
     return res

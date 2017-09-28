@@ -98,7 +98,7 @@ while True:
 
             hold = (my_ratio - 1) * price * my_balance
 
-            break_price = 1000.0 * stats['pl'] / (stats['buyCur'] - stats['sellCur']) 
+            break_price = 1000.0 * stats['break']
             rows.append({
                 'cur': cur, 
                 'last': "{:8.5f}{}".format(v[-1]['rate'] * 1000, '*' if v[-1]['type'][0] == 'b' else ' '),

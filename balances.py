@@ -5,6 +5,7 @@ import lib
 from operator import itemgetter, attrgetter
 p = Poloniex(*secret.token)
 
+ticker = lib.returnTicker()
 all_history = lib.tradeHistory()
 cur_balances = p.returnCompleteBalances()
 all_balances = list([(k, float(v['btcValue']), float(v['available']) + float(v['onOrders'])) for k,v in cur_balances.items() ])
@@ -15,22 +16,34 @@ in_order = sorted(all_positive, key=itemgetter(1))
 btc_ttl = 0
 
 prof_sum = 0
+loss_sum = 0
+ttl_sum = 0
+lib.bprint("{:5} {:>8} {:>8} {:>12} {:>12} {:>12} {:>8}".format( 'cur', 'btc', 'usd', 'prof', 'loss', 'p&l', 'p&l usd'))
 for k,b,v in in_order:
     if k != 'BTC':
-        history = all_history["BTC_{}".format(k)]
+        market = "BTC_{}".format(k)
+        history = all_history[market]
         stats = lib.analyze(history, brief=True)
         prof = 0
         if stats['avgBuy'] > 0:
-            prof = stats['sellBtc'] * ( stats['avgSell'] / stats['avgBuy']  - 1)
+            prof = stats['sellBtc'] * ( stats['avgSell'] / stats['avgBuy']  - 1 )
+            # Based on the current price, we see how far off the breakprice we are
+            # and then push it out over our total holdings.
+            loss = (ticker[market]['last'] - stats['break']) * stats['cur']
+            ttl = prof + loss
         else:
             continue
     else:
         prof = 0
+        loss = 0
+        ttl = 0
 
     btc_ttl += b
     prof_sum += prof
+    loss_sum += loss
+    ttl_sum += ttl
 
-    lib.bprint("{:6} {:.8f} {:8.2f} {:14.8f} {:14.8f} {:8.2f}".format( k, b, b * lib.btc_price(), v, prof, prof * lib.btc_price() ))
+    lib.bprint("{:5} {:.6f} {:8.2f} {:12.8f} {:12.8f} {:12.8f} {:8.2f}".format( k, b, b * lib.btc_price(), prof, loss, ttl, ttl * lib.btc_price() ))
 
-print("--------------------------")
-lib.bprint("{:6} {:.8f} {:8.2f} {:14} {:14.8f} {:8.2f}".format( 'all', btc_ttl, btc_ttl * lib.btc_price(), "", prof_sum, prof_sum * lib.btc_price()))
+print("")
+lib.bprint(    "{:5} {:.6f} {:8.2f} {:12.8f} {:12.8f} {:12.8f} {:8.2f}".format( 'all', btc_ttl, btc_ttl * lib.btc_price(), prof_sum, loss_sum, ttl_sum, ttl_sum * lib.btc_price()))

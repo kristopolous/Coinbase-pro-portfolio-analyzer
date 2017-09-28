@@ -16,8 +16,8 @@ if high_index == low_index:
 graph[high_index] += '\x1b[49m'
 """
 
-rows = 30 
-cols = 120
+rows = 40 
+cols = 150
 data = lib.tradeHistory(currency)
 sortlist = sorted(data, key = lambda x: x['rate'])
 buyList = list(filter(lambda x: x['type'] == 'buy', sortlist))
@@ -42,16 +42,16 @@ highest = max(buy_high, sell_high, last)
 div = (highest - lowest) / rows
 
 ttl = sum([x['total'] for x in buyList])
-grade = ttl / rows / 400
+grade = ttl / rows / 8
 
 buy_ix = 0
 buy_ttl = 0
 sell_ix = 0
 sell_ttl = 0
-for slot in np.arange(lowest, highest + div, div):
-    slot_line = "{:.8f}".format(slot)
-    if last >= slot and last < slot + div:
-        slot_line = "\x1b[44m{}\x1b[0m".format(slot_line)
+for slot in np.arange(lowest, highest + 2*div, div):
+    slot_line = "{:.8f} ".format(slot)
+    if last >= slot and last <= slot + div:
+        slot_line = "\x1b[44m\x1b[37;1m{}\x1b[0m".format(slot_line)
 
     while True:
         if buy_ix >= len(buyList) or buyList[buy_ix]['rate'] > slot:
@@ -65,7 +65,7 @@ for slot in np.arange(lowest, highest + div, div):
         sell_ttl += sellList[sell_ix]['total']
         sell_ix += 1
 
-    dots = min(int(math.sqrt(buy_ttl / grade)), cols)
+    dots = min(int((buy_ttl / grade)), cols - 1)
     if buy_ttl > 0 and dots == 0:
         dots = 1
 
@@ -73,14 +73,14 @@ for slot in np.arange(lowest, highest + div, div):
 
     if sell_ttl > 0: 
         row[0] = '\x1b[42m{}'.format(row[0])
-        cbar = min(int(math.sqrt(sell_ttl / grade)), cols)
+        cbar = min(int((sell_ttl / grade)), cols - 1)
         cbar = max(cbar, 1) 
         row[cbar] = '\x1b[49m{}'.format(row[cbar])
 
     row[0] = '\x1b[35m' + row[0]
     row[-1] += '\x1b[0m'
 
-    bprint("{} {}".format(slot_line, "".join(row)))
+    bprint("{}{}".format(slot_line, "".join(row)))
     buy_ttl = 0
     sell_ttl = 0
 
