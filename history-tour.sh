@@ -26,10 +26,17 @@ while [ $ix -lt $len ]; do
       dir=-1
       break
     fi
+    [ $c == 'q' ] && exit
   done
+
   (( ix += dir ))
-  if [ $ix -lt 0 ]; then
+
+  if [ $ix -eq $len ]; then
     ix=0
+  fi
+  if [ $ix -lt "0" ]; then
+    ix=$(( len - 1 ))
+    echo $ix
   fi
 done
 
