@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 import lib
 import sys
-import numpy as np
-import math
 from lib import bprint
 
 cur = False
@@ -15,23 +13,16 @@ if len(sys.argv) > 1:
 if len(sys.argv) > 2:
     margin = float(sys.argv[2])
 
-"""
-graph[low_index] += '\x1b[42m'
-if high_index == low_index:
-    high_index = min(1 + low_index, graph_len - 1)
-graph[high_index] += '\x1b[49m'
-"""
-
 rows = 80 
 cols = 150
 data = lib.tradeHistory(currency)
 anal = lib.analyze(data)
 balanceMap = lib.returnCompleteBalances()
-sortlist = sorted(data, key = lambda x: x['rate'])
+ticker = lib.returnTicker()
+
 buyList = anal['buyList']
 sellList = anal['sellList']
 
-ticker = lib.returnTicker()
 last = float(ticker[currency]['last'])
 
 buy_low = buyList[0]['rate']
@@ -53,9 +44,6 @@ if margin:
     highest = midpoint * (100 + margin) / 100
 
 div = (highest - lowest) / rows
-
-ttl = sum([x['total'] for x in buyList])
-grade = ttl / rows / 8
 
 buy_ix = 0
 buy_ttl = 0
@@ -123,4 +111,4 @@ while slot <  highest + 2*div:
     sell_ttl = 0
     slot += div
 
-lib.recent(currency)
+lib.recent(currency, anal)
