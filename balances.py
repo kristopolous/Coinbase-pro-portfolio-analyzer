@@ -12,7 +12,7 @@ cur_balances = p.returnCompleteBalances()
 all_balances = list([(k, float(v['btcValue']), float(v['available']) + float(v['onOrders'])) for k,v in cur_balances.items() ])
 all_positive = list(filter(lambda x: x[1] > 0, all_balances))
 if len(sys.argv) > 1:
-    print("\n".join([x[0] for x in all_positive]))
+    print("\n".join(sorted([x[0] for x in all_positive])))
     sys.exit(0)
 
 market_exit_list = set([ k[4:] for k in all_history.keys() ]) - set([x[0] for x in all_positive])
