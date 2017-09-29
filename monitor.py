@@ -17,8 +17,10 @@ ttl = 0
 all_prices_last_list = False
 all_prices_last = False
 
-waitTime =  20
+waitTime =  23
 tradeUpdate = 900
+row_max = 15
+col_max = 15
 start_time = time.time()
 
 tradeUpdate = round(tradeUpdate / waitTime)
@@ -36,8 +38,7 @@ rowOrderList = [
     [ 'bprof', '{:>7}', '{:7.2f}'],
     [ 'roi', '{:>7}', '{:7.2f}'],
     [ 'bal', '{:>8}', '{:8.3f}'],
-    [ 'prof', '{:>8}', '{:8.3f}'],
-    [ 'sell', '{:>9}', '{:9.4f}']
+    [ 'prof', '{:>8}', '{:8.3f}']
 ]
 
 while True:
@@ -122,7 +123,6 @@ while True:
     print("\033[0;0H  0 price:{} | portfolio:{}".format(time.strftime("%Y-%m-%d %H:%M:%S"), last_portfolio))
     last_row = 0
     ttl = 0
-    row_max = 19
     header = []
     for column in rowOrderList:
         header.append(column[1].format(column[0]))
@@ -160,8 +160,8 @@ while True:
         ttl_list.append(toadd)
 
 
-    if len(ttl_list) > (row_max * 11):
-        ttl_list = ttl_list[-(row_max * 11):]
+    if len(ttl_list) > (row_max * col_max):
+        ttl_list = ttl_list[-(row_max * col_max):]
 
     for x in range(0, row_max):
         row = []
@@ -173,7 +173,7 @@ while True:
     ix += 1
 
     # might as well be delay accurate as if it matters (it doesn't)
-    waitfor = start_time + ix * waitTime - time.time()
+    waitfor = max(start_time + ix * waitTime - time.time(), 4)
     precision = 10 
     for i in range(round(waitfor * precision), 0, -1):
         print("\033[0;0H{:3.0f} price:{} | portfolio:{}".format(i / precision, last_ticker, last_portfolio))
