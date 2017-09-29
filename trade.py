@@ -22,7 +22,9 @@ p = Poloniex(*secret.token)
 currency = args.currency.upper()
 exchange = 'BTC_{}'.format(currency)
 quantity = float(args.quantity.replace('_', '0'))
-rate = args.rate.replace('_', '0')
+rate = args.rate
+if rate:
+    rate = rate.replace('_', '0')
 action = args.action.lower()
 fast = args.fast
 lowest = False
