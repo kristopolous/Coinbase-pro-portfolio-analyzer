@@ -2,6 +2,7 @@
 import lib
 import sys
 from lib import bprint
+from operator import itemgetter, attrgetter
 
 cur = False
 currency = False
@@ -110,5 +111,8 @@ while slot <  highest + 2*div:
     bprint("{}{}".format(slot_line, "".join(row)))
     sell_ttl = 0
     slot += div
+
+anal['buyList'] = sorted(anal['buyList'], key=itemgetter('date'))
+anal['sellList'] = sorted(anal['sellList'], key=itemgetter('date'))
 
 lib.recent(currency, anal)
