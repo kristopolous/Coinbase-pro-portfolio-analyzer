@@ -188,10 +188,14 @@ def now():
         return datetime.fromtimestamp(connect().time).timetuple()
     return time.localtime()
 
-def recent(currency):
-    data = tradeHistory(currency)
-    buyList = list(filter(lambda x: x['type'] == 'buy', data))
-    sellList = list(filter(lambda x: x['type'] == 'sell', data))
+def recent(currency, anal=False):
+    if anal:
+        buyList = anal['buyList']
+        sellList = anal['sellList']
+    else:
+        data = tradeHistory(currency)
+        buyList = list(filter(lambda x: x['type'] == 'buy', data))
+        sellList = list(filter(lambda x: x['type'] == 'sell', data))
 
     buy_recent = [" {} {:.8f} {:.8f}".format(i['date'], i['btc'], i['rate']) for i in reversed(buyList[-5:])]
     sell_recent = [" {:.8f} {:.8f} {}".format(i['rate'], i['btc'], i['date']) for i in reversed(sellList[-8:]) if i['btc'] > 0.00009]
