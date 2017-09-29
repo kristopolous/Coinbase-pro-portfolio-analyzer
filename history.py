@@ -84,8 +84,14 @@ buy_ttl = 0
 div = div_orig
 
 slot = lowest
+scale = lowest * 1.5
 while slot <  highest + 2*div:
-    slot_line = "{:.8f} ".format(slot)
+    slot_line = " {:.8f} ".format(slot)
+
+    if slot > scale:
+        scale *= 1.5
+        slot_line = '*' + slot_line[1:]
+
     if last >= slot and last <= slot + div:
         slot_line = "\x1b[44m\x1b[37;1m{}\x1b[0m".format(slot_line)
 
