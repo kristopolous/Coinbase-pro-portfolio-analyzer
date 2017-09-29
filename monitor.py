@@ -129,10 +129,12 @@ while True:
     header = " ".join(header)
     rowlen = len(header)
     print(header)
+    didBar = False
 
     for row in l:
         if row['roi'] > 0 and last_row < 0:
             print("-" * rowlen)
+            didBar = True
 
         output = []
         for column in rowOrderList:
@@ -141,6 +143,9 @@ while True:
 
         last_row = row['roi']
         ttl += row['prof']
+
+    if not didBar:
+        print("-" * rowlen)
 
     if ix % (row_max - 1) == 0:
         ttl_list.append("{:>8}".format(time.strftime("%H:%M")))

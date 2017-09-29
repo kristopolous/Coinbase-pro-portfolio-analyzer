@@ -5,9 +5,15 @@ import numpy as np
 import math
 from lib import bprint
 
+cur = False
 currency = False
+margin = False
 if len(sys.argv) > 1:
-    currency = 'BTC_{}'.format(sys.argv[1].upper())
+    cur = sys.argv[1].upper()
+    currency = 'BTC_{}'.format(cur)
+
+if len(sys.argv) > 2:
+    margin = float(sys.argv[2])
 
 """
 graph[low_index] += '\x1b[42m'
@@ -16,12 +22,14 @@ if high_index == low_index:
 graph[high_index] += '\x1b[49m'
 """
 
-rows = 40 
+rows = 80 
 cols = 150
 data = lib.tradeHistory(currency)
+anal = lib.analyze(data)
+balanceMap = lib.returnCompleteBalances()
 sortlist = sorted(data, key = lambda x: x['rate'])
-buyList = list(filter(lambda x: x['type'] == 'buy', sortlist))
-sellList = list(filter(lambda x: x['type'] == 'sell', sortlist))
+buyList = anal['buyList']
+sellList = anal['sellList']
 
 ticker = lib.returnTicker()
 last = float(ticker[currency]['last'])
@@ -39,6 +47,11 @@ else:
 lowest = min(buy_low, sell_low, last)
 highest = max(buy_high, sell_high, last)
 
+if margin:
+    midpoint = (highest + lowest) / 2 
+    lowest = midpoint * (100 - margin) / 100
+    highest = midpoint * (100 + margin) / 100
+
 div = (highest - lowest) / rows
 
 ttl = sum([x['total'] for x in buyList])
@@ -48,7 +61,11 @@ buy_ix = 0
 buy_ttl = 0
 sell_ix = 0
 sell_ttl = 0
-for slot in np.arange(lowest, highest + 2*div, div):
+
+lib.bprint("{:10} {}\n".format(currency, balanceMap[cur]['btcValue']))
+ 
+slot = lowest
+while slot <  highest + 2*div:
     slot_line = "{:.8f} ".format(slot)
     if last >= slot and last <= slot + div:
         slot_line = "\x1b[44m\x1b[37;1m{}\x1b[0m".format(slot_line)
@@ -83,5 +100,7 @@ for slot in np.arange(lowest, highest + 2*div, div):
     bprint("{}{}".format(slot_line, "".join(row)))
     buy_ttl = 0
     sell_ttl = 0
+    div *= 1.04
+    slot += div
 
 lib.recent(currency)
