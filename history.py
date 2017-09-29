@@ -64,17 +64,32 @@ sell_ttl = 0
 
 lib.bprint("{:10} {}\n".format(currency, balanceMap[cur]['btcValue']))
  
+buyMap = {}
+slot = lowest
+div_orig = div
+while slot <  highest + 2*div:
+    buy_ttl = 0
+    while True:
+        if buy_ix >= len(buyList) or buyList[buy_ix]['rate'] > slot:
+            break
+        buy_ttl += buyList[buy_ix]['total']
+        buy_ix += 1
+
+    buyMap[slot] = buy_ttl
+    div *= 1.04
+    slot += div
+
+buy_max = max(buyMap.values())
+buy_ttl = 0
+div = div_orig
+
 slot = lowest
 while slot <  highest + 2*div:
     slot_line = "{:.8f} ".format(slot)
     if last >= slot and last <= slot + div:
         slot_line = "\x1b[44m\x1b[37;1m{}\x1b[0m".format(slot_line)
 
-    while True:
-        if buy_ix >= len(buyList) or buyList[buy_ix]['rate'] > slot:
-            break
-        buy_ttl += buyList[buy_ix]['total']
-        buy_ix += 1
+    buy_ttl = buyMap[slot]
 
     while True:
         if sell_ix >= len(sellList) or sellList[sell_ix]['rate'] > slot:
@@ -82,7 +97,7 @@ while slot <  highest + 2*div:
         sell_ttl += sellList[sell_ix]['total']
         sell_ix += 1
 
-    dots = min(int((buy_ttl / grade)), cols - 1)
+    dots = min(int(cols * (buy_ttl / buy_max)), cols - 1)
     if buy_ttl > 0 and dots == 0:
         dots = 1
 
@@ -90,7 +105,7 @@ while slot <  highest + 2*div:
 
     if sell_ttl > 0: 
         row[0] = '\x1b[42m{}'.format(row[0])
-        cbar = min(int((sell_ttl / grade)), cols - 1)
+        cbar = min(int(cols * (sell_ttl / buy_max)), cols - 1)
         cbar = max(cbar, 1) 
         row[cbar] = '\x1b[49m{}'.format(row[cbar])
 
@@ -98,7 +113,6 @@ while slot <  highest + 2*div:
     row[-1] += '\x1b[0m'
 
     bprint("{}{}".format(slot_line, "".join(row)))
-    buy_ttl = 0
     sell_ttl = 0
     div *= 1.04
     slot += div
