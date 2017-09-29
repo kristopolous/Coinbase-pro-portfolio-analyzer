@@ -57,14 +57,14 @@ slot = lowest
 div_orig = div
 while slot <  highest + 2*div:
     buy_ttl = 0
+    div *= 1.04
     while True:
-        if buy_ix >= len(buyList) or buyList[buy_ix]['rate'] > slot:
+        if buy_ix >= len(buyList) or buyList[buy_ix]['rate'] > (slot + div):
             break
         buy_ttl += buyList[buy_ix]['total']
         buy_ix += 1
 
     buyMap[slot] = buy_ttl
-    div *= 1.04
     slot += div
 
 buy_max = max(buyMap.values())
@@ -87,7 +87,7 @@ while slot <  highest + 2*div:
     buy_ttl = buyMap[slot]
 
     while True:
-        if sell_ix >= len(sellList) or sellList[sell_ix]['rate'] > slot:
+        if sell_ix >= len(sellList) or sellList[sell_ix]['rate'] > (slot + div):
             break
         sell_ttl += sellList[sell_ix]['total']
         sell_ix += 1
