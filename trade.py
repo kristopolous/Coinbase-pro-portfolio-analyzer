@@ -23,7 +23,7 @@ currency = args.currency.upper()
 exchange = 'BTC_{}'.format(currency)
 
 if args.quantity == 'min':
-    args.quantity = '0.00010001'
+    args.quantity = '0.00010015'
 
 quantity = float(args.quantity.replace('_', '0'))
 rate = args.rate
@@ -162,7 +162,8 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
     lib.bprint(" Bid:  {:.8f}\n Last: {:.8f}\n Ask:  {:.8f}\n Sprd: {:.8f}".format( bid, last, ask, spread))
     lib.bprint("\n Rate:  {:.8f}\n Perc:  {:.8f}\n Total: {:.8f}".format(baseRate, perc, rate))
 
-fl_rate = float(rate)
+# The market is done in 10^-8 btc so we need to round our rate to that to get proper fractional calculations
+fl_rate = round(float(rate) * 1e8) / 1e8
 lib.bprint("\nComputed\n Rate  {:.8f}\n Quant {:.8f}\n USD   {:.3f} (btc={:.2f})".format(fl_rate, float(quantity), float(quantity) * approx_btc_usd, approx_btc_usd))
 
 if not fast:
