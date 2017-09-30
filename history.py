@@ -5,15 +5,21 @@ import os
 from lib import bprint
 from operator import itemgetter, attrgetter
 
+multiplier = 1.04
+
 cur = False
 currency = False
 margin = False
+max_btc = False
 if len(sys.argv) > 1:
     cur = sys.argv[1].upper()
     currency = 'BTC_{}'.format(cur)
 
 if len(sys.argv) > 2:
     margin = float(sys.argv[2])
+
+if len(sys.argv) > 3:
+    max_btc = float(sys.argv[3])
 
 rows, cols = [int(x) for x in os.popen('stty size', 'r').read().split()]
 rows -= 14
@@ -52,7 +58,7 @@ start = 0
 div = 1
 for i in range(rows):
     start += div
-    div *= 1.05
+    div *= multiplier
 
 div =  (highest - lowest) / start
 #div = ( (highest - lowest) / rows ) * (1.05 ** -(rows + 1))
@@ -69,7 +75,7 @@ slot = lowest
 div_orig = div
 while slot <  highest:
     buy_ttl = 0
-    div *= 1.04
+    div *= multiplier
     while True:
         if buy_ix >= len(buyList) or buyList[buy_ix]['rate'] > (slot + div):
             break
@@ -79,7 +85,11 @@ while slot <  highest:
     buyMap[slot] = buy_ttl
     slot += div
 
-buy_max = max(buyMap.values())
+if max_btc:
+    buy_max = max_btc
+else:
+    buy_max = max(buyMap.values())
+
 buy_ttl = 0
 div = div_orig
 
@@ -92,7 +102,7 @@ while slot < highest:
         scale *= 1.5
         slot_line = '*' + slot_line[1:]
 
-    div *= 1.04
+    div *= multiplier
     if last >= slot and last <= slot + div:
         slot_line = "\x1b[44m\x1b[37;1m{}\x1b[0m".format(slot_line)
 
