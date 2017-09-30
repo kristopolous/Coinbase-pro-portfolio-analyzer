@@ -219,12 +219,12 @@ def showTrade(order, exchange, trade_type, rate, amount, source='human', doPrint
 
     if doPrint:
         for trade in order['resultingTrades']:
-            plog("{:9} {:4}  {}{} at {}BTC. Total {}BTC".format(exchange, trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
+            plog("{} {:9} {:4}  {}{} at {}BTC. Total {}BTC".format(trade['orderNumber'], exchange, trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
 
         if len(order['resultingTrades']) == 0:
             amount = float(amount)
             rate = float(rate)
-            plog("{:9} Open {:4} {:.8f} * {:.8f} ={:.8f}btc".format(exchange, trade_type, rate, amount, rate * amount))
+            plog("{} {:9} Open {:4} {:.8f} * {:.8f} ={:.8f}btc".format(order['orderNumber'], exchange, trade_type, rate, amount, rate * amount))
 
     order['type'] = trade_type
     order['rate'] = rate

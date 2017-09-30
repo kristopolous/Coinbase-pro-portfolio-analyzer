@@ -11,8 +11,8 @@ import re
 parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--currency", required=True, help="Currency to buy")
 parser.add_argument('-a', "--action", required=True, help="Action, either buy or sell")
-parser.add_argument('-q', "--quantity", default=0, help="Quantity to buy, expressed as in btc")
-parser.add_argument('-r', "--rate", default=None, help="Rate (defaults to market). Also accepts last, high, low and percent")
+parser.add_argument('-q', "--quantity", default=0, help="Quantity to buy, expressed in btc (also 'min' for minimum amount)")
+parser.add_argument('-r', "--rate", default=None, help="Rate (defaults to market). Also accepts break, profit, ask, bid, low and percent. Also math can be done. Such as profit+0.2%")
 parser.add_argument('-n', "--nofee", action='store_true', help="Try to avoid the higher fee")
 parser.add_argument('-f', "--fast", action='store_true', help="Skip the ceremony and do things quickly")
 args = parser.parse_args()
@@ -21,10 +21,16 @@ p = Poloniex(*secret.token)
 
 currency = args.currency.upper()
 exchange = 'BTC_{}'.format(currency)
+
+if args.quantity == 'min':
+    args.quantity = '0.00010001'
+
 quantity = float(args.quantity.replace('_', '0'))
 rate = args.rate
+
 if rate:
     rate = rate.replace('_', '0')
+
 action = args.action.lower()
 fast = args.fast
 lowest = False
@@ -62,51 +68,80 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
     if exchange not in priceMap:
         abort("Currency {} not found".format(exchange))
 
+    # to buy go under the lowestAsk
+    # to sell go over highest bid
+    #
+    # highest bid < lowest ask
+    #  ^ sell         ^ buy
+    #
     row = priceMap[exchange]
-    lowest = float(row['lowestAsk'])
-    ask = bid = float(row['highestBid'])
 
-    if rate == 'ask':
-        rate = 'high'
+    ask = float(row['lowestAsk'])
+    bid = float(row['highestBid'])
+    last = float(row['last'])
+    perc = 0
 
-    spread = 1 - float(row['highestBid']) / float(row['lowestAsk'])
+    spread = 1 - bid / ask
 
-    last = row['last']
+    rateStr = rate
+    if rate:
+        word, oper, amount = re.search('([a-z]*|)([+-]|)([0-9]*%|[\d\.]*|)', rate).groups()
+    else:
+        word, oper, amount = '', '', ''
+    rate = None
+
+    if word == 'ask':
+        rate = ask
+
+    if word == 'bid':
+        rate = bid
+
+    if word == 'last':
+        rate = last
+
+    if word == 'break' or word == 'profit':
+        hist = lib.analyze(lib.tradeHistory(exchange))
+
+        if word == 'break':
+            rate = hist['break']
+            if rate < 0:
+                print("Break point is under 0: {}".format(rate))
+                sys.exit(-1)
+        else:
+            rate = max(hist['buyAvg'], hist['break'])
+
+    # We're here if we didn't do a word
     if rate is None:
         if spread > 0.005:
             print("Spread is over threshold, trying to not do a stupid bid")
-            rate = (1 + spread / 10) * bid if action == 'buy' else row['highestBid']
+            rate = (1 + spread / 10) * bid if action == 'buy' else bid
         else:
-            rate = row['lowestAsk'] if action == 'buy' else row['highestBid']
+            rate = ask if action == 'buy' else bid
 
-    elif rate == 'last':
-        rate = last
-    elif rate == 'high' or rate == 'highes':
-        rate = lowest
-        # we don't need to price pump at the ask price
-        args.nofee = False
-    elif rate == 'low' or rate == 'lowest':
-        rate = bid
-    elif rate.find('%') > -1:
-        perc = float(rate.replace('%', '')) / 100
-        rate = perc * float(last)
+
+    baseRate = rate
+
+    if amount.find('%') > -1:
+        perc = float(amount.replace('%', '')) / 100
+        if oper == '-':
+            rate *= 1 - perc
+        elif oper == '+':
+            rate *= 1 + perc
+        else:
+            if perc < 0.5:
+                print("\nWARNING! Requesting a rate {:.0f}% below market.\n".format(100 * (1-perc) ))
+            rate *= perc
 
     if args.nofee: 
         price_pump = 0.00000001
         print(" Trying to avoid fee by adding {:.8f}".format(price_pump))
         if action == 'buy':
-            rate = float(rate) - price_pump
+            rate = rate - price_pump
         else:
-            rate = float(rate) + price_pump
+            rate = rate + price_pump
 
-    marker = '   '
-    if rate == 'low':
-        marker = '>  '
-    if rate == 'last':
-        marker = ' > '
-    if rate == 'high':
-        marker = '  >'
-    lib.bprint("{}Bid:  {}\n{}Last: {}\n{}Ask:  {}\n Sprd: {:.6}".format(marker[0], row['highestBid'], marker[1], row['last'], marker[2], row['lowestAsk'], spread))
+    lib.bprint(" Bid:  {}\n Last: {:.8f}\n Ask:  {}\n Sprd: {:.8f}".format( bid, last, ask, spread))
+    lib.bprint("\n Rate:  {:.8f}\n Perc:  {:.8f}\n Total: {:.8f}".format(baseRate, perc, rate))
 
 fl_rate = float(rate)
 lib.bprint("\nComputed\n Rate  {:.8f}\n Quant {:.8f}\n USD   {:.3f} (btc={:.2f})".format(fl_rate, float(quantity), float(quantity) * approx_btc_usd, approx_btc_usd))
@@ -134,6 +169,8 @@ if False or not fast:
             time.sleep(1)
         except: 
             abort("Trade Halted")
+
+    print("")
 
 if action == 'buy':
     if not fast:
