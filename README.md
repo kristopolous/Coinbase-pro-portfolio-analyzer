@@ -77,49 +77,80 @@ This is a cli trader for poloniex, whose website is a little lame at times.
 Here's an example of it in action, buying a very small amount. 
 There's a few features and overrides to avoid from doing something stupid.
 
+The rate is pretty expressive and can have computations:
+
+  * lowest - the lowest price you either bought or sold
+  * highest - the highest price you either bought or sold
+  * last - the last price a trade was made
+  * bid - the current bid price
+  * ask - the current ask price
+  * break - your breakpoint price for profit
+  * profit - either you average buy, or your breakpoint price, whichever is greater
+
+The computations can be done in percentages based on these.  So you can do something like
+
+    -r profit+3% -a sell
+
+Which means you want to open a sale at your profit price + 3%.
+
+    -r lowest-5% -a buy
+
+This means you want an order that is 5% less than your lowest buying point 
+
+    -r 105% -a sell
+    -r +5% -a sell
+    -r 95% -a buy
+    -r -5% -a buy
+
+In the first two, this will sell at the current bid price + 5% and in the second two you'll buy at the current ask price - 5%.
+
+#### Example
+
+I'm going to sell ARDR at the market minimum quantity at my profit point + 1%.
 <pre>
-$ ./trade.py -a sell -q 0.0001001 -c AMP -fn
-EXCHANGE BTC_AMP
- Trying to avoid fee by adding 0.00000001
- Bid:   .____4621
- Last:  .____4621
- Ask:   .____4649
- Sprd:  .__60228
+$ ./trade.py -fq min -c ardr -r profit+1% -a sell                                                                                                                            
+EXCHANGE BTC_ARDR
+ Bid:   .____4290
+ Last:  .____4290
+ Ask:   .____4331
+ Sprd:  .__946664
+
+ Rate:   .____4661
+ Perc:   ._1000000
+ Total:  .____4708
 
 Computed
- Rate   .____4622
- Quant  .___10010
- USD    .393 (btc=3930.76)
+ Rate   .____4708
+ Quant  .___10001
+ USD    .418 (btc=4179.32)
 
 SELL
-     2.16572912
- *    .____4622BTC
- =    .___10010BTC
-BTC_AMP   Open sell  .____4622 * 2.16572912 = .___10010btc
+     2.12421941
+ *    .____4708BTC
+ =    .___10001BTC
+15195158808 BTC_ARDR  Open sell  .____4708 * 2.12421941 = .___10001btc
 </pre>
+
+At the end I get:
+
+  * The order number which can be canceled with `cancel.py`.
+  * A record of the transaction appended to `order-history.json`
 
 
 ### open.py
 
 Shows the open orders on a given currency or all.  
 
-For instance, here are my hopes and dreams for Ripple (stars have been added to this example to provide a futile cloak of anonymity):
+For instance, here are my hopes and dreams for Ripple:
 
-```
-$ ./open.py xrp
-BTC_XRP
- buy  0.00084000
-  7517406**** 2017-08-30 02:42:** 0.00004200 0.00084000
- sell 0.00050000
-  7876304**** 2017-09-15 07:32:** 0.00005500 0.00010000
-  7876665**** 2017-09-15 07:50:** 0.00005550 0.00010000
-  7876308**** 2017-09-15 07:33:** 0.00005600 0.00010000
-  7876668**** 2017-09-15 07:50:** 0.00006500 0.00010000
-  7876673**** 2017-09-15 07:51:** 0.00007000 0.00010000
-```
+<img src=https://i.imgur.com/yxGeGXp.png>
 
-So if the price gets to 0.00005600, I'm going to sell a whole 0.0001 btc of it. 
-That's Big money now - like parking-meter change. Those are UTC times there.
+There's some color codes here:
+
+  * red (orangish with my pallete) - you are selling at a loss (below average buy)!
+  * magenta - you are technically at a profit but below your break-even point
+  * no color - you're above break even and above average buy, this is profit.
+  * green - you're at profit and above your sell average. If these execute, these are *margin increasing* sells.
 
 ### monitor.py
 
