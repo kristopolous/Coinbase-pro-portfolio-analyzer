@@ -72,10 +72,7 @@ A cli histogram for your buys for a currency.  I've gotten a bit lucky with Bitc
 
 ### trade.py
 
-This is a cli trader for poloniex, whose website is a little lame at times.
-
-Here's an example of it in action, buying a very small amount. 
-There's a few features and overrides to avoid from doing something stupid.
+This is a cli trader for poloniex.
 
 The rate is pretty expressive and can have computations:
 
@@ -162,27 +159,24 @@ signifying truncation of output.
 
 ```
  71 price:2017-09-20 02:56:25 | portfolio:2017-09-20 02:42:26  (update)
-cur         buy    move     24h    price      last     roi      bal     prof      sell        to
-XPM       50.18    .759   -7.44   ._3556   ._3549*  -61.93   49.431  -30.611  -50.4974   96.9402
-SC        33.30   1.681   -4.80   .__119   .__118*  -50.39   59.823  -30.143  -33.5249   96.7475
+cur         buy    move     24h    price      last      brk   bprof     roi      bal     prof
+XPM       35.61    .200    2.28   ._3992   ._4082    ._9046  -55.87  -54.66   58.321  -31.880
+SC        30.19  - .840   -2.46   .__119   .__119*   .__239  -50.22  -48.80   63.261  -30.870
   --- 8< ---
-XRP        1.94    .297     .26   ._4715   ._4703*   -2.88   45.706   -1.315   -1.9640   93.0478
+ARDR        .44  -1.621    3.23   ._4256   ._4295*   ._4661   -8.70   -1.63   78.197   -1.272
 ------------------------------------------------------------------------------------------------ (profit line)
-ETH      -30.69    .213     .14 72.34125 72.86233     3.23  139.138    4.501   37.5111   36.6607
-AMP      -17.27  10.462   30.54   ._4693   ._4651     7.06    9.900     .698   18.1879   77.1303
-XMR       -1.00    .256   - .39 24.27688 30.04500    37.11  144.177   53.507    1.0047   99.6321
-   22:10    22:46    23:22    23:58    00:34    01:10    01:46    02:22 (running balance)
- -286.02  -291.56  -287.77  -289.74  -288.93  -290.70  -293.65  -295.55
-   ._277  - ._399    ._252  - ._783  - .6039  - ._449  - ._137  - .5765
- - .2528    .1263  - ._968    ._585  - .1533  - .6830  - .3239  - .9686
- - .6227    .1688  - .3527  - .1297    ._775  - .5817  - .1898  - .9277
+   17:17    17:22    17:27    17:33    17:38    17:43    17:49 (running balance)
+ -395.11  -393.40  -393.41  -395.70  -396.11  -395.15  -394.95
+   ._349  - .___6  - .1633  - ._126    .____  - .1021  - ._266
+ - ._351    .__93  - .2449    .__61  - ._579  - .2126  - ._682
+ - .__91    ._679  - .1911    ._555    .1162    .1072  - ._683
   --- 8< ---
 ```
 
 Properties:
 
   * update - a countdown timer along with two timestamps, the first is the last time a ticker was updated, and the second is the last time the portfolio was.
-  * profit line - where outright profit can be made without any hedging. This may be a deceiving line if you have fully invested and partially divested in a currency at multiple points. It ignores what's called "prior exits" which is if you sold off *all* of your holdings at a profit at a prior date. This attempts to treat your current holdings as an isolated set.
+  * profit line - where outright profit can be made without any hedging. This may be a deceiving line if you have fully invested and partially divested in a currency at multiple points. It ignores what's called "prior exits" which is if you sold off *all* of your holdings at a profit at a prior date. This attempts to treat your current holdings as an isolated set. In the example above, I'm losing in everything! I'm a better programmer than I am an investor it appears.
   * running balance - estimated USD ROI of your current holdings. The subsequent rows of a column are relative percentages for that "period". So you can look across at one row and see how things have been going for the past 4 hours in this case, and then look down to see how your portfolio did relatively.
 
 The columns:
@@ -192,9 +186,9 @@ The columns:
   * 24h - What's happened in percentage, over the past 24 hours
   * price - The last traded price in 1/1000 btc
   * last - The last price *you* traded at. An asterisk means you bought at that price.
+  * brk - Your break-even price.
+  * brpof - Your total profit over the lifetime of the currency
   * roi - Return on investment of current holdings, in percent, essentially the price / avgbuy
   * bal - Estimated USD of holdings based on a twice daily update of btc price from coindesk
   * prof - Estimated USD profit if you were able to sell off all holdings at `price`
-  * sell - How a 0.0001btc sell of the currency would change your avgsell number on your remaining holdings. This is not considering any profit and is likely complete nonsense.
-  * to - the fractional difference between the two expressed as a triple squareroot. Since the sell number is likely a bad computation, this is also probably a bad thing.
 
