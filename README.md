@@ -62,13 +62,16 @@ In most of the tools, leading 0s are replaced with _ to make things easier to re
 
 ### history.py
 
-A cli histogram for your buys for a currency.  I've gotten a bit lucky with Bitcoin Plus here.
+A cli histogram for your buys for a currency.  
 
  * magenta bars are the buy points
  * green area is the sell points. 
  * number with the blue background is where the last trade happened.
 
-<img src=https://i.imgur.com/tSNqfyF.png>
+In linux this will size itself to your screen. Also the buckets increase geometrically at 105% and aren't linear graded.  
+The asterisks denote when you are at 150% of the last asterisk. The buy and sell are NOT independent scales.
+
+<img src=blob:https://imgur.com/e9c1b0e4-00dc-4a17-989a-f0b5992dfa64>
 
 ### trade.py
 
