@@ -8,41 +8,8 @@ Nothing personal is here and you'll have to modify secrets.py.example in order f
 
 I've been trading bitcoins since 2010 but never in serious enough amounts to be rich.
 
-For me it's more about learning about markets and how human think collectively.
+For me it's more about learning about markets and how human think collectively. I've got some strategies at the bottom, but first the tools.
 
-Anyway, there's two things here ... one of them does something called Dollar-Cost-Averaging (DCA), which is
-usually a bad strategy when used naively or blindly, and the other is tranche profits + DCA. 
-
-Ultimately you want to sell more than you buy and so total sell / total buy > 1.0.  Pretty easy right?
-
-The problem is that when the price goes down, and I mean substantially, you can't just wait and hope for
-it to return to some prior high ... it may never get there.
-
-You could reduce your DCA by buying more at the lower price, but in practice, you may end up throwing lots of
-money at the losers in your portfolio and not focusing on the near-winners.  It's a high-risk, low-return,
-high-investment strategy.  Bad idea.
-
-But what else do you do other than write-off a dropped investment?
-
-Here come tranches.  If you *ignore* the higher prices you paid, for now.  Now you just try to make a profit
-at the new (lower) normal off of its volitility.  If you do a few rounds (buy/sell) then you lower your DCA
-cost because that's total cost, you lower your total invested, because you sold, and you lower your break-even
-point becaues you've profited.  
-
-So you can tranche your holdings of some asset into different pricing tiers based on your holdings and then you
-consider the prospect of buying or selling based on each tier + variability in the market place.
-
-This is the current work in progress and it's mathematically sound and likely to work.  (see running.py and tranche.py)
-
-I'm pretty sure this is a known strategy and there's wikipedia page with lots of solid math on it, but then
-it wouldn't be as much fun.
-
-Besides, all of these tools here essentially trade in 0.0001 btc at a time (which is as of this writing, about
-$.35).  Again, I was never in it to make money (although I've made a bit).
-
-> The big hypothesis here is since the fees are small, to try to make small profits from large holdings in short times and then re-invest.
-
-As an investor in traditional stocks, I've been screwed one too many times using the preferential lump-sum investment strategy where the companies I invested in end up dissappearing in 10 years or get bought or merged and I'm out of investment. I've come to appreciate the idea that a long-term hold in some 40% gain expectation is almost more risk than an expectation of 3-5% return in a matter of days or weeks. It also locks your liquid funds away in something you are just waiting for a sunny day on. Yeah, fuck that.
 
 #### disclaimer
 
@@ -68,7 +35,7 @@ A cli histogram for your buys for a currency.
  * green area is the sell points. 
  * number with the blue background is where the last trade happened.
 
-In linux this will size itself to your screen. Also the buckets increase geometrically at 105% and aren't linear graded.  
+In linux this will size itself to your screen. Also the buckets increase geometrically at the `multiplier` value (as of this writing 105%) and aren't linear graded.  
 The asterisks denote when you are at 150% of the last asterisk. The buy and sell are NOT independent scales.
 
 The range covers your history and the price.  You can also specify a normalization quotient as the second argument.
@@ -201,3 +168,43 @@ The columns:
   * bal - Estimated USD of holdings based on a twice daily update of btc price from coindesk
   * prof - Estimated USD profit if you were able to sell off all holdings at `price`
 
+
+### Strategies
+
+Ultimately you want to sell more than you buy and so total sell / total buy > 1.0.  Pretty easy right?
+
+The problem is that when the price goes down, and I mean substantially, you can't just wait and hope for
+it to return to some prior high ... it may never get there.
+
+You could reduce your DCA by buying more at the lower price, but in practice, you may end up throwing lots of
+money at the losers in your portfolio and not focusing on the near-winners.  It's a high-risk, low-return,
+high-investment strategy.  Bad idea.
+
+But what else do you do other than write-off a dropped investment?
+
+#### Price Gliding
+
+Here come tranches.  If you *ignore* the higher prices you paid, for now.  Now you just try to make a profit
+at the new (lower) normal off of its volitility.  If you do a few rounds (buy/sell) then you lower your DCA
+cost because that's total cost, you lower your total invested, because you sold, and you lower your break-even
+point becaues you've profited.  
+
+So you can tranche your holdings of some asset into different pricing tiers based on your holdings and then you
+consider the prospect of buying or selling based on each tier + variability in the market place.
+
+This is the current work in progress and it's mathematically sound and likely to work.  (see running.py and tranche.py)
+
+I'm pretty sure this is a known strategy and there's wikipedia page with lots of solid math on it, but then
+it wouldn't be as much fun.
+
+Besides, all of these tools here essentially trade in 0.0001 btc at a time (which is as of this writing, about
+$.35).  Again, I was never in it to make money (although I've made a bit).
+
+> The big hypothesis here is since the fees are small, to try to make small profits from large holdings in short times and then re-invest.
+
+In this method you look for opportunities to buy and sell based on current holdings and predetermined intervals.  
+The tool glider.py tries to do this.
+
+> This is probably a bad strategy. The problem is that unless you balance out your investments and divestments, you still become subject to
+the long term trendline. That means you still lose in a down market, make in an up-market and pay a lot of fees to go with that.  If you can
+balance things *Magically* then you're good here ... but that's nonsense.
