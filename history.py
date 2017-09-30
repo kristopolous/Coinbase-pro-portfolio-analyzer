@@ -16,7 +16,7 @@ if len(sys.argv) > 2:
     margin = float(sys.argv[2])
 
 rows, cols = [int(x) for x in os.popen('stty size', 'r').read().split()]
-rows -= 30
+rows -= 14
 cols -= 12
 #rows = 80 
 #cols = 150
@@ -48,7 +48,14 @@ if margin:
     lowest = midpoint * (100 - margin) / 100
     highest = midpoint * (100 + margin) / 100
 
-div = ( (highest - lowest) / rows ) * (1.05 ** -(rows + 1))
+start = 0
+div = 1
+for i in range(rows):
+    start += div
+    div *= 1.05
+
+div =  (highest - lowest) / start
+#div = ( (highest - lowest) / rows ) * (1.05 ** -(rows + 1))
 
 buy_ix = 0
 buy_ttl = 0

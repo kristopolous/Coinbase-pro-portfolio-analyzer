@@ -66,6 +66,7 @@ if action != 'buy' and action != 'sell':
 
 print("EXCHANGE {}".format(exchange))
 
+price_pump = 0.00000001
 if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
     priceMap = p.returnTicker()
 
@@ -126,8 +127,8 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
             rate = hist['break']
             if rate < 0:
                 abort("Break point is under 0: {}".format(rate))
-        else:
-            rate = max(hist['buyAvg'], hist['break'])
+        elif word == 'profit':
+            rate = max(hist['buyAvg'], hist['break']) + price_pump
 
     # We're here if we didn't do a word
     if rate is None:
@@ -152,7 +153,6 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
             rate *= perc
 
     if args.nofee: 
-        price_pump = 0.00000001
         print(" Trying to avoid fee by adding {:.8f}".format(price_pump))
         if action == 'buy':
             rate = rate - price_pump
