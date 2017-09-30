@@ -56,7 +56,7 @@ lib.bprint("{:10} {}\n".format(currency, balanceMap[cur]['btcValue']))
 buyMap = {}
 slot = lowest
 div_orig = div
-while slot <  highest + 2*div:
+while slot <  highest:
     buy_ttl = 0
     div *= 1.04
     while True:
@@ -74,7 +74,7 @@ div = div_orig
 
 slot = lowest
 scale = lowest * 1.5
-while slot <  highest + 2*div:
+while slot < highest:
     slot_line = " {:.8f} ".format(slot)
 
     if slot > scale:

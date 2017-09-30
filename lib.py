@@ -8,6 +8,7 @@ import math
 import re
 import sys
 import fake
+from dateutil import parser
 from datetime import datetime
 from operator import itemgetter, attrgetter
 
@@ -18,6 +19,9 @@ polo_instance = False
 
 _cache = {}
 
+
+str2date = lambda x: parser.parse(x.replace(' ', 'T')+'Z')
+str2unix = lambda x: int(time.mktime(str2date(x).timetuple()))
 
 def getCurrency():
     currency_list = []
@@ -289,7 +293,7 @@ def historyFloat(tradeList):
         if tradeList[i]['type'] == 'sell':
             tradeList[i]['btc'] -= tradeList[i]['total'] * tradeList[i]['fee']
 
-        tradeList[i]['date'] = datetime.strptime( tradeList[i]['date'], '%Y-%m-%d %H:%M:%S' )
+        tradeList[i]['date'] = datetime.fromtimestamp(tradeList[i]['unix'])
 
     return tradeList
 
@@ -304,7 +308,7 @@ def tradeHistory(currency = 'all', forceUpdate = False, forceCache = False):
     if forceCache and 'all_trades' in _cache:
         return _cache['all_trades']
 
-    step = one_day 
+    step = one_day * 2
     now = time.time()
     start = first_day
     doesExpire = False
@@ -320,7 +324,12 @@ def tradeHistory(currency = 'all', forceUpdate = False, forceCache = False):
                 end = i + step
                 if end > now:
                     end = False
-                history = p.returnTradeHistory(currencyPair=currency, start=i, end=end)
+                history = p.returnTradeHistory(start=i, end=end)
+                if type(history) == dict:
+                    for k,v in history.items():
+                        for trade in v:
+                            trade['unix'] = str2unix(trade['date'])
+
                 json.dump(history, cache)
 
         with open(name) as handle:
