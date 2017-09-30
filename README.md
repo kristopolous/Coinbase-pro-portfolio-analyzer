@@ -71,7 +71,13 @@ A cli histogram for your buys for a currency.
 In linux this will size itself to your screen. Also the buckets increase geometrically at 105% and aren't linear graded.  
 The asterisks denote when you are at 150% of the last asterisk. The buy and sell are NOT independent scales.
 
-<img src=blob:https://imgur.com/e9c1b0e4-00dc-4a17-989a-f0b5992dfa64>
+The range covers your history and the price.  You can also specify a normalization quotient as the second argument.
+There is a tool `history-tour.sh` which allows you to navigate through your non-zero balances with the ',' and '.' keys
+to go backwards and forwards. It uses the normalization along with an extra feature on the as of yet to be documented
+`balance.py` tool.
+
+
+<img src=https://i.imgur.com/nSyiEfq.png>
 
 ### trade.py
 
