@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import lib
 import sys
+import os
 from lib import bprint
 from operator import itemgetter, attrgetter
 
@@ -14,8 +15,11 @@ if len(sys.argv) > 1:
 if len(sys.argv) > 2:
     margin = float(sys.argv[2])
 
-rows = 80 
-cols = 150
+rows, cols = [int(x) for x in os.popen('stty size', 'r').read().split()]
+rows -= 30
+cols -= 12
+#rows = 80 
+#cols = 150
 data = lib.tradeHistory(currency)
 anal = lib.analyze(data)
 balanceMap = lib.returnCompleteBalances()
@@ -44,7 +48,7 @@ if margin:
     lowest = midpoint * (100 - margin) / 100
     highest = midpoint * (100 + margin) / 100
 
-div = (highest - lowest) / rows
+div = ( (highest - lowest) / rows ) * (1.05 ** -(rows + 1))
 
 buy_ix = 0
 buy_ttl = 0

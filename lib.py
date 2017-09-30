@@ -226,7 +226,7 @@ def showTrade(order, exchange, trade_type, rate, amount, source='human', doPrint
 
     if doPrint:
         for trade in order['resultingTrades']:
-            plog("{} {:9} {:4}  {}{} at {}BTC. Total {}BTC".format(trade['orderNumber'], exchange, trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
+            plog("{} {:9} {:4}  {}{} at {}BTC. Total {}BTC".format(trade['tradeID'], exchange, trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
 
         if len(order['resultingTrades']) == 0:
             amount = float(amount)
