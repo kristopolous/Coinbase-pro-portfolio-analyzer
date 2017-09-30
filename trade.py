@@ -34,6 +34,7 @@ if rate:
 action = args.action.lower()
 fast = args.fast
 lowest = False
+spreadThreshold = 0.005
 
 # This is only used for the warning message to make sure
 # the fingers don't slip and someone buys/sells the farm
@@ -47,7 +48,7 @@ approx_btc_usd = lib.btc_price()
 warn_at_usd = 3.50
 
 def warn(msg):
-    print("\nWARNING:\n {}\n\n".format(msg.replace('\n', '\n ')))
+    lib.bprint("\nWARNING:\n {}\n\n".format(msg.replace('\n', '\n ')))
 
 
 def abort(msg):
@@ -132,9 +133,16 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
 
     # We're here if we didn't do a word
     if rate is None:
-        if spread > 0.005:
-            warn("Spread is over threshold, trying to not do a stupid bid")
-            rate = (1 + spread / 10) * bid if action == 'buy' else bid
+        if spread > spreadThreshold:
+            compare = False
+            if action == 'buy':
+                rate = (1 + spread / 10) * bid 
+                compare = ask
+            else:
+                rate = ask * (1 - spreadThreshold)
+                compare = bid
+
+            warn("Spread is over threshold:\n {:.8f} Would have done this\n {:.8f} Doing this instead\n {:.8f} Delta".format(compare, rate, abs(compare - rate)))
         else:
             rate = ask if action == 'buy' else bid
 
