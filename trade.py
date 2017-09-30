@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--currency", required=True, help="Currency to buy")
 parser.add_argument('-a', "--action", required=True, help="Action, either buy or sell")
 parser.add_argument('-q', "--quantity", default=0, help="Quantity to buy, expressed in btc (also 'min' for minimum amount)")
-parser.add_argument('-r', "--rate", default=None, help="Rate (defaults to market). Also accepts break, profit, ask, bid, low and percent. Also math can be done. Such as profit+0.2%")
+parser.add_argument('-r', "--rate", default=None, help="Rate (defaults to market). Also accepts lowest, highest,break, profit, ask, bid, and percent. Also math can be done. Such as profit+0.2%")
 parser.add_argument('-n', "--nofee", action='store_true', help="Try to avoid the higher fee")
 parser.add_argument('-f', "--fast", action='store_true', help="Skip the ceremony and do things quickly")
 args = parser.parse_args()
@@ -45,6 +45,10 @@ approx_btc_usd = lib.btc_price()
 
 # let's set it really low for now. 
 warn_at_usd = 3.50
+
+def warn(msg):
+    print("\nWARNING:\n {}\n\n".format(msg.replace('\n', '\n ')))
+
 
 def abort(msg):
     print("\nERROR:\n {}\n\n Aborted.".format(msg.replace('\n', '\n ')))
@@ -85,7 +89,7 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
 
     rateStr = rate
     if rate:
-        word, oper, amount = re.search('([a-z]*|)([+-]|)([0-9]*%|[\d\.]*|)', rate).groups()
+        word, oper, amount = re.search('([a-z]*|)([+-]|)([0-9\.]*%|[\d\.]*|)', rate).groups()
     else:
         word, oper, amount = '', '', ''
     rate = None
@@ -99,21 +103,36 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
     if word == 'last':
         rate = last
 
-    if word == 'break' or word == 'profit':
+    if word in ['break', 'profit', 'lowest', 'highest']:
         hist = lib.analyze(lib.tradeHistory(exchange))
 
-        if word == 'break':
+        if word == 'lowest':
+            if action == 'buy':
+                rate = hist['lowestBuy']
+
+            if action == 'sell':
+                warn("You are trying to sell at your lowest selling point")
+                rate = hist['lowestSell']
+
+        elif word == 'highest':
+            if action == 'buy':
+                warn("You are trying to buy at your highest buying point")
+                rate = hist['highestBuy']
+
+            if action == 'sell':
+                rate = hist['highestSell']
+
+        elif word == 'break':
             rate = hist['break']
             if rate < 0:
-                print("Break point is under 0: {}".format(rate))
-                sys.exit(-1)
+                abort("Break point is under 0: {}".format(rate))
         else:
             rate = max(hist['buyAvg'], hist['break'])
 
     # We're here if we didn't do a word
     if rate is None:
         if spread > 0.005:
-            print("Spread is over threshold, trying to not do a stupid bid")
+            warn("Spread is over threshold, trying to not do a stupid bid")
             rate = (1 + spread / 10) * bid if action == 'buy' else bid
         else:
             rate = ask if action == 'buy' else bid
@@ -129,7 +148,7 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
             rate *= 1 + perc
         else:
             if perc < 0.5:
-                print("\nWARNING! Requesting a rate {:.0f}% below market.\n".format(100 * (1-perc) ))
+                warn("Requesting a rate {:.0f}% below market".format(100 * (1-perc) ))
             rate *= perc
 
     if args.nofee: 
@@ -140,7 +159,7 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
         else:
             rate = rate + price_pump
 
-    lib.bprint(" Bid:  {}\n Last: {:.8f}\n Ask:  {}\n Sprd: {:.8f}".format( bid, last, ask, spread))
+    lib.bprint(" Bid:  {:.8f}\n Last: {:.8f}\n Ask:  {:.8f}\n Sprd: {:.8f}".format( bid, last, ask, spread))
     lib.bprint("\n Rate:  {:.8f}\n Perc:  {:.8f}\n Total: {:.8f}".format(baseRate, perc, rate))
 
 fl_rate = float(rate)

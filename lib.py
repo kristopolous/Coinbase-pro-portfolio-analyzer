@@ -129,6 +129,9 @@ def analyze(data, brief = False, sort = 'rate'):
     buyList = list(filter(lambda x: x['type'] == 'buy', data))
     sellList = list(filter(lambda x: x['type'] == 'sell', data))
 
+    buyListRate = sorted(buyList, key = itemgetter('rate'))
+    sellListRate = sorted(sellList, key = itemgetter('rate'))
+
     res = {
         'lowestBuy': 0,
         'highestBuy': 0,
@@ -144,16 +147,16 @@ def analyze(data, brief = False, sort = 'rate'):
     }
 
     if len(buyList) > 0:
-        res['lowestBuy'] = buyList[0]['rate']
-        res['highestBuy'] = buyList[-1]['rate']
+        res['lowestBuy'] = buyListRate[0]['rate']
+        res['highestBuy'] = buyListRate[-1]['rate']
 
     if not brief:
         res['buyList'] = buyList
         res['sellList'] = sellList
 
     if len(sellList) > 0:
-        res['lowestSell'] = sellList[0]['rate']
-        res['highestSell'] = sellList[-1]['rate']
+        res['lowestSell'] = sellListRate[0]['rate']
+        res['highestSell'] = sellListRate[-1]['rate']
         res['sellBtc'] = sum([ x['btc'] for x in sellList])
         res['sellCur'] = sum([ x['cur'] for x in sellList]) 
         res['sellAvg'] = res['sellBtc'] / res['sellCur']
