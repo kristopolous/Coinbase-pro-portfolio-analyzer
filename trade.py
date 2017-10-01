@@ -22,8 +22,10 @@ p = Poloniex(*secret.token)
 currency = args.currency.upper()
 exchange = 'BTC_{}'.format(currency)
 
+satoshi = 1e-8
+
 if args.quantity == 'min':
-    args.quantity = '0.00010015'
+    args.quantity = '0.00010002'
 
 quantity = float(args.quantity.replace('_', '0'))
 rate = args.rate
@@ -161,11 +163,16 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
             rate *= perc
 
     if args.nofee: 
-        print(" Trying to avoid fee by adding {:.8f}".format(price_pump))
-        if action == 'buy':
+        rateOrig = rate
+        if action == 'buy' and rate == ask:
             rate = rate - price_pump
-        else:
+        elif action == 'sell' and rate == bid:
             rate = rate + price_pump
+
+        if rateOrig != rate:
+            lib.bprint(" Trying to avoid fee by adding {:.8f}".format(price_pump))
+        else:
+            lib.bprint(" Price isn't at the market price. Nothing changed")
 
     lib.bprint(" Bid:  {:.8f}\n Last: {:.8f}\n Ask:  {:.8f}\n Sprd: {:.8f}".format( bid, last, ask, spread))
     lib.bprint("\n Rate:  {:.8f}\n Perc:  {:.8f}\n Total: {:.8f}".format(baseRate, perc, rate))
@@ -182,6 +189,7 @@ if not fast:
         row['btcValue'], currency, float(row['onOrders']) + float(row['available'])
       ))
 
+quantity += .499 * satoshi
 amount_to_trade = quantity / fl_rate
 lib.bprint("\n{}\n   {:12.8f}\n * {:12.8f}BTC\n = {:12.8f}BTC".format(action.upper(), amount_to_trade, fl_rate, quantity))
 

@@ -100,6 +100,12 @@ while True:
             hold = (my_ratio - 1) * price * my_balance
 
             break_price = 1000.0 * stats['break']
+            bprof = 0
+            if break_price > 0:
+               bprof = (100000 * (price / break_price)) - 100
+            else:
+               break_price = 0
+
             rows.append({
                 'cur': cur, 
                 'last': "{:8.5f}{}".format(v[-1]['rate'] * 1000, '*' if v[-1]['type'][0] == 'b' else ' '),
@@ -109,7 +115,7 @@ while True:
                 'bal': lib.btc_price() * price * my_balance, 
                 'prof': lib.btc_price() * hold, 
                 'brk': break_price,
-                'bprof': (100000 * (price / break_price)) - 100,
+                'bprof': bprof,
                 'buy': 10000 * (my_ratio_buy / my_ratio) - 10000,
                 'sell': 10000 * (my_ratio_sell / my_ratio) - 10000,
                 'move': 100 - (100 * all_prices_last[k]['last'] / all_prices[k]['last']),
