@@ -1,4 +1,12 @@
-Some cryptocurrency market analysis tools
+### Polo-Tools
+
+Some cryptocurrency market analysis and trading tools. 
+
+Here's a demo of me putting out an order to sell ARDR, viewing my open orders, and then canceling the one I just made.
+
+<img src=https://i.imgur.com/pUJTlNB.png>
+
+More details below.
 
 The goal of my current pursuit is to determine whether buying or selling is a good idea given my portfolio
 
@@ -39,9 +47,12 @@ In linux this will size itself to your screen. Also the buckets increase geometr
 The asterisks denote when you are at 150% of the last asterisk. The buy and sell are NOT independent scales.
 
 The range covers your history and the price.  You can also specify a normalization quotient as the second argument.
-There is a tool `history-tour.sh` which allows you to navigate through your non-zero balances with the ',' and '.' keys
-to go backwards and forwards. It uses the normalization along with an extra feature on the as of yet to be documented
-`balance.py` tool.
+There is a tool `history-tour.sh` which allows you to navigate through your non-zero balances with 
+
+  * ',' and '.' keys to go backwards and forwards. 
+  * 'o' and 'p' to increase and decrease the viewport range.
+
+ It uses the normalization along with an extra feature on the as of yet to be documented `balance.py` tool.
 
 
 <img src=https://i.imgur.com/nSyiEfq.png>

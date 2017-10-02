@@ -22,7 +22,7 @@ if len(sys.argv) > 3:
     max_btc = float(sys.argv[3])
 
 rows, cols = [int(x) for x in os.popen('stty size', 'r').read().split()]
-rows -= 14
+rows -= 10
 cols -= 12
 #rows = 80 
 #cols = 150
