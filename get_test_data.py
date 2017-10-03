@@ -9,13 +9,14 @@ from dateutil import parser
 import sqlite3
 from operator import itemgetter, attrgetter
 import urllib.request
+import calendar
 
 now = int(time.time()) 
 
 exList  = lib.returnTicker().keys()
 
-dt = lambda x: datetime.fromtimestamp(x).strftime('(%Y-%m-%d.%H:%M:%S) ')
-dt2unix = lambda x: int(time.mktime(parser.parse(x.replace(' ', 'T')+'Z').timetuple()))
+dt = lambda x: datetime.utcfromtimestamp(x).strftime('(%Y-%m-%d.%H:%M:%S) ')
+dt2unix = lambda x: int(calendar.timegm(parser.parse(x.replace(' ', 'T')+'Z').timetuple()))
 
 BUY = 0
 SELL = 1
@@ -57,6 +58,53 @@ def one(handle, sql):
 def get_bounds(cur):
     return one(sql_cur(cur), 'select min(date),max(date) from history')
 
+def get_recent(cur):
+    now = int(time.time()) 
+    low, high = get_bounds(cur)
+    if not high:
+        high = 0
+
+    earliest = max(high, now - lib.one_day * 120)
+    end = now
+    lastEnd = 0
+    sql = sql_cur(cur)
+
+    # the idiots at polo give things in reverse chronological order. what a stupid
+    # braindamaged retarded interface. these people are profoundly incompetent retards.
+    while True:
+        if end < high and end > low:
+            end = low
+
+        start = end - 4 * lib.one_day
+
+        print("{}  {} {} {} {} REQUEST".format(ex, dt(start), start, dt(end), end))
+        snapRaw = urllib.request.urlopen('https://poloniex.com/public?command=returnTradeHistory&currencyPair={}&start={}&end={}'.format(cur,start, end)).read().decode('utf-8')
+        snap = json.loads(snapRaw)
+
+        if len(snap) == 0:
+            print("{} No trades found ... bye", dt(start))
+            break
+
+        for v in snap:
+            v['unix'] = dt2unix(v['date'])
+
+        snap = sorted(snap, key=itemgetter('unix'))
+
+        for v in snap:
+            sql['c'].execute("INSERT INTO history VALUES ({}, {}, {}, {}, {}, {})".format(
+                v['globalTradeID'], v['unix'], v['total'], v['rate'], v['amount'], BUY if v['type'] == 'buy' else SELL))
+
+        sql['conn'].commit()
+
+        end = snap[0]['unix'] - 1
+
+        print("{}  {} {} {} {} {} {}".format(ex, dt(end), end, dt(snap[-1]['unix']), snap[-1]['unix'], snap[-1]['date'], len(snap)))
+
+        if end < earliest:
+            break
+        
+
+
 def data_to_sql(cur):
     sql = sql_cur(cur)
 
@@ -81,15 +129,12 @@ for ex in exList:
     historyFull = []
     historyPrice = []
     
-    sql_cur(ex)
-    low, high = get_bounds(ex)
-    start = max(high, start)
-    print(ex, start)
+    get_recent(ex)
     continue
     lastEnd = 0
 
     while True:
-        end = min(now, start + lib.one_day)
+        end = min(now, start + 4 * lib.one_day)
         #print("{} {}  {}".format(ex, dt(start), dt(end)))
         snapRaw = urllib.request.urlopen('https://poloniex.com/public?command=returnTradeHistory&currencyPair={}&start={}&end={}'.format(ex, start, end)).read().decode('utf-8')
         snap = json.loads(snapRaw)
