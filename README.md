@@ -52,10 +52,45 @@ There is a tool `history-tour.sh` which allows you to navigate through your non-
   * ',' and '.' keys to go backwards and forwards. 
   * 'o' and 'p' to increase and decrease the viewport range.
 
- It uses the normalization along with an extra feature on the as of yet to be documented `balance.py` tool.
-
 
 <img src=https://i.imgur.com/nSyiEfq.png>
+
+### balances.py
+
+This is an attempt to find out whether you are ahead or behind on your portfolio.  It tries to look at what you've exited the market at and what your current holdings are, assuming you would want to dump them all at that moment in time.
+
+<img src=https://i.imgur.com/vlvrsIz.png>
+
+Another feature is that this tool can show you the list of currencies of your current non-zero balances by adding an arg to it
+
+    $ ./balances.py 1
+    ./balances.py 1
+    AMP
+    ARDR
+    BCN
+    BLK
+    BTC
+    BTS
+    ETH
+    FLDC
+    GRC
+    NMC
+    NXT
+    OMNI
+    PINK
+    POT
+    REP
+    RIC
+    SC
+    STR
+    STRAT
+    XCP
+    XEM
+    XMR
+    XPM
+    XRP
+    $
+
 
 ### trade.py
 
@@ -175,12 +210,16 @@ The columns:
   * last - The last price *you* traded at. An asterisk means you bought at that price.
   * brk - Your break-even price.
   * brpof - Your total profit over the lifetime of the currency
-  * roi - Return on investment of current holdings, in percent, essentially the price / avgbuy
+  * roi - Return on investment of current holdings, in percent, essentially the price / avgbuy ... This is NOT the avgbuy price. 
   * bal - Estimated USD of holdings based on a twice daily update of btc price from coindesk
   * prof - Estimated USD profit if you were able to sell off all holdings at `price`
 
 
 ### Strategies
+
+
+If you think the stock is going down then you sell some right now and buy it when it's down. The reason is because profit calculations are time independent.
+
 
 Ultimately you want to sell more than you buy and so total sell / total buy > 1.0.  Pretty easy right?
 
