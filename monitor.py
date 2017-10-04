@@ -52,7 +52,10 @@ while True:
         positive_balances = {k: v['cur'] for k,v in cur_balances.items() }
 
         for k, v in all_trades.items():
-            all_trades[k] = lib.ignorePriorExits(v)
+            all_trades[k] = {
+                'full': v,
+                'last': lib.ignorePriorExits(v)
+            }
 
 
     all_prices = lib.returnTicker(forceUpdate = True)
@@ -63,8 +66,10 @@ while True:
 
     rows = []
 
-    for k,v in all_trades.items():
-        stats = lib.analyze(v, brief=True)
+    for k,valueMap in all_trades.items():
+        v = valueMap['last']
+        statsFull = lib.analyze(valueMap['full'], brief=True)
+        stats = lib.analyze(valueMap['last'], brief=True)
         btc_ttl = stats['buyBtc']
         btc_ttl_sell = stats['sellBtc']
 
@@ -73,13 +78,13 @@ while True:
         if k[:3] == 'ETH' or cur_ttl == 0: 
             continue
         my_price = btc_ttl / cur_ttl 
-        my_ratio = price / my_price
+        my_ratio = min(price / my_price, price / statsFull['buyAvg'])
         cur = k[4:]
         if cur in positive_balances:
             my_balance = float(positive_balances[cur])
 
-            amt = 0.00010001
-            amt_cur = ((1-0.0025) * amt) / price
+            amt = lib.MIN
+            amt_cur = ((1 - 0.0025) * amt) / price
 
             btc_ttl_buy = btc_ttl + amt
             cur_ttl_buy = cur_ttl + amt_cur

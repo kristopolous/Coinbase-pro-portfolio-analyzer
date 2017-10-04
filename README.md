@@ -198,7 +198,7 @@ ARDR        .44  -1.621    3.23   ._4256   ._4295*   ._4661   -8.70   -1.63   78
 Properties:
 
   * update - a countdown timer along with two timestamps, the first is the last time a ticker was updated, and the second is the last time the portfolio was.
-  * profit line - where outright profit can be made without any hedging. This may be a deceiving line if you have fully invested and partially divested in a currency at multiple points. It ignores what's called "prior exits" which is if you sold off *all* of your holdings at a profit at a prior date. This attempts to treat your current holdings as an isolated set. In the example above, I'm losing in everything! I'm a better programmer than I am an investor it appears.
+  * profit line - where outright profit can be made without any hedging. This may be a deceiving line if you have fully invested and partially divested in a currency at multiple points. It ignores what's called "prior exits" which is if you sold off *all* of your holdings at a profit at a prior date **but only if this value is higher than your average buy**. This attempts to treat your current holdings as an isolated set but not the expense of a generalized loss. In the example above, I'm losing in everything! I'm a better programmer than I am an investor it appears.
   * running balance - estimated USD ROI of your current holdings. The subsequent rows of a column are relative percentages for that "period". So you can look across at one row and see how things have been going for the past 4 hours in this case, and then look down to see how your portfolio did relatively.
 
 The columns:

@@ -16,6 +16,7 @@ one_day = 86400
 first_day = 1501209600
 is_fake = False
 polo_instance = False
+MIN = 0.00010002
 
 _cache = {}
 
