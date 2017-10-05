@@ -25,7 +25,7 @@ exchange = 'BTC_{}'.format(currency)
 satoshi = 1e-8
 
 if args.quantity == 'min':
-    args.quantity = lib.MIN
+    args.quantity = str(lib.MIN)
 
 quantity = float(args.quantity.replace('_', '0'))
 rate = args.rate
