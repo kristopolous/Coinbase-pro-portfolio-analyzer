@@ -5,7 +5,7 @@ curList=(`./balances.py 1`)
 len=${#curList[*]}
 ix=0
 dir=1
-range=60
+range=80
 while [ $ix -lt $len ]; do
   cur=${curList[$ix]}
   if [ $cur == 'BTC' ]; then

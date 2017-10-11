@@ -129,10 +129,11 @@ def btc_price():
         return d['bpi']['USD']['rate_float']
 
 
-def analyze(data, brief = False, sort = 'rate'):
+def analyze(data, currency, brief = False, sort = 'rate'):
     data = sorted(data, key = lambda x: x[sort])
     buyList = list(filter(lambda x: x['type'] == 'buy', data))
     sellList = list(filter(lambda x: x['type'] == 'sell', data))
+    ticker = returnTicker()
 
     buyListRate = sorted(buyList, key = itemgetter('rate'))
     sellListRate = sorted(sellList, key = itemgetter('rate'))
@@ -172,7 +173,17 @@ def analyze(data, brief = False, sort = 'rate'):
         res['buyAvg'] = res['buyBtc'] / res['buyCur']
 
     res['cur'] = res['buyCur'] - res['sellCur']
-    res['btc'] = res['buyBtc'] - res['sellBtc']
+    res['btcMargin'] = res['buyBtc'] - res['sellBtc']
+
+    if currency.find('_') == -1:
+        market = 'BTC_{}'.format(currency)
+    else:
+        market = currency
+
+    if market in ticker:
+        res['btc'] = res['cur'] * ticker[market]['last']
+    else:
+        res['btc'] = res['btcMargin']
 
     if res['cur'] < 1e-11 and res['cur'] > 0:
         res['cur'] = 0

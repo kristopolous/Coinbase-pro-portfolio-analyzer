@@ -27,7 +27,7 @@ cols -= 12
 #rows = 80 
 #cols = 150
 data = lib.tradeHistory(currency)
-anal = lib.analyze(data)
+anal = lib.analyze(data, currency=cur)
 balanceMap = lib.returnCompleteBalances()
 ticker = lib.returnTicker()
 

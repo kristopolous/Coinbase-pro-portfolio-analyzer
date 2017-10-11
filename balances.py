@@ -27,7 +27,7 @@ for k,b,v in in_order:
     if k != 'BTC':
         market = "BTC_{}".format(k)
         history = all_history[market]
-        stats = lib.analyze(history, brief=True)
+        stats = lib.analyze(history, currency=k, brief=True)
         prof = 0
         if stats['buyAvg'] > 0:
             prof = stats['sellCur'] * ( stats['sellAvg'] - stats['buyAvg'] )

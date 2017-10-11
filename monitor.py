@@ -68,8 +68,8 @@ while True:
 
     for k,valueMap in all_trades.items():
         v = valueMap['last']
-        statsFull = lib.analyze(valueMap['full'], brief=True)
-        stats = lib.analyze(valueMap['last'], brief=True)
+        statsFull = lib.analyze(valueMap['full'], currency=k, brief=True)
+        stats = lib.analyze(valueMap['last'], currency=k, brief=True)
         btc_ttl = stats['buyBtc']
         btc_ttl_sell = stats['sellBtc']
 
