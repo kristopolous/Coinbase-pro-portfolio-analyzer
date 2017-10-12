@@ -102,7 +102,7 @@ while True:
             hold_buy = (price / (btc_ttl_buy / cur_ttl_buy) - 1) * price * my_balance_buy
             hold_sell = (price / (btc_ttl_sell / cur_ttl_sell) - 1) * price * my_balance_sell
 
-            hold = (my_ratio - 1) * price * my_balance
+            hold = (price / stats['break'] - 1) * price * my_balance
 
             break_price = 1000.0 * stats['break']
             bprof = 0
