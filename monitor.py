@@ -17,7 +17,7 @@ ttl = 0
 all_prices_last_list = False
 all_prices_last = False
 
-waitTime =  23
+waitTime = 9 
 tradeUpdate = 900
 row_max = 15
 col_max = 15
@@ -29,7 +29,6 @@ os.system('clear')
 
 rowOrderList = [
     [ 'cur', '{:5}', '{:5}'],
-    [ 'buy', '{:>9}', '{:9.2f}'],
     [ 'move', '{:>7}', '{:7.3f}'],
     [ '24h', '{:>7}', '{:7.2f}'],
     [ 'price', '{:>8}', '{:8.5f}'],

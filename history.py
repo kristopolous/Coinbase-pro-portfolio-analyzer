@@ -116,11 +116,16 @@ while slot < highest:
         sell_ttl += sellList[sell_ix]['total']
         sell_ix += 1
 
-    dots = min(int(cols * (buy_ttl / buy_max)), cols - 1)
-    if buy_ttl > 0 and dots == 0:
+    fill = "\u258C"
+    frac = cols * (buy_ttl / buy_max)
+    dots = min(int(frac), cols - 1)
+    if buy_ttl > 0 and dots <= 1:
+        if dots == 1:
+            frac = 1
+        fill = chr(0x258F - int(frac * 5))
         dots = 1
 
-    row = ["\u2590"] * dots + (cols - dots) * [" "]
+    row = [fill] * dots + (cols - dots) * [" "]
 
     if sell_ttl > 0: 
         row[0] = '\x1b[42m{}'.format(row[0])

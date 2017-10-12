@@ -3,8 +3,13 @@ import lib
 import sys
 
 currency = False
+expiry = 30
+
 if len(sys.argv) > 1:
     currency = 'BTC_{}'.format(sys.argv[1].upper())
+
+if len(sys.argv) > 2:
+    expiry = float(sys.argv[2])
 
 def show(what, l, anal = False):
     subset = list(filter(lambda x: x['type'] == what, l))
@@ -23,7 +28,7 @@ def show(what, l, anal = False):
 
             lib.bprint("\x1b[{}m  {} {} {:.8f} {}\x1b[0m".format(color, i['orderNumber'], i['date'], i['rate'], i['total']))
 
-plist = lib.returnOpenOrders()
+plist = lib.returnOpenOrders(expiry)
 history = lib.tradeHistory()
 
 for k,v in plist.items():

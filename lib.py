@@ -97,8 +97,8 @@ def cache_get(fn, expiry=300, forceUpdate = False, forceCache = False):
         if len(data) > 10:
             return json.loads(data)
 
-def returnOpenOrders():
-    return cache_get('returnOpenOrders', expiry=30)
+def returnOpenOrders(expiry=30):
+    return cache_get('returnOpenOrders', expiry=expiry)
 
 def returnCompleteBalances(forceCache = False):
     if forceCache and 'balances' in _cache:
