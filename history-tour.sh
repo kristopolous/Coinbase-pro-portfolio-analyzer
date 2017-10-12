@@ -6,6 +6,14 @@ len=${#curList[*]}
 ix=0
 dir=1
 range=80
+btc=0
+btcValue=100
+makebtc() {
+  dir=0
+  btc=$(( 100000 + btcValue ))
+  btc=0.${btc/#1/}
+}
+
 while [ $ix -lt $len ]; do
   cur=${curList[$ix]}
   if [ $cur == 'BTC' ]; then
@@ -13,12 +21,24 @@ while [ $ix -lt $len ]; do
     continue
   fi
 
-  ./history.py $cur $range > $tmp
+  ./history.py $cur $range $btc > $tmp
   clear
   cat $tmp
 
   while [ 0 ]; do
     read -n 1 c
+    if [ $c == 'k' ]; then
+      btcValue=$(( btcValue * 10 / 11 )) 
+      makebtc
+      break
+    fi
+
+    if [ $c == 'l' ]; then
+      btcValue=$(( btcValue * 11 / 10 )) 
+      makebtc
+      break
+    fi
+
     if [ $c == 'o' ]; then
       dir=0
       range=$(( range - 1 ))

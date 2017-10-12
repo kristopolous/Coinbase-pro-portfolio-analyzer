@@ -20,6 +20,8 @@ if len(sys.argv) > 2:
 
 if len(sys.argv) > 3:
     max_btc = float(sys.argv[3])
+    if max_btc == 0:
+        max_btc = False
 
 rows, cols = [int(x) for x in os.popen('stty size', 'r').read().split()]
 rows -= 10
@@ -68,7 +70,7 @@ buy_ttl = 0
 sell_ix = 0
 sell_ttl = 0
 
-lib.bprint("{:10} {}\n".format(currency, balanceMap[cur]['btcValue']))
+lib.bprint("{:10} {} {}\n".format(currency, balanceMap[cur]['btcValue'], max_btc))
  
 buyMap = {}
 slot = lowest
