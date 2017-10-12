@@ -12,6 +12,10 @@ The goal of my current pursuit is to determine whether buying or selling is a go
 
 Nothing personal is here and you'll have to modify secrets.py.example in order for it to work for you.
 
+### Installing/Requirements
+
+[Ta-Lib](http://www.ta-lib.org/hdr_dw.html) is used and is needed to be installed outside of the Python wrapper that is specified in requirements.txt. You may need to install this manually ... fair warning.
+
 ### practice and theory
 
 I've been trading bitcoins since 2010 but never in serious enough amounts to be rich.
