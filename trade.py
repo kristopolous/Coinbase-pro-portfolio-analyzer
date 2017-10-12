@@ -108,7 +108,7 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
         rate = last
 
     if word in ['break', 'profit', 'lowest', 'highest']:
-        hist = lib.analyze(lib.tradeHistory(exchange))
+        hist = lib.analyze(lib.tradeHistory(exchange), currency=exchange)
 
         if word == 'lowest':
             if action == 'buy':
