@@ -8,6 +8,7 @@ import math
 import re
 import sys
 import fake
+from decimal import *
 from dateutil import parser
 from datetime import datetime
 from operator import itemgetter, attrgetter
@@ -17,9 +18,12 @@ first_day = 1501209600
 is_fake = False
 polo_instance = False
 MIN = 0.00010002
+satoshi_sig = 8
+satoshi = 1e-8
 
 _cache = {}
 
+getcontext().prec = 2 * satoshi_sig
 
 str2date = lambda x: parser.parse(x.replace(' ', 'T')+'Z')
 str2unix = lambda x: int(time.mktime(str2date(x).timetuple()))
@@ -129,7 +133,7 @@ def btc_price():
         return d['bpi']['USD']['rate_float']
 
 
-def analyze(data, currency, brief = False, sort = 'rate'):
+def analyze(data, currency, brief = False, sort = 'rate', do_round = True):
     data = sorted(data, key = lambda x: x[sort])
     buyList = list(filter(lambda x: x['type'] == 'buy', data))
     sellList = list(filter(lambda x: x['type'] == 'sell', data))
@@ -194,6 +198,11 @@ def analyze(data, currency, brief = False, sort = 'rate'):
     if res['cur'] > 0:
         res['break'] = -res['pl'] / res['cur']
         res['avg'] = res['btc'] / res['cur'] 
+
+    # after all the calculations are done now we round off the figures to satoshis
+    if do_round:
+        for x in ['btc', 'cur']: 
+            res[x] = round(res[x], satoshi_sig)
 
     return res
 

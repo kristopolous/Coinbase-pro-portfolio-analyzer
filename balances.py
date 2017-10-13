@@ -1,19 +1,42 @@
 #!/usr/bin/python3
-from poloniex import Poloniex
-import secret
 import sys
 import lib
 from operator import itemgetter, attrgetter
+import argparse
+import json
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-l', "--list", action='store_true', help="Show just the currencies")
+parser.add_argument('-j', "--json", action='store_true', help="Show a json compatible list")
+args = parser.parse_args()
 
 ticker = lib.returnTicker()
 cur_balances = lib.returnCompleteBalances()
 all_balances = list([(k, float(v['btcValue']), float(v['available']) + float(v['onOrders'])) for k,v in cur_balances.items() ])
 all_positive = list(filter(lambda x: x[1] > 0, all_balances))
-if len(sys.argv) > 1:
+
+if args.list:
     print("\n".join(sorted([x[0] for x in all_positive])))
     sys.exit(0)
 
 all_history = lib.tradeHistory()
+
+if args.json:
+    list = []
+    for k,v in all_history.items():
+
+        row = lib.analyze(v, currency=k, brief=True, sort='date')
+        row['exchange'] = k
+        cur = k[4:]
+        if cur in cur_balances:
+            row['bal'] = cur_balances[cur]
+
+        list.append(row)
+
+    print(json.dumps(list))
+    sys.exit(0)
+
+
 market_exit_list = set([ k[4:] for k in all_history.keys() ]) - set([x[0] for x in all_positive])
 all_positive = [(v, 0, 0) for v in market_exit_list] + all_positive
 in_order = sorted(all_positive, key=itemgetter(1))

@@ -22,7 +22,6 @@ p = Poloniex(*secret.token)
 currency = args.currency.upper()
 exchange = 'BTC_{}'.format(currency)
 
-satoshi = 1e-8
 
 if args.quantity == 'min':
     args.quantity = str(lib.MIN)
@@ -189,7 +188,7 @@ if not fast:
         row['btcValue'], currency, float(row['onOrders']) + float(row['available'])
       ))
 
-quantity += .499 * satoshi
+quantity += .499 * lib.satoshi
 amount_to_trade = quantity / fl_rate
 lib.bprint("\n{}\n   {:12.8f}\n * {:12.8f}BTC\n = {:12.8f}BTC".format(action.upper(), amount_to_trade, fl_rate, quantity))
 
