@@ -280,7 +280,7 @@ def ignorePriorExits(tradeList):
 
         # if we've exited the currency then we reset our
         # counters
-        if ttl_cur < 0.0000000001:
+        if ttl_cur < satoshi * 10:
             recent = []
             ttl_cur = 0
         else:

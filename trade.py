@@ -22,8 +22,9 @@ p = Poloniex(*secret.token)
 currency = args.currency.upper()
 exchange = 'BTC_{}'.format(currency)
 
-
+requested_min = False
 if args.quantity == 'min':
+    requested_min = True
     args.quantity = str(lib.MIN)
 
 quantity = float(args.quantity.replace('_', '0'))
@@ -49,11 +50,11 @@ approx_btc_usd = lib.btc_price()
 warn_at_usd = 3.50
 
 def warn(msg):
-    lib.bprint("\nWARNING:\n {}\n\n".format(msg.replace('\n', '\n ')))
+    lib.bprint("\nWARNING:\n {}\n".format(msg.replace('\n', '\n ')))
 
 
 def abort(msg):
-    print("\nERROR:\n {}\n\n Aborted.".format(msg.replace('\n', '\n ')))
+    lib.bprint("\nERROR:\n {}\n\n Aborted.".format(msg.replace('\n', '\n ')))
     sys.exit(-1)
 
 if quantity > (warn_at_usd / approx_btc_usd):
@@ -207,16 +208,30 @@ if False or not fast:
 
     print("")
 
+def buy(exchange, rate, amount_to_trade, args):
+    try:
+        if args.nofee:
+            return p.buy(exchange, rate, amount_to_trade, orderType='postOnly')
+        return p.buy(exchange, rate, amount_to_trade)
+
+    except:
+        global requested_min, quantity, fl_rate
+        if requested_min:
+            warn("Unable to post{:.8f} at{}. Market minimum requested. Trying to buy more.".format(quantity, fl_rate))
+            quantity += lib.satoshi
+            amount_to_trade = quantity / fl_rate
+
+            return buy(exchange, rate, amount_to_trade, args)
+        else:
+            abort("Unable to buy{:.8f}btc worth on {} at{}.".format(quantity, exchange, fl_rate))
+
+
 if action == 'buy':
     if not fast:
         if fl_rate > (lowest * 1.2):
             abort("{:.10f}BTC is the lowest ask.\n{:.10f}BTC is over 20% more than this!".format(lowest, fl_rate))
 
-    if args.nofee:
-        buy_order = p.buy(exchange, rate, amount_to_trade, orderType='postOnly')
-    else:
-        buy_order = p.buy(exchange, rate, amount_to_trade)
-
+    buy_order = buy(exchange, rate, amount_to_trade, args)
     lib.showTrade(buy_order, exchange, trade_type='buy', rate=rate, amount=amount_to_trade)
 
 elif action == 'sell':
