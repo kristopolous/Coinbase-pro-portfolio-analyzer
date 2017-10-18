@@ -4,6 +4,7 @@ import sys
 import os
 import lib
 import json
+import btlib
 from datetime import datetime
 from dateutil import parser
 import sqlite3
@@ -13,7 +14,7 @@ import calendar
 
 now = int(time.time()) 
 
-exList  = lib.returnTicker().keys()
+exList = lib.returnTicker().keys()
 
 dt = lambda x: datetime.utcfromtimestamp(x).strftime('(%Y-%m-%d.%H:%M:%S) ')
 dt2unix = lambda x: int(calendar.timegm(parser.parse(x.replace(' ', 'T')+'Z').timetuple()))
@@ -21,53 +22,16 @@ dt2unix = lambda x: int(calendar.timegm(parser.parse(x.replace(' ', 'T')+'Z').ti
 BUY = 0
 SELL = 1
 
-handle_cache = {}
-
-def sql_cur(cur):
-    global handle_cache
-
-    if not cur in handle_cache:
-        sqlname = "test/{}-full.sql".format(cur)
-
-        conn = sqlite3.connect(sqlname)
-        c = conn.cursor()
-
-        if not os.path.exists(sqlname) or os.path.getsize(sqlname) < 10000:
-            c.execute('''CREATE TABLE IF NOT EXISTS history (
-                    gid integer not null, 
-                    date integer not null, 
-                    total real not null, 
-                    rate real not null, 
-                    amount real not null,
-                    type integer)''')
-
-            c.execute('CREATE UNIQUE INDEX idx_history_gid ON history (gid)');
-
-            conn.commit()
-
-        handle_cache[cur] = {
-          'c': c,
-          'conn': conn
-        }
-
-    return handle_cache[cur]
-
-def one(handle, sql):
-    return handle['c'].execute(sql).fetchone()
-
-def get_bounds(cur):
-    return one(sql_cur(cur), 'select min(date),max(date) from history')
-
 def get_recent(cur):
     now = int(time.time()) 
-    low, high = get_bounds(cur)
+    low, high = btlib.get_bounds(cur)
     if not high:
         high = 0
 
     earliest = max(high, now - lib.one_day * 120)
     end = now
     lastEnd = 0
-    sql = sql_cur(cur)
+    sql = btlib.sqlCursor(cur)
 
     # the idiots at polo give things in reverse chronological order. what a stupid
     # braindamaged retarded interface. these people are profoundly incompetent retards.
@@ -104,9 +68,8 @@ def get_recent(cur):
             break
         
 
-
 def data_to_sql(cur):
-    sql = sql_cur(cur)
+    sql = btlib.sqlCursor(cur)
 
     with open(name, 'r') as handle:
         data = handle.read()
