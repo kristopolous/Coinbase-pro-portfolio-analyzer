@@ -8,7 +8,7 @@ Here's a demo of me putting out an order to sell ARDR, viewing my open orders, a
 
 More details below.
 
-The goal of my current pursuit is to determine whether buying or selling is a good idea given my portfolio
+The goal of my current pursuit is to determine whether buying or selling is a good idea given my portfolio.  It's a down market as of October 2017, so not every strategy works any more ... there's more to be discovered below
 
 Nothing personal is here and you'll have to modify secrets.py.example in order for it to work for you.
 
