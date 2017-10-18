@@ -29,7 +29,9 @@ os.system('clear')
 
 rowOrderList = [
     [ 'cur', '{:5}', '{:5}'],
-    [ 'move', '{:>7}', '{:7.3f}'],
+    [ 'mvlng', '{:>7}', '{:7.3f}'],
+    [ 'mvmed', '{:>7}', '{:7.3f}'],
+    [ 'mvsrt', '{:>7}', '{:7.3f}'],
     [ '24h', '{:>7}', '{:7.2f}'],
     [ 'price', '{:>8}', '{:8.5f}'],
     [ 'last', '{:>9}', '{}'],
@@ -60,7 +62,7 @@ while True:
     all_prices = lib.returnTicker(forceUpdate = True)
     last_ticker = time.strftime("%Y-%m-%d %H:%M:%S")
     if not all_prices_last:
-        all_prices_last = all_prices
+        all_prices_last = [all_prices] * 3
         all_prices_last_list = [all_prices]
 
     rows = []
@@ -122,7 +124,9 @@ while True:
                 'bprof': bprof,
                 'buy': 10000 * (my_ratio_buy / my_ratio) - 10000,
                 'sell': 10000 * (my_ratio_sell / my_ratio) - 10000,
-                'move': 100 - (100 * all_prices_last[k]['last'] / all_prices[k]['last']),
+                'mvlng': 100 - (100 * all_prices_last[0][k]['last'] / all_prices[k]['last']),
+                'mvmed': 100 - (100 * all_prices_last[1][k]['last'] / all_prices[k]['last']),
+                'mvsrt': 100 - (100 * all_prices_last[2][k]['last'] / all_prices[k]['last']),
                 'to': 100 * math.pow(abs(((my_ratio_buy / my_ratio) - 1) / ((my_ratio_sell / my_ratio) - 1)), 5)
             })
 
@@ -157,14 +161,23 @@ while True:
     if not didBar:
         print("-" * rowlen)
 
+    if ix > (12 * (row_max - 1)):
+       all_prices_last_list.pop(0)
+
+    mindex = len(all_prices_last_list) - 1
+    all_prices_last = [
+       all_prices_last_list[0],
+       all_prices_last_list[int(1/2 * mindex)],
+       all_prices_last_list[int(3/4 * mindex)]
+    ]
+    all_prices_last_list.append(all_prices)
+
     if ix % (row_max - 1) == 0:
         ttl_list.append("{:>8}".format(time.strftime("%H:%M")))
         ttl_base = ttl
         ttl_list.append("{:>8}".format("{:.2f}".format(ttl)))
-        all_prices_last_list.append(all_prices)
 
-        if ix > (4 * (row_max - 1)):
-            all_prices_last = all_prices_last_list.pop(0)
+
     else:
         toadd = lib.bstr("{:>8}".format("{:.4f}".format(100 - (100 * ttl / ttl_base))))
         ttl_list.append(toadd)
