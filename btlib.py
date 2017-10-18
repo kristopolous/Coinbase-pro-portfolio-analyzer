@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import os
 import sqlite3
 
 _handle_cache = {}
@@ -58,7 +59,7 @@ def getHistory(exchange, start, end):
             where.append('date <= {}'.format(start))
 
         if len(where):
-            qstr .= ' where {}'.format(" and ".join(where))
+            qstr += ' where {}'.format(" and ".join(where))
 
         return all(cur, qstr)
 
