@@ -75,6 +75,8 @@ while True:
         btc_ttl_sell = stats['sellBtc']
 
         cur_ttl = stats['buyCur']
+        if k not in all_prices:
+            continue
         price = float(all_prices[k]['last'])
         if k[:3] == 'ETH' or cur_ttl == 0: 
             continue
