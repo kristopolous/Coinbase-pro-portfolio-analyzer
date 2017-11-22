@@ -128,7 +128,19 @@ while slot < highest:
     row = [fill] * dots + (cols - dots) * [" "]
 
     if sell_ttl > 0: 
-        row[0] = '\x1b[42m{}'.format(row[0])
+        ratio = cols * (sell_ttl / buy_max) 
+        color = '102m'
+        if ratio < 1:
+            if ratio < 0.2:
+                color = '48;5;22m'
+            elif ratio < 0.4:
+                color = '48;5;28m'
+            elif ratio < 0.6:
+                color = '48;5;34m'
+            elif ratio < 0.8:
+                color = '48;5;40m'
+
+        row[0] = '\x1b[{}{}'.format(color, row[0])
         cbar = min(int(cols * (sell_ttl / buy_max)), cols - 1)
         cbar = max(cbar, 1) 
         row[cbar] = '\x1b[49m{}'.format(row[cbar])
