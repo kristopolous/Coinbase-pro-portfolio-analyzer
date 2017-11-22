@@ -123,8 +123,8 @@ def returnTicker(forceUpdate = False, forceCache = False):
     _cache['ticker'] = tickerMap
     return tickerMap
 
-def btc_price():
-    if need_to_get('cache/btc'):
+def btc_price(force = False):
+    if need_to_get('cache/btc') or force:
         with open('cache/btc', 'wb') as cache:
             cache.write(urllib.request.urlopen("https://api.coindesk.com/v1/bpi/currentprice.json").read())
 
