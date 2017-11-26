@@ -49,6 +49,8 @@ lib.bprint("{:5} {:>8} {:>8} {:>12} {:>12} {:>12} {:>8}".format( 'cur', 'btc', '
 for k,b,v in in_order:
     if k != 'BTC':
         market = "BTC_{}".format(k)
+        if market not in ticker:
+            continue
         history = all_history[market]
         stats = lib.analyze(history, currency=k, brief=True)
         prof = 0
