@@ -1,9 +1,11 @@
 #!/usr/bin/python3
 import lib
+import time
 import json
 import secret
 import requests
 
+cutoff = 0.0001
 current = lib.btc_price(force=True)
 name = 'btc-limits.json'
 
@@ -11,7 +13,7 @@ def notify(last, current, history, direction):
     history = [str(x) for x in history]
     key = secret.mailgun[0]
     request_url = "%s/%s" % (secret.mailgun[1].strip('/'), 'messages')
-    message = "BTC {} from {} to {}".format(direction, last, current)
+    message = "{}..{} {}".format(last, current, direction)
     request = requests.post(request_url, auth=('api', key), data={
        'from': secret.email[0],
        'to': secret.email[1],
@@ -23,31 +25,38 @@ def notify(last, current, history, direction):
 
 with open(name, 'r') as json_data:
     d = json.load(json_data)
-    range_list = d['range']
     last = d['last']
+    lastts = d['lastts']
+    now = time.time()
+    delta = "{:.2f}m".format((now - lastts) / 60)
 
     direction = False
-    for cutoff in range_list:
-        if current < cutoff and last > cutoff:
-            direction = "down"
+    ratio = current / last
+    
+    if ratio < (1 - cutoff):
+        direction = "{} down {:.2f}%".format(delta, 100 * (1 - ratio))
 
-        if current > cutoff and last < cutoff:
-            direction = "up"
+    if ratio > (1 + cutoff):
+        direction = "{} up {:.2f}%".format(delta, 100 * (ratio - 1))
 
-        if direction:
-            break
+    if current > 1.005 * d['high']:
+        direction = "new high"
+        d['high'] = current
 
-    perc = abs(last - current) / last
-    if not direction and perc > 0.03:
-        word = "up" if current > last else "down"
-        direction = "{} {}%".format(word, perc * 100)
+    if current < 0.995 * d['low']:
+        direction = "new low"
+        d['low'] = current
 
     if direction:
         notify(last, current, d['history'], direction)
+        d['last'] = current
+        d['lastts'] = now
+    else:
+        print("{} -> {} ({:.5f} {:.2f})".format(last, current, current - last, 100 * ratio))
 
-    d['history'].append(current)
-    d['history'] = d['history'][-20:]
-    d['last'] = current
+    d['history'].append([time.strftime("%Y-%m-%d %H:%M:%S"), current])
+    d['history'] = d['history'][-250:]
+    d['prev'] = current
 
 with open(name, 'w') as cache:
     json.dump(d, cache, indent=2)
