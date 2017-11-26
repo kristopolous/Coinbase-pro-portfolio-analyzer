@@ -13,7 +13,7 @@ def notify(last, current, history, direction):
     history = [str(x) for x in history]
     key = secret.mailgun[0]
     request_url = "%s/%s" % (secret.mailgun[1].strip('/'), 'messages')
-    message = "{}..{} {}".format(last, current, direction)
+    message = "{:.2f}..{:.2f} {}".format(last, current, direction)
     request = requests.post(request_url, auth=('api', key), data={
        'from': secret.email[0],
        'to': secret.email[1],
@@ -34,10 +34,10 @@ with open(name, 'r') as json_data:
     ratio = current / last
     
     if ratio < (1 - cutoff):
-        direction = "{} down {:.2f}%".format(delta, 100 * (1 - ratio))
+        direction = "{} -{:.2f}%".format(delta, 100 * (1 - ratio))
 
     if ratio > (1 + cutoff):
-        direction = "{} up {:.2f}%".format(delta, 100 * (ratio - 1))
+        direction = "{} +{:.2f}%".format(delta, 100 * (ratio - 1))
 
     if current > 1.005 * d['high']:
         direction = "new high"
@@ -52,7 +52,7 @@ with open(name, 'r') as json_data:
         d['last'] = current
         d['lastts'] = now
     else:
-        print("{} -> {} ({:.5f} {:.2f})".format(last, current, current - last, 100 * ratio))
+        print("{}..{} ({:.5f} {:.2f})".format(last, current, current - last, 100 * ratio))
 
     d['history'].append([time.strftime("%Y-%m-%d %H:%M:%S"), current])
     d['history'] = d['history'][-250:]
