@@ -5,7 +5,7 @@ import json
 import secret
 import requests
 
-cutoff = 0.005
+cutoff = 0.009
 current = lib.btc_price(force=True)
 name = 'btc-limits.json'
 
@@ -13,7 +13,7 @@ def notify(last, current, history, direction):
     history = [str(x) for x in history]
     key = secret.mailgun[0]
     request_url = "%s/%s" % (secret.mailgun[1].strip('/'), 'messages')
-    message = "{:.2f} {} {:.2f}".format(current, direction, last)
+    message = "{:.2f} {}".format(current, direction)
     request = requests.post(request_url, auth=('api', key), data={
        'from': secret.email[0],
        'to': secret.email[1],
@@ -28,7 +28,7 @@ with open(name, 'r') as json_data:
     last = d['last']
     lastts = d['lastts']
     now = time.time()
-    delta = "{:.1f}m".format((now - lastts) / 60)
+    delta = "{:.0f}m".format((now - lastts) / 60)
 
     direction = False
     ratio = current / last
@@ -39,11 +39,11 @@ with open(name, 'r') as json_data:
     if ratio > (1 + cutoff):
         direction = "{} +{:.2f}%".format(delta, 100 * (ratio - 1))
 
-    if current > 1.005 * d['high']:
+    if current > 1.003 * d['high']:
         direction = "new high"
         d['high'] = current
 
-    if current < 0.995 * d['low']:
+    if current < 0.997 * d['low']:
         direction = "new low"
         d['low'] = current
 
