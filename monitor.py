@@ -17,8 +17,8 @@ ttl = 0
 all_prices_last_list = False
 all_prices_last = False
 
-waitTime = 9 
-tradeUpdate = 900
+waitTime = 20 
+tradeUpdate = 90
 row_max = 15
 col_max = 15
 start_time = time.time()
@@ -35,6 +35,7 @@ rowOrderList = [
     [ '24h', '{:>7}', '{:7.2f}'],
     [ 'price', '{:>8}', '{:8.5f}'],
     [ 'last', '{:>9}', '{}'],
+    [ 'perc', '{:>7}', '{:7.2f}'],
     [ 'brk', '{:>8}', '{:8.5f}'],
     [ 'bprof', '{:>7}', '{:7.2f}'],
     [ 'roi', '{:>7}', '{:7.2f}'],
@@ -46,10 +47,10 @@ while True:
 
     last_update = time.time()
     if ix % tradeUpdate == 0:
-        all_trades = lib.tradeHistory('all')
+        all_trades = lib.tradeHistory('all', forceUpdate=True)
         last_portfolio = time.strftime("%Y-%m-%d %H:%M:%S")
 
-        cur_balances = {k: v for k, v in lib.returnCompleteBalances().items() if v['btcValue'] > 0.0001}
+        cur_balances = {k: v for k, v in lib.returnCompleteBalances().items() if v['btcValue'] > 0.00001}
         positive_balances = {k: v['cur'] for k,v in cur_balances.items() }
 
         for k, v in all_trades.items():
@@ -77,9 +78,11 @@ while True:
         cur_ttl = stats['buyCur']
         if k not in all_prices:
             continue
+
         price = float(all_prices[k]['last'])
         if k[:3] == 'ETH' or cur_ttl == 0: 
             continue
+
         my_price = btc_ttl / cur_ttl 
         my_ratio = min(price / my_price, price / statsFull['buyAvg'])
         cur = k[4:]
@@ -98,6 +101,10 @@ while True:
             btc_ttl_sell = btc_ttl - amt
             cur_ttl_sell = cur_ttl - amt_cur
             my_price_sell = btc_ttl_sell / cur_ttl_sell
+
+            if my_price_sell == 0:
+                continue
+
             my_ratio_sell = price / my_price_sell
             my_balance_sell = my_balance - amt_cur
             #print("{:5} {:0.5f} {:10.5f} {:10.5f} {:10.5f} {:0.8f}".format(cur, btc_ttl, btc_ttl1, cur_ttl, cur_ttl1, price))
@@ -117,6 +124,7 @@ while True:
             rows.append({
                 'cur': cur, 
                 'last': "{:8.5f}{}".format(v[-1]['rate'] * 1000, '*' if v[-1]['type'][0] == 'b' else ' '),
+                'perc': 100 * (1 - v[-1]['rate'] / price),
                 'price': 1000 * price, 
                 'roi': my_ratio * 100 - 100, 
                 '24h': all_prices[k]['percentChange'] * 100,
@@ -132,7 +140,7 @@ while True:
                 'to': 100 * math.pow(abs(((my_ratio_buy / my_ratio) - 1) / ((my_ratio_sell / my_ratio) - 1)), 5)
             })
 
-    l = sorted(rows, key=operator.itemgetter('roi'))
+    l = sorted(rows, key=operator.itemgetter('bprof'))
     
     if ix % 10 == 0:
         os.system('clear')
@@ -148,7 +156,7 @@ while True:
     didBar = False
 
     for row in l:
-        if row['roi'] > 0 and last_row < 0:
+        if row['bprof'] > 0 and last_row < 0:
             print("-" * rowlen)
             didBar = True
 
@@ -157,7 +165,7 @@ while True:
             output.append(lib.bstr(column[2].format(row[column[0]])))
         print(" ".join(output))
 
-        last_row = row['roi']
+        last_row = row['bprof']
         ttl += row['prof']
 
     if not didBar:

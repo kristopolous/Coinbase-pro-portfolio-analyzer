@@ -24,7 +24,7 @@ if len(sys.argv) > 3:
         max_btc = False
 
 rows, cols = [int(x) for x in os.popen('stty size', 'r').read().split()]
-rows -= 10
+rows -= 11
 cols -= 12
 #rows = 80 
 #cols = 150
@@ -70,7 +70,6 @@ buy_ttl = 0
 sell_ix = 0
 sell_ttl = 0
 
-lib.bprint("{:10} {} {}\n".format(currency, balanceMap[cur]['btcValue'], max_btc))
  
 buyMap = {}
 slot = lowest
@@ -155,4 +154,5 @@ while slot < highest:
 anal['buyList'] = sorted(anal['buyList'], key=itemgetter('date'))
 anal['sellList'] = sorted(anal['sellList'], key=itemgetter('date'))
 
+lib.bprint("{:10}{} {:.8f}".format(currency, balanceMap[cur]['btcValue'], last))
 lib.recent(currency, anal)
