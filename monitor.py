@@ -156,7 +156,7 @@ while True:
     didBar = False
 
     for row in l:
-        if row['bprof'] > 0 and last_row < 0:
+        if row['bprof'] > 0 and last_row <= 0:
             print("-" * rowlen)
             didBar = True
 
