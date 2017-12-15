@@ -2,6 +2,9 @@
 import os
 import sqlite3
 
+# Many talib functions use periods, which are slots of trading broken up into time periods
+# this is the period duration in seconds for the slots
+PERIOD = 100
 _handle_cache = {}
 
 def get_bounds(cur):
@@ -69,4 +72,12 @@ def getHistory(exchange, start, end, fieldList='*'):
         return res
 
 
+def getPeriods(history, period=PERIOD):
+    res = {
+        'open': [],
+        'high': [],
+        'low': [],
+        'close': [],
+        'period': period
+    }
 

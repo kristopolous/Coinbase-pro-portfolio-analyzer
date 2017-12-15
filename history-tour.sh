@@ -7,7 +7,7 @@ ix=0
 dir=1
 range=80
 btc=0
-btcValue=100
+btcValue=1000
 makebtc() {
   dir=0
   btc=$(( 100000 + btcValue ))
@@ -28,13 +28,13 @@ while [ $ix -lt $len ]; do
   while [ 0 ]; do
     read -n 1 c
     if [ $c == 'k' ]; then
-      btcValue=$(( btcValue * 10 / 11 )) 
+      btcValue=$(( btcValue * 10 / 13 )) 
       makebtc
       break
     fi
 
     if [ $c == 'l' ]; then
-      btcValue=$(( btcValue * 11 / 10 )) 
+      btcValue=$(( btcValue * 13 / 10 )) 
       makebtc
       break
     fi

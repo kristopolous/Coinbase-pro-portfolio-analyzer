@@ -123,8 +123,8 @@ def returnTicker(forceUpdate = False, forceCache = False):
     _cache['ticker'] = tickerMap
     return tickerMap
 
-def btc_price():
-    if need_to_get('cache/btc'):
+def btc_price(force = False):
+    if need_to_get('cache/btc') or force:
         with open('cache/btc', 'wb') as cache:
             cache.write(urllib.request.urlopen("https://api.coindesk.com/v1/bpi/currentprice.json").read())
 
@@ -225,11 +225,13 @@ def recent(currency, anal=False):
         buyList = list(filter(lambda x: x['type'] == 'buy', data))
         sellList = list(filter(lambda x: x['type'] == 'sell', data))
 
-    buy_recent = [" {} {:.8f} {:.8f}".format(i['date'], i['btc'], i['rate']) for i in reversed(buyList[-5:])]
-    sell_recent = [" {:12.8f} {:.8f} {:.8f} {}".format(i['cur'], i['rate'], i['btc'], i['date']) for i in reversed(sellList[-8:]) if i['btc'] > 0.00009]
+    #buy_recent = [" {} {:.8f} {:.8f}".format(i['date'], i['btc'], i['rate']) for i in reversed(buyList[-5:])]
+    #sell_recent = [" {:12.8f} {:.8f} {:.8f} {}".format(i['cur'], i['rate'], i['btc'], i['date']) for i in reversed(sellList[-8:]) if i['btc'] > 0.00009]
+    buy_recent = ["{} {:.8f}".format(i['date'], i['rate']) for i in reversed(buyList[-8:])]
+    sell_recent = [" {:.8f} {}".format(i['rate'], i['date']) for i in reversed(sellList[-11:]) if i['btc'] > 0.00009]
     col_wid = len(buy_recent[0])
     print(("{:>" + str(col_wid) + "}   {}").format("Last Buy", "Last Sell"))
-    for i in range(0, 5):
+    for i in range(0, 8):
         row = ''
         if i < len(buy_recent):
             row += buy_recent[i]

@@ -24,7 +24,7 @@ if len(sys.argv) > 3:
         max_btc = False
 
 rows, cols = [int(x) for x in os.popen('stty size', 'r').read().split()]
-rows -= 10
+rows -= 11
 cols -= 12
 #rows = 80 
 #cols = 150
@@ -70,7 +70,6 @@ buy_ttl = 0
 sell_ix = 0
 sell_ttl = 0
 
-lib.bprint("{:10} {} {}\n".format(currency, balanceMap[cur]['btcValue'], max_btc))
  
 buyMap = {}
 slot = lowest
@@ -128,7 +127,19 @@ while slot < highest:
     row = [fill] * dots + (cols - dots) * [" "]
 
     if sell_ttl > 0: 
-        row[0] = '\x1b[42m{}'.format(row[0])
+        ratio = cols * (sell_ttl / buy_max) 
+        color = '102m'
+        if ratio < 1:
+            if ratio < 0.2:
+                color = '48;5;22m'
+            elif ratio < 0.4:
+                color = '48;5;28m'
+            elif ratio < 0.6:
+                color = '48;5;34m'
+            elif ratio < 0.8:
+                color = '48;5;40m'
+
+        row[0] = '\x1b[{}{}'.format(color, row[0])
         cbar = min(int(cols * (sell_ttl / buy_max)), cols - 1)
         cbar = max(cbar, 1) 
         row[cbar] = '\x1b[49m{}'.format(row[cbar])
@@ -143,4 +154,5 @@ while slot < highest:
 anal['buyList'] = sorted(anal['buyList'], key=itemgetter('date'))
 anal['sellList'] = sorted(anal['sellList'], key=itemgetter('date'))
 
+lib.bprint("{:10}{} {:.8f}".format(currency, balanceMap[cur]['btcValue'], last))
 lib.recent(currency, anal)

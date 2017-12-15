@@ -5,6 +5,8 @@ import sys
 currency = False
 expiry = 30
 
+priceMap = lib.returnTicker()
+
 if len(sys.argv) > 1:
     currency = 'BTC_{}'.format(sys.argv[1].upper())
 
@@ -14,7 +16,7 @@ if len(sys.argv) > 2:
 def show(what, l, anal = False):
     subset = list(filter(lambda x: x['type'] == what, l))
     if subset:
-        lib.bprint(" {:4} {:.8f}".format(what, sum([float(i['total']) for i in subset])))
+        lib.bprint(" {:4} {:.8f} {:.8f}".format(what, sum([float(i['total']) for i in subset]), priceMap[currency]['last']))
         for i in subset:
             i['rate'] = float(i['rate'])
             color = '0'
