@@ -19,7 +19,7 @@ def sqlCursor(cur, createIfNotExists=True):
     if not cur in _handle_cache:
         sqlname = "test/{}-full.sql".format(cur)
 
-        exists = os.path.exists(sqlname) or os.path.getsize(sqlname) < 10000
+        exists = os.path.exists(sqlname) and os.path.getsize(sqlname) > 10000
 
         if not createIfNotExists and not exists:
             return Null
@@ -37,6 +37,7 @@ def sqlCursor(cur, createIfNotExists=True):
                     type integer)''')
 
             c.execute('CREATE UNIQUE INDEX idx_history_gid ON history (gid)');
+            c.execute('create index idx_date on history(date)');
 
             conn.commit()
 
@@ -47,21 +48,25 @@ def sqlCursor(cur, createIfNotExists=True):
 
     return _handle_cache[cur]
 
-def getHistory(exchange, start, end):
-    cur = sqlCursor(cur, createIfNotExists=False)
+def getHistory(exchange, start, end, fieldList='*'):
+    cur = sqlCursor(exchange, createIfNotExists=False)
     if cur:
         where = []
-        qstr = 'select * from history'
+        qstr = 'select {} from history'.format(fieldList)
 
         if start:
-            where.append('date >= {}'.format(start))
+            where.append("date >= strftime('%s', '{}')".format(start))
         if end:
-            where.append('date <= {}'.format(start))
+            where.append("date <= strftime('%s', '{}')".format(end))
 
         if len(where):
             qstr += ' where {}'.format(" and ".join(where))
 
-        return all(cur, qstr)
+        print(qstr)
+        res = all(cur, qstr)
+        if len(res) > 0 and len(res[0]) == 1:
+            return list(sum(res,()))
+        return res
 
 
 
