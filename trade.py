@@ -47,7 +47,7 @@ spreadThreshold = 0.005
 approx_btc_usd = lib.btc_price()
 
 # let's set it really low for now. 
-warn_at_usd = 7.50
+warn_at_usd = 9.50
 
 def warn(msg):
     lib.bprint("\nWARNING:\n {}\n".format(msg.replace('\n', '\n ')))
@@ -223,7 +223,7 @@ def buy(exchange, rate, amount_to_trade, args):
 
             return buy(exchange, rate, amount_to_trade, args)
         else:
-            abort("Unable to buy{:.8f}btc worth on {} at{}.".format(quantity, exchange, fl_rate))
+            abort("Unable to buy{:.8f}btc worth on {} at {:.8f}.".format(quantity, exchange, fl_rate))
 
 
 if action == 'buy':

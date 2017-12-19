@@ -126,7 +126,10 @@ def returnTicker(forceUpdate = False, forceCache = False):
 def btc_price(force = False):
     if need_to_get('cache/btc') or force:
         with open('cache/btc', 'wb') as cache:
-            cache.write(urllib.request.urlopen("https://api.coindesk.com/v1/bpi/currentprice.json").read())
+            req = urllib.request.Request("https://api.coindesk.com/v1/bpi/currentprice.json", headers={
+              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+            })
+            cache.write(urllib.request.urlopen(req).read())
 
     with open('cache/btc') as json_data:
         d = json.load(json_data)
@@ -193,6 +196,9 @@ def analyze(data, currency, brief = False, sort = 'rate', do_round = True):
         res['cur'] = 0
         res['btc'] = 0
 
+    # The breakpoint is what price you need to sell the
+    # remaining share in order to get the same btc back
+    # out that you put in.
     res['pl'] = res['sellBtc'] - res['buyBtc']
 
     if res['cur'] > 0:
