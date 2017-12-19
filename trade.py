@@ -107,21 +107,19 @@ if not fast or rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
     if word == 'last':
         rate = last
 
-    if word in ['break', 'profit', 'lowest', 'highest']:
+    if word in ['break', 'profit', 'lowest', 'highest', 'high', 'low']:
         hist = lib.analyze(lib.tradeHistory(exchange), currency=exchange)
 
-        if word == 'lowest':
+        if word == 'lowest' or word == 'low':
             if action == 'buy':
                 rate = hist['lowestBuy']
 
             if action == 'sell':
-                warn("You are trying to sell at your lowest selling point")
-                rate = hist['lowestSell']
+                rate = bid
 
-        elif word == 'highest':
+        elif word == 'highest' or word == 'high':
             if action == 'buy':
-                warn("You are trying to buy at your highest buying point")
-                rate = hist['highestBuy']
+                rate = ask
 
             if action == 'sell':
                 rate = hist['highestSell']
@@ -239,6 +237,7 @@ elif action == 'sell':
         if fl_rate < (bid * 0.8):
             abort("{:.10f}BTC is the highest bid.\n{:.10f}BTC is over 20% less than this!".format(lowest, fl_rate))
     
+   # print("{:.8f} {:.8f} {:.8f}".format(rate, amount_to_trade, rate*amount_to_trade))
     sell_order = p.sell(exchange, rate, amount_to_trade)
     lib.showTrade(sell_order, exchange, trade_type='sell', rate=rate, amount=amount_to_trade)
 
