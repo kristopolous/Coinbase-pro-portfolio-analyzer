@@ -301,10 +301,12 @@ def toFloat(tradeList, termList):
     if isinstance(tradeList, dict):
         for k, v in tradeList.items():
             for term in termList:
+                tradeList[k][term + "_orig"] = tradeList[k][term]
                 tradeList[k][term] = float(tradeList[k][term])
     else:
         for i in range(0, len(tradeList)):
             for term in termList:
+                tradeList[i][term + "_orig"] = tradeList[i][term]
                 tradeList[i][term] = float(tradeList[i][term])
 
     return tradeList
