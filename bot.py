@@ -2,19 +2,22 @@
 import lib
 import secret
 import time
+import sys
 from poloniex import Poloniex
 p = Poloniex(*secret.token_old)
+
+f = open('/dev/null', 'w')
+sys.stderr = f
 
 margin = 0.013
 min = 10015
 
 while True:
-    all_prices = lib.returnTicker(forceUpdate = True)
     all_trades = lib.tradeHistory('all', forceUpdate=True)
     cur_balances = {k: v for k, v in lib.returnCompleteBalances().items() if v['btcValue'] > 0.00001}
     positive_balances = {k: v['cur'] for k,v in cur_balances.items() }
 
-    tcount = 0
+    all_prices = lib.returnTicker(forceUpdate = True)
     for k, v in positive_balances.items():
         if k == 'BTC':
             continue
@@ -28,25 +31,20 @@ while True:
             amount_to_trade = min / int(current['highestBid_orig'].lstrip("0."))
             try:
                 res = p.sell(currencyPair=exchange, rate=current['highestBid_orig'], amount=amount_to_trade, orderType="fillOrKill")
-                print("SELL {:9} {:.8f} {:.8f}".format(exchange, current['highestBid'], last_rate))
+                print("       SELL {:9}  {:.3f}".format(exchange, 100 * (current['highestBid'] / last_rate - 1)))
             except:
-                print("FAILED SELL {:9} {:.8f} {:.8f}".format(exchange, current['highestBid'], last_rate))
+                print("FAILED SELL {:9}  {:.3f}".format(exchange, 100 * (current['highestBid'] / last_rate - 1)))
                 pass
-            tcount += 1
 
         elif last_rate * (1 - margin) > current['lowestAsk']:
             amount_to_trade = min / int(current['lowestAsk_orig'].lstrip("0."))
             try:
                 res = p.buy(currencyPair=exchange, rate=current['lowestAsk_orig'], amount=amount_to_trade, orderType="fillOrKill")
-                print("BUY  {:9} {:.8f} {:.8f}".format(exchange, current['lowestAsk'], last_rate))
+                print("       BUY  {:9} {:.3f}".format(exchange, 100 * (current['lowestAsk'] / last_rate - 1)))
             except:
-                print("FAILED BUY  {:9} {:.8f} {:.8f}".format(exchange, current['lowestAsk'], last_rate))
+                print("FAILED BUY  {:9} {:.3f}".format(exchange, 100 * (current['lowestAsk'] / last_rate - 1)))
                 pass
-            tcount += 1
 
-    if tcount == 0:
-        print("no trades")
+    print("------ {} ------\n".format(time.strftime("%Y-%m-%d %H:%M:%S")))
 
-    print("----------------")
-
-    time.sleep(120)
+    time.sleep(60)
