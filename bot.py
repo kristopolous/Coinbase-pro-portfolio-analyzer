@@ -3,9 +3,9 @@ import lib
 import secret
 import time
 from poloniex import Poloniex
-p = Poloniex(*secret.token)
+p = Poloniex(*secret.token_old)
 
-margin = 0.015
+margin = 0.013
 min = 10015
 
 while True:
@@ -25,18 +25,28 @@ while True:
         current = all_prices[exchange]
 
         if last_rate * (1 + margin) < current['highestBid']:
-            print("SELL {:9} {:.8f} {:.8f}".format(exchange, current['highestBid'], last_rate))
             amount_to_trade = min / int(current['highestBid_orig'].lstrip("0."))
-            res = p.sell(currencyPair=exchange, rate=current['highestBid_orig'], amount=amount_to_trade, orderType="fillOrKill")
+            try:
+                res = p.sell(currencyPair=exchange, rate=current['highestBid_orig'], amount=amount_to_trade, orderType="fillOrKill")
+                print("SELL {:9} {:.8f} {:.8f}".format(exchange, current['highestBid'], last_rate))
+            except:
+                print("FAILED SELL {:9} {:.8f} {:.8f}".format(exchange, current['highestBid'], last_rate))
+                pass
             tcount += 1
 
         elif last_rate * (1 - margin) > current['lowestAsk']:
-            print("BUY  {:9} {:.8f} {:.8f}".format(exchange, current['lowestAsk'], last_rate))
             amount_to_trade = min / int(current['lowestAsk_orig'].lstrip("0."))
-            res = p.buy(currencyPair=exchange, rate=current['lowestAsk_orig'], amount=amount_to_trade, orderType="fillOrKill")
+            try:
+                res = p.buy(currencyPair=exchange, rate=current['lowestAsk_orig'], amount=amount_to_trade, orderType="fillOrKill")
+                print("BUY  {:9} {:.8f} {:.8f}".format(exchange, current['lowestAsk'], last_rate))
+            except:
+                print("FAILED BUY  {:9} {:.8f} {:.8f}".format(exchange, current['lowestAsk'], last_rate))
+                pass
             tcount += 1
 
     if tcount == 0:
         print("no trades")
+
+    print("----------------")
 
     time.sleep(120)
