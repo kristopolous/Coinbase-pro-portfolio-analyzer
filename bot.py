@@ -9,11 +9,12 @@ p = Poloniex(*secret.token_old)
 f = open('/dev/null', 'w')
 #sys.stderr = f
 
-margin = 0.0133
-min = 10500
+margin = 0.0125
+min = 19100
 # .005 is accounted for in the trades.
 frac = 1 + ((margin - 0.005) * 0.92)
-#print(frac)
+lower = (1 - margin)
+upper = 1/lower + 0.00005
 
 while True:
     all_trades = lib.tradeHistory('all', forceUpdate=True)
@@ -30,27 +31,26 @@ while True:
         last_rate = last_trade['rate']
         current = all_prices[exchange]
 
-        res = True
-        if last_rate * (1 + margin) < current['highestBid']:
+        if last_rate * upper < current['highestBid']:
             trade_amount = min * frac
-            amount_to_trade = trade_amount / int(current['highestBid_orig'].lstrip("0."))
+            rate=current['highestBid_orig']
+            amount_to_trade = trade_amount / int(rate.lstrip("0."))
             try:
-                res = p.sell(currencyPair=exchange, rate=current['highestBid_orig'], amount=amount_to_trade, orderType="fillOrKill")
-                print("       SELL {:9}  {:.3f}".format(exchange, 100 * (current['highestBid'] / last_rate - 1)))
+                res = p.sell(currencyPair=exchange, rate=rate, amount=amount_to_trade, orderType="fillOrKill")
+                lib.showTrade(res, exchange, trade_type='sell', rate=rate, source='bot', amount=amount_to_trade)
             except Exception as ex:
-                print(res, ex)
-                print("FAILED SELL {:9}  {:.3f}".format(exchange, 100 * (current['highestBid'] / last_rate - 1)))
-                pass
+                print("  SELL {:9}  {:.3f} {}".format(exchange, 100 * (current['highestBid'] / last_rate - 1), ex))
 
-        elif last_rate * (1 - margin) > current['lowestAsk']:
-            amount_to_trade = min / int(current['lowestAsk_orig'].lstrip("0."))
+
+        elif last_rate * lower > current['lowestAsk']:
+            rate=current['lowestAsk_orig']
+            amount_to_trade = min / int(rate.lstrip("0."))
             try:
-                res = p.buy(currencyPair=exchange, rate=current['lowestAsk_orig'], amount=amount_to_trade, orderType="fillOrKill")
-                print("       BUY  {:9} {:.3f}".format(exchange, 100 * (current['lowestAsk'] / last_rate - 1)))
+                res = p.buy(currencyPair=exchange, rate=rate, amount=amount_to_trade, orderType="fillOrKill")
+                lib.showTrade(res, exchange, trade_type='buy', rate=rate, source='bot', amount=amount_to_trade)
             except Exception as ex:
-                print(res, ex)
-                print("FAILED BUY  {:9} {:.3f}".format(exchange, 100 * (current['lowestAsk'] / last_rate - 1)))
-                pass
+                print("  BUY  {:9} {:.3f} {}".format(exchange, 100 * (current['lowestAsk'] / last_rate - 1), ex))
+
 
     print("------ {} ------".format(time.strftime("%Y-%m-%d %H:%M:%S")))
 
