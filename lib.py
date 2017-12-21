@@ -334,7 +334,10 @@ def tradeHistory(currency = 'all', forceUpdate = False, forceCache = False):
 
     if currency != 'all':
         all_trades = tradeHistory(forceUpdate = forceUpdate, forceCache = forceCache)
-        return all_trades[currency]
+        if currency in all_trades:
+            return all_trades[currency]
+        else:
+            return []
 
     if forceCache and 'all_trades' in _cache:
         return _cache['all_trades']
