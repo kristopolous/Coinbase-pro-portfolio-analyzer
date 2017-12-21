@@ -7,10 +7,13 @@ from poloniex import Poloniex
 p = Poloniex(*secret.token_old)
 
 f = open('/dev/null', 'w')
-sys.stderr = f
+#sys.stderr = f
 
-margin = 0.013
-min = 10015
+margin = 0.0133
+min = 10500
+# .005 is accounted for in the trades.
+frac = 1 + ((margin - 0.005) * 0.92)
+#print(frac)
 
 while True:
     all_trades = lib.tradeHistory('all', forceUpdate=True)
@@ -27,12 +30,15 @@ while True:
         last_rate = last_trade['rate']
         current = all_prices[exchange]
 
+        res = True
         if last_rate * (1 + margin) < current['highestBid']:
-            amount_to_trade = min / int(current['highestBid_orig'].lstrip("0."))
+            trade_amount = min * frac
+            amount_to_trade = trade_amount / int(current['highestBid_orig'].lstrip("0."))
             try:
                 res = p.sell(currencyPair=exchange, rate=current['highestBid_orig'], amount=amount_to_trade, orderType="fillOrKill")
                 print("       SELL {:9}  {:.3f}".format(exchange, 100 * (current['highestBid'] / last_rate - 1)))
-            except:
+            except Exception as ex:
+                print(res, ex)
                 print("FAILED SELL {:9}  {:.3f}".format(exchange, 100 * (current['highestBid'] / last_rate - 1)))
                 pass
 
@@ -41,10 +47,11 @@ while True:
             try:
                 res = p.buy(currencyPair=exchange, rate=current['lowestAsk_orig'], amount=amount_to_trade, orderType="fillOrKill")
                 print("       BUY  {:9} {:.3f}".format(exchange, 100 * (current['lowestAsk'] / last_rate - 1)))
-            except:
+            except Exception as ex:
+                print(res, ex)
                 print("FAILED BUY  {:9} {:.3f}".format(exchange, 100 * (current['lowestAsk'] / last_rate - 1)))
                 pass
 
-    print("------ {} ------\n".format(time.strftime("%Y-%m-%d %H:%M:%S")))
+    print("------ {} ------".format(time.strftime("%Y-%m-%d %H:%M:%S")))
 
-    time.sleep(60)
+    time.sleep(15)
