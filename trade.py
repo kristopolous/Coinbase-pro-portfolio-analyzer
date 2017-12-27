@@ -81,23 +81,23 @@ if action != 'buy' and action != 'sell':
 print("EXCHANGE {}".format(exchange))
 
 price_pump = 0.00000001
+priceMap = p.returnTicker()
+
+if exchange not in priceMap:
+    abort("Currency {} not found".format(exchange))
+
+# to buy go under the lowestAsk
+# to sell go over highest bid
+#
+# highest bid < lowest ask
+#  ^ sell         ^ buy
+#
+row = priceMap[exchange]
+
+ask = float(row['lowestAsk'])
+bid = float(row['highestBid'])
+last = float(row['last'])
 if rate is None or rate.find('%') > -1 or re.search('[a-z]', rate):
-    priceMap = p.returnTicker()
-
-    if exchange not in priceMap:
-        abort("Currency {} not found".format(exchange))
-
-    # to buy go under the lowestAsk
-    # to sell go over highest bid
-    #
-    # highest bid < lowest ask
-    #  ^ sell         ^ buy
-    #
-    row = priceMap[exchange]
-
-    ask = float(row['lowestAsk'])
-    bid = float(row['highestBid'])
-    last = float(row['last'])
     perc = 0
 
     spread = 1 - bid / ask
