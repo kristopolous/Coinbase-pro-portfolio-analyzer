@@ -29,12 +29,14 @@ while True:
             continue
 
         exchange = "BTC_{}".format(k)
-        backwardList = reversed(all_trades[exchange])
+        backwardList = list(reversed(all_trades[exchange]))
         last_trade = all_trades[exchange][-1] 
+        histLen = 14
+        lastList = [x['rate'] for x in all_trades[exchange][-histLen:]]
+        """
         last_rate = last_trade['rate']
         sellList = [last_trade['rate']]
         buyList = [last_trade['rate']]
-        histLen = 7
         for trade in backwardList:
             if trade['type'] == 'sell':
                 if len(sellList) < histLen:
@@ -45,10 +47,12 @@ while True:
 
             if len(buyList) == len(sellList) == histLen:
                 break
-
+        """
         #print(sellList, buyList)
-        last_buy_max = max(buyList)
-        last_sell_min = min(sellList)
+        last_buy_max = max(lastList)
+        last_sell_min = min(lastList)
+        #last_buy_max = max(buyList)
+        #last_sell_min = min(sellList)
         #print(last_buy_max, buyList, last_sell_min, sellList)
         #sys.exit(0)
         #last_rate = last_trade['rate']
@@ -85,10 +89,11 @@ while True:
 
     if trade_ix > 0:
         print("------ {} ------".format(time.strftime("%Y-%m-%d %H:%M:%S")))
+        cycle = 0
     else:
         cycle += 1
         sys.stdout.write('.')
-        if cycle == 20:
+        if cycle == 34:
             sys.stdout.write('\n')
             cycle = 0
     sys.stdout.flush()
