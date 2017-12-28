@@ -126,7 +126,10 @@ def returnTicker(forceUpdate = False, forceCache = False):
 def btc_price(force = False):
     if need_to_get('cache/btc') or force:
         with open('cache/btc', 'wb') as cache:
-            cache.write(urllib.request.urlopen("https://api.coindesk.com/v1/bpi/currentprice.json").read())
+            req = urllib.request.Request("https://api.coindesk.com/v1/bpi/currentprice.json", headers={
+              'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+            })
+            cache.write(urllib.request.urlopen(req).read())
 
     with open('cache/btc') as json_data:
         d = json.load(json_data)
@@ -193,6 +196,9 @@ def analyze(data, currency, brief = False, sort = 'rate', do_round = True):
         res['cur'] = 0
         res['btc'] = 0
 
+    # The breakpoint is what price you need to sell the
+    # remaining share in order to get the same btc back
+    # out that you put in.
     res['pl'] = res['sellBtc'] - res['buyBtc']
 
     if res['cur'] > 0:
@@ -249,7 +255,7 @@ def showTrade(order, exchange, trade_type, rate, amount, source='human', doPrint
 
     if doPrint:
         for trade in order['resultingTrades']:
-            plog("{} {:9} {:4}  {}{} at {}BTC. Total {}BTC".format(trade['tradeID'], exchange, trade['type'], trade['amount'], currency, trade['rate'], trade['total']))
+            plog("{:10} {:9} {:4} {:>12} * {} = {}".format(trade['tradeID'], exchange, trade['type'], trade['amount'], trade['rate'], trade['total']))
 
         if len(order['resultingTrades']) == 0:
             amount = float(amount)
@@ -295,10 +301,12 @@ def toFloat(tradeList, termList):
     if isinstance(tradeList, dict):
         for k, v in tradeList.items():
             for term in termList:
+                tradeList[k][term + "_orig"] = tradeList[k][term]
                 tradeList[k][term] = float(tradeList[k][term])
     else:
         for i in range(0, len(tradeList)):
             for term in termList:
+                tradeList[i][term + "_orig"] = tradeList[i][term]
                 tradeList[i][term] = float(tradeList[i][term])
 
     return tradeList
@@ -326,7 +334,10 @@ def tradeHistory(currency = 'all', forceUpdate = False, forceCache = False):
 
     if currency != 'all':
         all_trades = tradeHistory(forceUpdate = forceUpdate, forceCache = forceCache)
-        return all_trades[currency]
+        if currency in all_trades:
+            return all_trades[currency]
+        else:
+            return []
 
     if forceCache and 'all_trades' in _cache:
         return _cache['all_trades']

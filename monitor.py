@@ -116,7 +116,7 @@ while True:
 
             break_price = 1000.0 * stats['break']
             bprof = 0
-            if break_price > 0:
+            if break_price > 0.000000001:
                bprof = (100000 * (price / break_price)) - 100
             else:
                break_price = 0

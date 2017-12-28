@@ -16,7 +16,12 @@ if len(sys.argv) > 2:
 def show(what, l, anal = False):
     subset = list(filter(lambda x: x['type'] == what, l))
     if subset:
-        lib.bprint(" {:4} {:.8f} {:.8f}".format(what, sum([float(i['total']) for i in subset]), priceMap[currency]['last']))
+        if currency in priceMap:
+            last = priceMap[currency]['last']
+        else:
+            last = 0
+
+        lib.bprint(" {:4} {:.8f} {:.8f}".format(what, sum([float(i['total']) for i in subset]), last))
         for i in subset:
             i['rate'] = float(i['rate'])
             color = '0'
