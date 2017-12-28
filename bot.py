@@ -15,6 +15,7 @@ unit = 19100
 frac = 1 + ((margin - 0.005) * 0.92)
 lower = (1 - margin)
 upper = 1/lower + 0.00005
+cycle = 0
 
 while True:
     all_trades = lib.tradeHistory('all', forceUpdate=True)
@@ -22,6 +23,7 @@ while True:
     positive_balances = {k: v['cur'] for k,v in cur_balances.items() }
 
     all_prices = lib.returnTicker(forceUpdate = True)
+    trade_ix = 0
     for k, v in positive_balances.items():
         if k == 'BTC':
             continue
@@ -32,15 +34,16 @@ while True:
         last_rate = last_trade['rate']
         sellList = [last_trade['rate']]
         buyList = [last_trade['rate']]
+        histLen = 7
         for trade in backwardList:
             if trade['type'] == 'sell':
-                if len(sellList) < 5:
+                if len(sellList) < histLen:
                     sellList.append(trade['rate'])
             else:
-                if len(buyList) < 5:
+                if len(buyList) < histLen:
                     buyList.append(trade['rate'])
 
-            if len(buyList) == len(sellList) == 5:
+            if len(buyList) == len(sellList) == histLen:
                 break
 
         #print(sellList, buyList)
@@ -52,6 +55,9 @@ while True:
         current = all_prices[exchange]
 
         if last_buy_max * upper < current['highestBid']:
+            trade_ix += 1
+            if trade_ix == 1:
+                sys.stdout.write('\n')
             trade_amount = unit * frac
             rate=current['highestBid_orig']
             amount_to_trade = trade_amount / int(rate.lstrip("0."))
@@ -64,6 +70,9 @@ while True:
 
        
         elif last_sell_min * lower > current['lowestAsk']:
+            trade_ix += 1
+            if trade_ix == 1:
+                sys.stdout.write('\n')
             rate=current['lowestAsk_orig']
             amount_to_trade = unit / int(rate.lstrip("0."))
             try:
@@ -74,6 +83,14 @@ while True:
         
 
 
-    print("------ {} ------".format(time.strftime("%Y-%m-%d %H:%M:%S")))
+    if trade_ix > 0:
+        print("------ {} ------".format(time.strftime("%Y-%m-%d %H:%M:%S")))
+    else:
+        cycle += 1
+        sys.stdout.write('.')
+        if cycle == 20:
+            sys.stdout.write('\n')
+            cycle = 0
+    sys.stdout.flush()
 
-    time.sleep(15)
+    time.sleep(5)
