@@ -219,46 +219,6 @@ The columns:
   * prof - Estimated USD profit if you were able to sell off all holdings at `price`
 
 
-### Strategies
+### Other tools
 
-
-If you think the stock is going down then you sell some right now and buy it when it's down. The reason is because profit calculations are time independent.
-
-
-Ultimately you want to sell more than you buy and so total sell / total buy > 1.0.  Pretty easy right?
-
-The problem is that when the price goes down, and I mean substantially, you can't just wait and hope for
-it to return to some prior high ... it may never get there.
-
-You could reduce your DCA by buying more at the lower price, but in practice, you may end up throwing lots of
-money at the losers in your portfolio and not focusing on the near-winners.  It's a high-risk, low-return,
-high-investment strategy.  Bad idea.
-
-But what else do you do other than write-off a dropped investment?
-
-#### Price Gliding
-
-Here come tranches.  If you *ignore* the higher prices you paid, for now.  Now you just try to make a profit
-at the new (lower) normal off of its volitility.  If you do a few rounds (buy/sell) then you lower your DCA
-cost because that's total cost, you lower your total invested, because you sold, and you lower your break-even
-point becaues you've profited.  
-
-So you can tranche your holdings of some asset into different pricing tiers based on your holdings and then you
-consider the prospect of buying or selling based on each tier + variability in the market place.
-
-This is the current work in progress and it's mathematically sound and likely to work.  (see running.py and tranche.py)
-
-I'm pretty sure this is a known strategy and there's wikipedia page with lots of solid math on it, but then
-it wouldn't be as much fun.
-
-Besides, all of these tools here essentially trade in 0.0001 btc at a time (which is as of this writing, about
-$.35).  Again, I was never in it to make money (although I've made a bit).
-
-> The big hypothesis here is since the fees are small, to try to make small profits from large holdings in short times and then re-invest.
-
-In this method you look for opportunities to buy and sell based on current holdings and predetermined intervals.  
-The tool glider.py tries to do this.
-
-> This is probably a bad strategy. The problem is that unless you balance out your investments and divestments, you still become subject to
-the long term trendline. That means you still lose in a down market, make in an up-market and pay a lot of fees to go with that.  If you can
-balance things *Magically* then you're good here ... but that's nonsense.
+There's other things here as well.
