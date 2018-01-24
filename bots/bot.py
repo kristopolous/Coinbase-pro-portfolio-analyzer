@@ -10,7 +10,7 @@ f = open('/dev/null', 'w')
 #sys.stderr = f
 
 margin = 0.0117
-unit = 19100
+unit = 7 * 10000
 # .005 is accounted for in the trades.
 frac = 1 + ((margin - 0.005) * 0.92)
 lower = (1 - margin)
@@ -29,12 +29,14 @@ while True:
             continue
 
         exchange = "BTC_{}".format(k)
-        backwardList = reversed(all_trades[exchange])
+        backwardList = list(reversed(all_trades[exchange]))
         last_trade = all_trades[exchange][-1] 
+        histLen = 5
+        lastList = [x['rate'] for x in all_trades[exchange][-histLen:]]
+        """
         last_rate = last_trade['rate']
         sellList = [last_trade['rate']]
         buyList = [last_trade['rate']]
-        histLen = 7
         for trade in backwardList:
             if trade['type'] == 'sell':
                 if len(sellList) < histLen:
@@ -45,10 +47,12 @@ while True:
 
             if len(buyList) == len(sellList) == histLen:
                 break
-
+        """
         #print(sellList, buyList)
-        last_buy_max = max(buyList)
-        last_sell_min = min(sellList)
+        last_buy_max = max(lastList)
+        last_sell_min = min(lastList)
+        #last_buy_max = max(buyList)
+        #last_sell_min = min(sellList)
         #print(last_buy_max, buyList, last_sell_min, sellList)
         #sys.exit(0)
         #last_rate = last_trade['rate']
@@ -64,8 +68,9 @@ while True:
             try:
                 res = p.sell(currencyPair=exchange, rate=rate, amount=amount_to_trade, orderType="fillOrKill")
                 lib.showTrade(res, exchange, trade_type='sell', rate=rate, source='bot2', amount=amount_to_trade)
+                print("Spread: {:.8f}".format( current['highestBid'] / current['lowestAsk'] ))
             except Exception as ex:
-                print("  SELL {:9}  {:.3f} {}".format(exchange, 100 * (current['highestBid'] / last_buy_max - 1), ex))
+                print("  SELL {:9}  {} {}".format(exchange, rate, ex))
 
 
        
@@ -78,19 +83,21 @@ while True:
             try:
                 res = p.buy(currencyPair=exchange, rate=rate, amount=amount_to_trade, orderType="fillOrKill")
                 lib.showTrade(res, exchange, trade_type='buy', rate=rate, source='bot2', amount=amount_to_trade)
+                print("Spread: {:.8f}".format( current['highestBid'] / current['lowestAsk'] ))
             except Exception as ex:
-                print("  BUY  {:9} {:.3f} {}".format(exchange, 100 * (current['lowestAsk'] / last_sell_min - 1), ex))
+                print("  BUY  {:9} {} {}".format(exchange, rate, ex))
         
 
 
     if trade_ix > 0:
-        print("------ {} ------".format(time.strftime("%Y-%m-%d %H:%M:%S")))
+        sys.stdout.write(time.strftime("%Y-%m-%d %H:%M:%S"))
+        cycle = 19
     else:
         cycle += 1
         sys.stdout.write('.')
-        if cycle == 20:
+        if cycle == 64:
             sys.stdout.write('\n')
             cycle = 0
     sys.stdout.flush()
 
-    time.sleep(5)
+    time.sleep(4)

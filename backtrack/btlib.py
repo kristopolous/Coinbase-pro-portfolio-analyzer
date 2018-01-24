@@ -51,7 +51,7 @@ def sqlCursor(cur, createIfNotExists=True):
 
     return _handle_cache[cur]
 
-def getHistory(exchange, start, end, fieldList='*'):
+def getHistory(exchange, start, end, fieldList='*', opts=False):
     cur = sqlCursor(exchange, createIfNotExists=False)
     if cur:
         where = []
@@ -63,12 +63,15 @@ def getHistory(exchange, start, end, fieldList='*'):
             where.append("date <= strftime('%s', '{}')".format(end))
 
         if len(where):
-            qstr += ' where {}'.format(" and ".join(where))
+            qstr += ' where {} '.format(" and ".join(where))
 
-        print(qstr)
+        if opts:
+            qstr += " ".join(opts)
+
+        #print(qstr)
         res = all(cur, qstr)
         if len(res) > 0 and len(res[0]) == 1:
-            return list(sum(res,()))
+            return [x[0] for x in res]#list(sum(res,()))
         return res
 
 
