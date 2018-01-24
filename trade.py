@@ -34,7 +34,7 @@ if rate:
 
 action = args.action.lower()
 lowest = False
-spreadThreshold = 0.005
+spreadThreshold = 0.009
 
 # This is only used for the warning message to make sure
 # the fingers don't slip and someone buys/sells the farm
