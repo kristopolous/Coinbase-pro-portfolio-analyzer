@@ -1,0 +1,9 @@
+{
+  "name": "exchanges",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "dependencies": {
+    "sqlite3": "^3.1.13"
+  }
+}

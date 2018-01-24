@@ -7,3 +7,4 @@ btc-limits.json
 __pycache__
 cache/*
 test/*
+node_modules
