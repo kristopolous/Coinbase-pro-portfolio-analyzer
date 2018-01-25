@@ -344,17 +344,17 @@ def tradeHistory(currency = 'all', forceUpdate = False, forceCache = False):
     if forceCache and 'all_trades' in _cache:
         return _cache['all_trades']
 
-    step = one_day * 4
+    ts_mult = 4
+    step = one_day * ts_mult
     now = time.time()
     doesExpire = False
     all_trades = []
-    end = (int(now / 86400) + 1) * 86400
+    end = (int(now / step) + 1) * step
     lastend = end
     # currently the cache will vomit at 500 trades.
     while end > first_day:
         name = 'cache/{}-{}.txt'.format(currency, end)
-        if now - end < step:
-            doesExpire = True
+        doesExpire = now - end < step
 
         ttl = 0
         dmax = 0
