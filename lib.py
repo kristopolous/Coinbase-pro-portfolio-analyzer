@@ -7,6 +7,7 @@ import secret
 import math
 import re
 import sys
+import calendar
 #import fake
 from decimal import *
 from dateutil import parser
@@ -26,7 +27,8 @@ _cache = {}
 getcontext().prec = 2 * satoshi_sig
 
 str2date = lambda x: parser.parse(x.replace(' ', 'T')+'Z')
-str2unix = lambda x: int(time.mktime(str2date(x).timetuple()))
+str2unix = lambda x: int(calendar.timegm(str2date(x).timetuple()))
+str2local = lambda x: int(time.mktime(str2date(x).timetuple()))
 
 def getCurrency():
     currency_list = []
@@ -342,33 +344,49 @@ def tradeHistory(currency = 'all', forceUpdate = False, forceCache = False):
     if forceCache and 'all_trades' in _cache:
         return _cache['all_trades']
 
-    step = one_day * 2
+    step = one_day * 4
     now = time.time()
-    start = first_day
     doesExpire = False
     all_trades = []
-    for i in range(start, int(now), step):
-        name = 'cache/{}-{}.txt'.format(currency, i)
-        if now - i < step:
+    end = (int(now / 86400) + 1) * 86400
+    lastend = end
+    # currently the cache will vomit at 500 trades.
+    while end > first_day:
+        name = 'cache/{}-{}.txt'.format(currency, end)
+        if now - end < step:
             doesExpire = True
+
+        ttl = 0
+        dmax = 0
+        dmin = sys.maxsize
+        start = end - step
 
         if (need_to_get(name, doesExpire = doesExpire, expiry = 300, failOnSmall = False) or (doesExpire and forceUpdate)) and not forceCache:
             with open(name, 'w') as cache:
                 p = connect() 
-                end = i + step
+
+                reqend = end
                 if end > now:
-                    end = False
-                history = p.returnTradeHistory(start=i, end=end)
+                    reqend = False
+
+                history = p.returnTradeHistory(start=start, end=reqend)
                 if type(history) == dict:
                     for k,v in history.items():
                         for trade in v:
+                            ttl += 1
                             trade['unix'] = str2unix(trade['date'])
+                            dmax = max(trade['unix'], dmax)
+                            dmin = min(trade['unix'], dmin)
 
                 json.dump(history, cache)
 
+
         with open(name) as handle:
+            ttl = 0
+            dmax = 0
+            dmin = sys.maxsize
             data = handle.read()
-            if len(data) > 10:
+            if len(data) > 2:
                 json_data = json.loads(data)
                 if isinstance(json_data, dict):
                     if not isinstance(all_trades, dict):
@@ -377,9 +395,21 @@ def tradeHistory(currency = 'all', forceUpdate = False, forceCache = False):
                     for k,v in json_data.items():
                         if k not in all_trades:
                             all_trades[k] = []
+                        ttl += len(v)
+                        dmax = max(max([trade['unix'] for trade in v ]), dmax)
+                        dmin = min(min([trade['unix'] for trade in v ]), dmin)
                         all_trades[k] += v
                 else:
                     all_trades += json_data
+
+        #if ttl > 0:
+        #    print("{:5d}".format(ttl), start, end, "{:4d}".format(int((lastend - end) / 60 / 60)), dmin, dmax, dmax-dmin, start < dmin <= dmax < end)
+        #    lastend = end
+        if ttl == 500:
+            end = dmin - 1
+        else:
+            end -= step
+
 
     for k,v in all_trades.items():
         all_trades[k] = sorted(historyFloat(v), key=itemgetter('date'))
