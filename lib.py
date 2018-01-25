@@ -7,7 +7,7 @@ import secret
 import math
 import re
 import sys
-import fake
+#import fake
 from decimal import *
 from dateutil import parser
 from datetime import datetime
