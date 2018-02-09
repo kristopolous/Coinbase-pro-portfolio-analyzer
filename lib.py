@@ -106,11 +106,11 @@ def cache_get(fn, expiry=300, forceUpdate = False, forceCache = False):
 def returnOpenOrders(expiry=30):
     return cache_get('returnOpenOrders', expiry=expiry)
 
-def returnCompleteBalances(forceCache = False):
+def returnCompleteBalances(forceUpdate = False, forceCache = False):
     if forceCache and 'balances' in _cache:
         return _cache['balances']
 
-    balanceMap = toFloat(cache_get('returnCompleteBalances'), ['available', 'onOrders', 'btcValue'])
+    balanceMap = toFloat(cache_get('returnCompleteBalances', forceUpdate = forceUpdate), ['available', 'onOrders', 'btcValue'])
     for k,v in balanceMap.items():
         balanceMap[k]['cur'] = v['available'] + v['onOrders']
 
