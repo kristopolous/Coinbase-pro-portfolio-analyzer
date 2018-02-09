@@ -45,7 +45,7 @@ spreadThreshold = 0.009
 approx_btc_usd = lib.btc_price()
 
 # let's set it really low for now. 
-warn_at_usd = 12.50
+warn_at_usd = 18.50
 double_warn_at_usd = 45
 fail_at_usd = 80
 
@@ -199,7 +199,7 @@ print("\nBalance:\n BTC   {:>13}\n {:6}{:13.8f}".format(
 
 quantity += .499 * lib.satoshi
 amount_to_trade = quantity / fl_rate
-lib.bprint("\n{}\n   {:12.8f}\n * {:12.8f}BTC\n = {:12.8f}BTC".format(action.upper(), amount_to_trade, fl_rate, quantity))
+lib.bprint("\n{}\n   {:12.8f}\n * {:12.8f} btc\n = {:12.8f} btc".format(action.upper(), amount_to_trade, fl_rate, quantity))
 
 if quantity == 0:
     sys.exit(-1)
@@ -224,25 +224,25 @@ def buy(exchange, rate, amount_to_trade, args):
     except:
         global requested_min, quantity, fl_rate
         if requested_min:
-            warn("Unable to post{:.8f} at{}. Market minimum requested. Trying to buy more.".format(quantity, fl_rate))
-            quantity += lib.satoshi
+            warn("Unable to post {:.8f} at{}. Market minimum requested. Trying to buy more.".format(quantity, fl_rate))
+            quantity += lib.satoshi * 10
             amount_to_trade = quantity / fl_rate
 
             return buy(exchange, rate, amount_to_trade, args)
         else:
-            abort("Unable to buy{:.8f}btc worth on {} at {:.8f}.".format(quantity, exchange, fl_rate))
+            abort("Unable to buy{:.8f} btc worth on {} at {:.8f}.".format(quantity, exchange, fl_rate))
 
 
 if action == 'buy':
     if fl_rate > (ask * 1.2):
-        abort("{:.10f}BTC is the lowest ask.\n{:.10f}BTC is over 20% more than this!".format(lowest, fl_rate))
+        abort("{:.10f} BTC is the lowest ask.\n{:.10f}BTC is over 20% more than this!".format(lowest, fl_rate))
 
     buy_order = buy(exchange, rate, amount_to_trade, args)
     lib.showTrade(buy_order, exchange, trade_type='buy', rate=rate, amount=amount_to_trade)
 
 elif action == 'sell':
     if fl_rate < (bid * 0.8):
-        abort("{:.10f}BTC is the highest bid.\n{:.10f}BTC is over 20% less than this!".format(lowest, fl_rate))
+        abort("{:.10f} BTC is the highest bid.\n{:.10f}BTC is over 20% less than this!".format(lowest, fl_rate))
     
    # print("{:.8f} {:.8f} {:.8f}".format(rate, amount_to_trade, rate*amount_to_trade))
     sell_order = p.sell(exchange, rate, amount_to_trade)
