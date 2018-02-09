@@ -42,5 +42,6 @@ for k,v in plist.items():
     if ((currency and currency == k) or not currency) and len(v):
         print(k)
         show('buy', v)
-        anal = lib.analyze(history[k], k)
-        show('sell', v, anal)
+        if k in history:
+            anal = lib.analyze(history[k], k)
+            show('sell', v, anal)
