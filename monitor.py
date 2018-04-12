@@ -29,6 +29,8 @@ os.system('clear')
 
 rowOrderList = [
     [ 'cur', '{:5}', '{:5}'],
+    [ 'roi', '{:>7}', '{:7.2f}'],
+    [ 'perc', '{:>7}', '{:7.2f}'],
     [ 'mvlng', '{:>7}', '{:7.3f}'],
     [ 'mvmed', '{:>7}', '{:7.3f}'],
     [ 'mvsrt', '{:>7}', '{:7.3f}'],
@@ -37,9 +39,7 @@ rowOrderList = [
     [ 'price', '{:>9}', '{:9.5f}'],
     [ 'last', '{:>10}', '{}'],
     [ 'sell', '{:>9}', '{:9.5f}'],
-    [ 'perc', '{:>7}', '{:7.2f}'],
     [ 'bprof', '{:>7}', '{:7.2f}'],
-    [ 'roi', '{:>7}', '{:7.2f}'],
     [ 'bal', '{:>8}', '{:8.3f}'],
     [ 'prof', '{:>8}', '{:8.3f}']
 ]
@@ -202,12 +202,14 @@ while True:
     if len(ttl_list) > (row_max * col_max):
         ttl_list = ttl_list[-(row_max * col_max):]
 
+    """
     for x in range(0, row_max):
         row = []
         for y in range(x, len(ttl_list), row_max):
             row.append(ttl_list[y])
 
         print(' '.join(row))
+    """
 
     ix += 1
 
