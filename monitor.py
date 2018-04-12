@@ -29,17 +29,17 @@ os.system('clear')
 
 rowOrderList = [
     [ 'cur', '{:5}', '{:5}'],
+    [ 'roi', '{:>7}', '{:7.2f}'],
+    [ 'perc', '{:>7}', '{:7.2f}'],
     [ 'mvlng', '{:>7}', '{:7.3f}'],
     [ 'mvmed', '{:>7}', '{:7.3f}'],
     [ 'mvsrt', '{:>7}', '{:7.3f}'],
     [ '24h', '{:>7}', '{:7.2f}'],
-    [ 'buy', '{:>8}', '{:8.5f}'],
-    [ 'price', '{:>8}', '{:8.5f}'],
-    [ 'last', '{:>9}', '{}'],
-    [ 'sell', '{:>8}', '{:8.5f}'],
-    [ 'perc', '{:>7}', '{:7.2f}'],
+    [ 'buy', '{:>9}', '{:9.5f}'],
+    [ 'price', '{:>9}', '{:9.5f}'],
+    [ 'last', '{:>10}', '{}'],
+    [ 'sell', '{:>9}', '{:9.5f}'],
     [ 'bprof', '{:>7}', '{:7.2f}'],
-    [ 'roi', '{:>7}', '{:7.2f}'],
     [ 'bal', '{:>8}', '{:8.3f}'],
     [ 'prof', '{:>8}', '{:8.3f}']
 ]
@@ -51,7 +51,7 @@ while True:
         all_trades = lib.tradeHistory('all', forceUpdate=True)
         last_portfolio = time.strftime("%Y-%m-%d %H:%M:%S")
 
-        cur_balances = {k: v for k, v in lib.returnCompleteBalances().items() if v['btcValue'] > 0.00001}
+        cur_balances = {k: v for k, v in lib.returnCompleteBalances(forceUpdate = True).items() if v['btcValue'] > 0.00001}
         positive_balances = {k: v['cur'] for k,v in cur_balances.items() }
 
         for k, v in all_trades.items():
@@ -122,12 +122,16 @@ while True:
             else:
                break_price = 0
 
+            roi = 0
+            if statsFull['sellAvg']:
+                roi = 1000 * (statsFull['sellAvg'] / statsFull['buyAvg'] - 1)
+
             rows.append({
                 'cur': cur, 
-                'last': "{:8.5f}{}".format(v[-1]['rate'] * 1000, '*' if v[-1]['type'][0] == 'b' else ' '),
+                'last': "{:9.5f}{}".format(v[-1]['rate'] * 1000, '*' if v[-1]['type'][0] == 'b' else ' '),
                 'perc': 100 * (1 - v[-1]['rate'] / price),
                 'price': 1000 * price, 
-                'roi': my_ratio * 100 - 100, 
+                'roi': roi,
                 '24h': all_prices[k]['percentChange'] * 100,
                 'bal': lib.btc_price() * price * my_balance, 
                 'prof': lib.btc_price() * hold, 
@@ -142,7 +146,7 @@ while True:
                 'to': 100 * math.pow(abs(((my_ratio_buy / my_ratio) - 1) / ((my_ratio_sell / my_ratio) - 1)), 5)
             })
 
-    l = sorted(rows, key=operator.itemgetter('bprof'))
+    l = sorted(rows, key=operator.itemgetter('perc'))
     
     if ix % 10 == 0:
         os.system('clear')
@@ -158,7 +162,7 @@ while True:
     didBar = False
 
     for row in l:
-        if row['bprof'] > 0 and last_row <= 0:
+        if row['perc'] > 0 and last_row <= 0 and not didBar:
             print("-" * rowlen)
             didBar = True
 
@@ -198,12 +202,14 @@ while True:
     if len(ttl_list) > (row_max * col_max):
         ttl_list = ttl_list[-(row_max * col_max):]
 
+    """
     for x in range(0, row_max):
         row = []
         for y in range(x, len(ttl_list), row_max):
             row.append(ttl_list[y])
 
         print(' '.join(row))
+    """
 
     ix += 1
 
