@@ -1,7 +1,7 @@
 #!/bin/bash
 
 tmp=`mktemp`
-curList=(`./balances.py -l`)
+curList=(`./balances.py -l -g .005`)
 len=${#curList[*]}
 ix=0
 dir=1
