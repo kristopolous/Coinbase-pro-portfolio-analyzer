@@ -7,16 +7,22 @@ import json
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-l', "--list", action='store_true', help="Show just the currencies")
+parser.add_argument('-g', "--gt", help="Minimum balance filter")
 parser.add_argument('-j', "--json", action='store_true', help="Show a json compatible list")
 parser.add_argument('-f', "--force", action='store_true', help="Force update")
 args = parser.parse_args()
 
 ticker = lib.returnTicker(forceUpdate = args.force)
-cur_balances = lib.returnCompleteBalances()
+cur_balances = lib.returnCompleteBalances(forceUpdate = args.force)
 all_balances = list([(k, float(v['btcValue']), float(v['available']) + float(v['onOrders'])) for k,v in cur_balances.items() ])
 all_positive = list(filter(lambda x: x[1] > 0, all_balances))
 
+if args.gt:
+    min = float(args.gt)
+    all_positive = list(filter(lambda x: x[1] > min, all_positive))
+
 if args.list:
+
     print("\n".join(sorted([x[0] for x in all_positive])))
     sys.exit(0)
 
