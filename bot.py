@@ -10,8 +10,8 @@ f = open('/dev/null', 'w')
 #sys.stderr = f
 
 margin = {
-    'buy': 0.0110,
-    'sell': 0.0348
+    'buy': 0.0400,
+    'sell': 0.0278
 }
 
 amount = {
@@ -27,13 +27,13 @@ amount = {
 # WITH YOUR AMOUNTS
 #
 #           0.00000000          
-    'sell':      10001,
-    'buy' :      24000
+    'sell':      12001,
+    'buy' :      10500
 }
 # how far back to look in the history
 history = {
-    'sell':     7,
-    'buy':      4
+    'sell':     4,
+    'buy':      6
 }
 
 if amount['sell'] > 50000:
@@ -52,7 +52,7 @@ for what in ['buy', 'sell']:
 
 cycle = 0
 
-holdList = []#'XMR', 'ETC']
+holdList = ['GAS', 'DOGE']#'DGB', 'GNT', 'ZRX', 'RADS', 'DCR']#'XMR', 'ETC']
 
 while True:
     all_trades = lib.tradeHistory('all', forceUpdate=True)
@@ -107,7 +107,7 @@ while True:
         # THIS IS THE SELL BLOCK!!!
         # -----
         #
-        if last_buy_max * upper['sell'] < current['highestBid']:
+        if last_buy_max * upper['sell'] < current['highestBid'] and k not in holdList:
             trade_ix += 1
             if trade_ix == 1:
                 sys.stdout.write('\n')
@@ -117,7 +117,7 @@ while True:
             try:
                 res = p.sell(currencyPair=exchange, rate=rate, amount=amount_to_trade, orderType="fillOrKill")
                 lib.showTrade(res, exchange, trade_type='sell', rate=rate, source='bot2', amount=amount_to_trade)
-                print("      Spread: {:d}".format( (100 * current['lowestAsk'] / current['highestBid'] ) - 100 ))
+                print("      Spread: {:f}".format( (100 * current['lowestAsk'] / current['highestBid'] ) - 100 ))
             except Exception as ex:
                 print("  SELL {:9}  {} {}".format(exchange, rate, ex))
 
@@ -156,4 +156,4 @@ while True:
             cycle = 0
     sys.stdout.flush()
 
-    time.sleep(45)
+    time.sleep(12)

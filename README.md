@@ -1,3 +1,8 @@
+### Please don't use this
+
+This used the exchange poloniex, which delists coins, capturing the balances of the users for themselves thus stealing their customers assets. They've Mt.Gox'ed themselves and are incredibly dishonest and deceptive.
+
+
 Some cryptocurrency market analysis and trading tools. 
 
 Here's a demo of me putting out an order to sell ARDR, viewing my open orders, and then canceling the one I just made.
