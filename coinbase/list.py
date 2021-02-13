@@ -5,6 +5,8 @@ import gdax
 import hashlib
 import json
 import sys
+import pdb
+import logging
 from operator import itemgetter
 from dateutil import parser
 from decimal import *
@@ -39,11 +41,6 @@ class bypass:
         return cb
             
             
-auth_client = bypass(gdax.AuthenticatedClient(secret.key, secret.b64secret, secret.passphrase))
-account_list = auth_client.get_accounts()
-
-history = {}
-historySet = set()
 def add(exchange, kind, rate, amount, size, date, obj):
     global history
     global historySet
@@ -99,6 +96,14 @@ def crawl():
                 size = float(details['filled_size'])
                 add(exchange = details['product_id'], kind = details['side'], amount = amount, date = details['done_at'], size = size, rate = rate, obj=details)
 
+
+logging.basicConfig(level=logging.DEBUG)
+auth_client = bypass(gdax.AuthenticatedClient(secret.key, secret.b64secret, secret.passphrase))
+account_list = auth_client.get_accounts()
+logging.info(account_list)
+
+history = {}
+historySet = set()
 crawl()
 
 for exchange, cur in history.items():
@@ -143,3 +148,5 @@ for exchange, cur in history.items():
             accum[kind]['cur'] += order[3]
 
             print("{:4} {} {:6.2f} {:6.4f} {}".format(kind, order[1], order[2], order[3], order[4].strftime("%Y-%m-%d %H:%M:%S")))
+
+
