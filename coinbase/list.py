@@ -10,6 +10,7 @@ import logging
 import argparse
 import types
 import re
+
 from operator import itemgetter
 from dateutil import parser
 from decimal import *
@@ -132,6 +133,7 @@ def crawl():
 
 cli_parser = argparse.ArgumentParser(description='Historicals for coinbase pro.')
 cli_parser.add_argument("--query", help="only show exchanges that match a regex")
+cli_parser.add_argument("--list", help="list exchanges you're active in", action='store_true')
 args = cli_parser.parse_args()
 
 logging.basicConfig(level=logging.DEBUG)
@@ -148,6 +150,8 @@ for exchange, cur in history.items():
             continue
 
     print(exchange)
+    if args.list:
+        continue
 
     try:
         print("\tbuy:  {:.2f} {:7.2f} {:.4f}\n\tsell: {:.2f} {:7.2f} {:.4f}".format(cur['buyusd'] / cur['buycur'], cur['buyusd'], cur['buycur'], cur['sellusd'] / cur['sellcur'], cur['sellusd'], cur['sellcur']))
