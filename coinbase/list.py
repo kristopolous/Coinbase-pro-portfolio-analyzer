@@ -132,7 +132,7 @@ for exchange, cur in history.items():
     print(exchange)
 
     try:
-        print("buy:  {:.2f} {:7.2f} {:.4f}\nsell: {:.2f} {:7.2f} {:.4f}".format(cur['buyusd'] / cur['buycur'], cur['buyusd'], cur['buycur'], cur['sellusd'] / cur['sellcur'], cur['sellusd'], cur['sellcur']))
+        print("\tbuy:  {:.2f} {:7.2f} {:.4f}\n\tsell: {:.2f} {:7.2f} {:.4f}".format(cur['buyusd'] / cur['buycur'], cur['buyusd'], cur['buycur'], cur['sellusd'] / cur['sellcur'], cur['sellusd'], cur['sellcur']))
         for row in cur['recent']:
             buy = 0
             sell = 0
@@ -140,7 +140,7 @@ for exchange, cur in history.items():
                 buy = row['buyusd'] / row['buycur']
             if row['sellcur'] > 0:
                 sell = row['sellusd'] / row['sellcur']
-            print("{:4} buy:  {:.2f} {:.2f} {:.4f} \n     sell: {:.2f} {:.2f}\n".format(row['ttl'], buy, row['buyusd'], 100 * ((sell / buy) - 1), sell, row['sellusd']))
+            print("\t{:4} buy:  {:.2f} {:.2f} {:.4f} \n\t     sell: {:.2f} {:.2f}\n".format(row['ttl'], buy, row['buyusd'], 100 * ((sell / buy) - 1), sell, row['sellusd']))
     except:
         pass
     orderList = reversed(sorted(cur['all'], key=itemgetter(4)))
@@ -162,7 +162,7 @@ for exchange, cur in history.items():
                     if accum[which]['cur']:
                         rate = accum[which]['usd'] / accum[which]['cur']
 
-                    print("{:4} {:6.0f} {:6.2f} {:6.4f} {}".format(which, rate, accum[which]['usd'], accum[which]['cur'], order[4].strftime("%Y-%m-%d")))
+                    print("\t{:4} {:6.0f} {:6.2f} {:6.4f} {}".format(which, rate, accum[which]['usd'], accum[which]['cur'], order[4].strftime("%Y-%m-%d")))
                 accum = { 'buy': {'usd': 0, 'cur': 0}, 'sell': {'usd': 0, 'cur': 0}}
                 print("\t-----")
                 curdate = checkdate
