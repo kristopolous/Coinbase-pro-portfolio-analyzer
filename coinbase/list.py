@@ -7,6 +7,9 @@ import json
 import sys
 import pdb
 import logging
+import argparse
+import types
+import re
 from operator import itemgetter
 from dateutil import parser
 from decimal import *
@@ -42,17 +45,24 @@ class bypass:
             self.last = name
 
             if not os.path.isfile(name):
+                logging.debug("need to cache ({}, {}) -> {}".format(method, *args, name))
                 data = getattr(self.real, method)(*args)
+
+                if isinstance(data, types.GeneratorType):
+                    data_list = [x for x in data]
+                    data = data_list
+
                 try:
                     with open(name, 'w') as cache:
                         json.dump(data, cache)
                 except:
-                    logging.warning("Unable to cache: ({} {}), {}".format(method, *args, data))
+                    logging.warning("Unable to cache: ({} {}), {} -> {}".format(method, *args, data, name))
 
             try:
                 with open(name) as handle:
                     return json.loads(handle.read())
-            except:
+
+            except Exception as ex:
                 self.invalidate_last()
                 return getattr(self.real, method)(*args)
 
@@ -88,11 +98,13 @@ def add(exchange, kind, rate, amount, size, date, obj):
 
 def crawl():
     for account in account_list:
-        if len(sys.argv) > 1:
-            auth_client.clearcache('get_account_history', [account['id']])
 
         history = auth_client.get_account_history(account['id'])
         for order in history:
+            if args.query and 'product_id' in order:
+                if not re.match(args.query, order['product_id'], re.IGNORECASE):
+                    continue
+
             try:
                 details = auth_client.get_order(order['details']['order_id'])
                 # print(details)
@@ -118,17 +130,23 @@ def crawl():
             size = float(details['filled_size'])
             add(exchange = details['product_id'], kind = details['side'], amount = amount, date = details['done_at'], size = size, rate = rate, obj=details)
 
+cli_parser = argparse.ArgumentParser(description='Historicals for coinbase pro.')
+cli_parser.add_argument("--query", help="only show exchanges that match a regex")
+args = cli_parser.parse_args()
 
 logging.basicConfig(level=logging.DEBUG)
 auth_client = bypass(cbpro.AuthenticatedClient(secret.key, secret.b64secret, secret.passphrase))
 account_list = auth_client.get_accounts()
-logging.info(account_list)
 
 history = {}
 historySet = set()
 crawl()
 
 for exchange, cur in history.items():
+    if args.query:
+        if not re.match(args.query, exchange, re.IGNORECASE):
+            continue
+
     print(exchange)
 
     try:
