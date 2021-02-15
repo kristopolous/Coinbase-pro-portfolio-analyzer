@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import secret
 import os
-import gdax
+import cbpro 
 import hashlib
 import json
 import sys
@@ -17,26 +17,44 @@ def hash(*kw):
 
 class bypass:
     def __init__(self, real):
+        self.last = None
         self.real = real
 
     def clearcache(self, method, args):
+       return
        name = "cache/{}".format(hash(method, args))
        if os.path.isfile(name):
            os.remove(name)
        else:
            print("No file: {}".format(name))
 
+    def invalidate_last(self):
+        if os.path.exists(self.last):
+            logging.debug("Removing {}".format(self.last))
+            os.unlink(self.last)
+
     def __getattr__(self, method):
         def cb(*args):
+            # We are going to skip over the caching system
+            # until we figure out a bit more about how the 
+            # system has changed
             name = "cache/{}".format(hash(method, args))
+            self.last = name
 
             if not os.path.isfile(name):
                 data = getattr(self.real, method)(*args)
-                with open(name, 'w') as cache:
-                    json.dump(data, cache)
+                try:
+                    with open(name, 'w') as cache:
+                        json.dump(data, cache)
+                except:
+                    logging.warning("Unable to cache: ({} {}), {}".format(method, *args, data))
 
-            with open(name) as handle:
-                return json.loads(handle.read())
+            try:
+                with open(name) as handle:
+                    return json.loads(handle.read())
+            except:
+                self.invalidate_last()
+                return getattr(self.real, method)(*args)
 
         return cb
             
@@ -74,31 +92,35 @@ def crawl():
             auth_client.clearcache('get_account_history', [account['id']])
 
         history = auth_client.get_account_history(account['id'])
-        for page in range(0,len(history)):
-            for order in history[page]:
-                try:
-                    details = auth_client.get_order(order['details']['order_id'])
-                    # print(details)
-                except:
-                    # print(order)
-                    continue
+        for order in history:
+            try:
+                details = auth_client.get_order(order['details']['order_id'])
+                # print(details)
+            except:
+                # print(order)
+                continue
 
-                if details['side'] == 'buy':
-                    amount = float(details['executed_value']) + float(details['fill_fees'])
-                else:
-                    amount = float(details['executed_value']) + float(details['fill_fees'])
+            if 'side' not in details:
+                print(details)
+                auth_client.invalidate_last()
+                continue
 
-                if 'price' in details:
-                    rate = details['price']
-                else:
-                    rate = amount / float(details['filled_size'])
+            if details['side'] == 'buy':
+                amount = float(details['executed_value']) + float(details['fill_fees'])
+            else:
+                amount = float(details['executed_value']) + float(details['fill_fees'])
 
-                size = float(details['filled_size'])
-                add(exchange = details['product_id'], kind = details['side'], amount = amount, date = details['done_at'], size = size, rate = rate, obj=details)
+            if 'price' in details:
+                rate = details['price']
+            else:
+                rate = amount / float(details['filled_size'])
+
+            size = float(details['filled_size'])
+            add(exchange = details['product_id'], kind = details['side'], amount = amount, date = details['done_at'], size = size, rate = rate, obj=details)
 
 
 logging.basicConfig(level=logging.DEBUG)
-auth_client = bypass(gdax.AuthenticatedClient(secret.key, secret.b64secret, secret.passphrase))
+auth_client = bypass(cbpro.AuthenticatedClient(secret.key, secret.b64secret, secret.passphrase))
 account_list = auth_client.get_accounts()
 logging.info(account_list)
 
@@ -142,11 +164,11 @@ for exchange, cur in history.items():
 
                     print("{:4} {:6.0f} {:6.2f} {:6.4f} {}".format(which, rate, accum[which]['usd'], accum[which]['cur'], order[4].strftime("%Y-%m-%d")))
                 accum = { 'buy': {'usd': 0, 'cur': 0}, 'sell': {'usd': 0, 'cur': 0}}
-                print("-----")
+                print("\t-----")
                 curdate = checkdate
             accum[kind]['usd'] += order[2]
             accum[kind]['cur'] += order[3]
 
-            print("{:4} {} {:6.2f} {:6.4f} {}".format(kind, order[1], order[2], order[3], order[4].strftime("%Y-%m-%d %H:%M:%S")))
+            print("\t{:4} {} {:6.2f} {:6.4f} {}".format(kind, order[1], order[2], order[3], order[4].strftime("%Y-%m-%d %H:%M:%S")))
 
 
