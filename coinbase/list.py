@@ -25,7 +25,6 @@ class bypass:
         self.real = real
 
     def clearcache(self, method, args):
-       return
        name = "cache/{}".format(hash(method, args))
        if os.path.isfile(name):
            os.remove(name)
@@ -39,14 +38,18 @@ class bypass:
 
     def __getattr__(self, method):
         def cb(*args):
+            global cli_args
             # We are going to skip over the caching system
             # until we figure out a bit more about how the 
             # system has changed
             name = "cache/{}".format(hash(method, args))
             self.last = name
 
+            if cli_args.update:
+                self.clearcache(method, args)
+
             if not os.path.isfile(name):
-                logging.debug("need to cache ({}, {}) -> {}".format(method, *args, name))
+                logging.debug("need to cache ({}, {}) -> {}".format(method, args, name))
                 data = getattr(self.real, method)(*args)
 
                 if isinstance(data, types.GeneratorType):
@@ -102,8 +105,8 @@ def crawl():
 
         history = auth_client.get_account_history(account['id'])
         for order in history:
-            if args.query and 'product_id' in order:
-                if not re.match(args.query, order['product_id'], re.IGNORECASE):
+            if cli_args.query and 'product_id' in order:
+                if not re.match(cli_args.query, order['product_id'], re.IGNORECASE):
                     continue
 
             try:
@@ -129,14 +132,27 @@ def crawl():
                 rate = amount / float(details['filled_size'])
 
             size = float(details['filled_size'])
-            add(exchange = details['product_id'], kind = details['side'], amount = amount, date = details['done_at'], size = size, rate = rate, obj=details)
+            add(exchange = details['product_id'], 
+                kind = details['side'], 
+                amount = amount, 
+                date = details['done_at'], 
+                size = size, 
+                rate = rate, 
+                obj = details)
 
 cli_parser = argparse.ArgumentParser(description='Historicals for coinbase pro.')
 cli_parser.add_argument("--query", help="only show exchanges that match a regex")
 cli_parser.add_argument("--list", help="list exchanges you're active in", action='store_true')
-args = cli_parser.parse_args()
+cli_parser.add_argument("--update", help="update the cache", action='store_true')
+cli_parser.add_argument("--debug", help="verbose", action='store_true')
+cli_args = cli_parser.parse_args()
 
-logging.basicConfig(level=logging.DEBUG)
+if cli_args.debug:
+    logging.basicConfig(level=logging.DEBUG)
+
+else:
+    logging.basicConfig(level=logging.WARNING)
+
 auth_client = bypass(cbpro.AuthenticatedClient(secret.key, secret.b64secret, secret.passphrase))
 account_list = auth_client.get_accounts()
 
@@ -145,12 +161,12 @@ historySet = set()
 crawl()
 
 for exchange, cur in history.items():
-    if args.query:
-        if not re.match(args.query, exchange, re.IGNORECASE):
+    if cli_args.query:
+        if not re.match(cli_args.query, exchange, re.IGNORECASE):
             continue
 
     print(exchange)
-    if args.list:
+    if cli_args.list:
         continue
 
     try:
@@ -176,6 +192,7 @@ for exchange, cur in history.items():
         accum = { 'buy': {'usd': 0, 'cur': 0}, 'sell': {'usd': 0, 'cur': 0}}
 
         for order in orderList:
+            logging.debug(order)
             checkdate = order[4].strftime("%Y-%m-%d")
             kind = order[0]
             if checkdate != curdate:
