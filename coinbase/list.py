@@ -81,7 +81,15 @@ def add(exchange, kind, rate, amount, size, date, obj):
 
     if exchange not in history:
         history[exchange] = {'buycur':0, 'buyusd':0, 'sellcur':0, 'sellusd':0, 'all': []}
-        history[exchange]['recent'] = list(map(lambda x: {'ttl': x, 'sellcount': x, 'buycount': x, 'buycur':0, 'buyusd':0, 'sellcur':0, 'sellusd':0}, range(cli_args.start, cli_args.end, cli_args.step)))
+        history[exchange]['recent'] = list(map(lambda x: {
+            'ttl': x, 
+            'sellcount': x, 
+            'buycount': x, 
+            'buycur': 0, 
+            'buyusd': 0, 
+            'sellcur': 0, 
+            'sellusd': 0
+        }, range(cli_args.start, cli_args.end, cli_args.step)))
 
     if obj['id'] not in historySet:
         historySet.add(obj['id'])
@@ -103,12 +111,21 @@ def add(exchange, kind, rate, amount, size, date, obj):
         history[exchange]['all'].append([kind, round(float(rate)), amount, size, parser.parse(date)])
 
 def crawl():
+    ix = 0
+    global cli_args
     for account in account_list:
 
         history = auth_client.get_account_history(account['id'])
         for order in history:
-            if cli_args.query and 'product_id' in order:
-                if not re.match(cli_args.query, order['product_id'], re.IGNORECASE):
+            if not isinstance(order, dict):
+                continue
+
+            ix += 1
+            if cli_args.goback and ix > cli_args.goback:
+                continue
+
+            if cli_args.query and order.get('details') and 'product_id' in order['details']:
+                if not re.search(cli_args.query, order['details']['product_id'], re.IGNORECASE):
                     continue
 
             try:
@@ -134,6 +151,7 @@ def crawl():
                 rate = amount / float(details['filled_size'])
 
             size = float(details['filled_size'])
+            print("-----", rate, details)
             add(exchange = details['product_id'], 
                 kind = details['side'], 
                 amount = amount, 
@@ -150,9 +168,10 @@ cli_parser.add_argument("--debug", help="verbose", action='store_true')
 cli_parser.add_argument("--start", help="start value", default=100)
 cli_parser.add_argument("--step", help="start value", default=250)
 cli_parser.add_argument("--end", help="start value", default=4000)
+cli_parser.add_argument("--goback", help="start value", default=0)
 cli_args = cli_parser.parse_args()
 
-for i in ['start','step','end']:
+for i in ['start','step','end','goback']:
     setattr(cli_args, i, int(getattr(cli_args, i)))
 
 if cli_args.debug:
@@ -170,7 +189,7 @@ crawl()
 
 for exchange, cur in history.items():
     if cli_args.query:
-        if not re.match(cli_args.query, exchange, re.IGNORECASE):
+        if not re.search(cli_args.query, exchange, re.IGNORECASE):
             continue
 
     print(exchange)
@@ -179,7 +198,12 @@ for exchange, cur in history.items():
 
     try:
         print("\tbuy:  {:.2f} {:7.2f} {:.4f}\n\tsell: {:.2f} {:7.2f} {:.4f}".format(
-            cur['buyusd'] / cur['buycur'], cur['buyusd'], cur['buycur'], cur['sellusd'] / cur['sellcur'], cur['sellusd'], cur['sellcur']))
+            cur['buyusd'] / cur['buycur'], 
+            cur['buyusd'], 
+            cur['buycur'], 
+            cur['sellusd'] / cur['sellcur'], 
+            cur['sellusd'], cur['sellcur'])
+        )
 
         for row in cur['recent']:
             buy = 0
@@ -189,6 +213,7 @@ for exchange, cur in history.items():
                 buy = row['buyusd'] / row['buycur']
             if row['sellcur'] > 0:
                 sell = row['sellusd'] / row['sellcur']
+
             print("\t{:4} buy:  {:.2f} {:.2f} {:.4f} \n\t     sell: {:.2f} {:.2f}\n".format(row['ttl'], buy, row['buyusd'], 100 * ((sell / buy) - 1), sell, row['sellusd']))
     except:
         pass
@@ -200,7 +225,10 @@ for exchange, cur in history.items():
     orderList = list(orderList)
     if len(list(orderList)) > 0:
         curdate = orderList[0][4].strftime("%Y-%m-%d")
-        accum = { 'buy': {'usd': 0, 'cur': 0}, 'sell': {'usd': 0, 'cur': 0}}
+        accum = { 
+            'buy': {'usd': 0, 'cur': 0}, 
+            'sell': {'usd': 0, 'cur': 0}
+            }
 
         for order in orderList:
             logging.debug(order)
@@ -212,13 +240,26 @@ for exchange, cur in history.items():
                     if accum[which]['cur']:
                         rate = accum[which]['usd'] / accum[which]['cur']
 
-                    print("\t{:4} {:6.0f} {:6.2f} {:6.4f} {}".format(which, rate, accum[which]['usd'], accum[which]['cur'], order[4].strftime("%Y-%m-%d")))
+                    print("\t{:4} {:6.0f} {:6.2f} {:6.4f} {}".format(
+                        which, 
+                        rate, 
+                        accum[which]['usd'], 
+                        accum[which]['cur'], 
+                        order[4].strftime("%Y-%m-%d"))
+                    )
+
                 accum = { 'buy': {'usd': 0, 'cur': 0}, 'sell': {'usd': 0, 'cur': 0}}
                 print("\t-----")
                 curdate = checkdate
             accum[kind]['usd'] += order[2]
             accum[kind]['cur'] += order[3]
 
-            print("\t{:4} {} {:6.2f} {:6.4f} {}".format(kind, order[1], order[2], order[3], order[4].strftime("%Y-%m-%d %H:%M:%S")))
+            print("\t{:4} {} {:6.2f} {:6.4f} {}".format(
+                kind, 
+                order[1], 
+                order[2], 
+                order[3], 
+                order[4].strftime("%Y-%m-%d %H:%M:%S"))
+            )
 
 
