@@ -27,9 +27,10 @@ class bypass:
     def clearcache(self, method, args):
        name = "cache/{}".format(hash(method, args))
        if os.path.isfile(name):
+           logging.info("Removing {} for {} {}".format(name, method, args))
            os.remove(name)
        else:
-           print("No file: {}".format(name))
+           logging.warning("No file: {}".format(name))
 
     def invalidate_last(self):
         if os.path.exists(self.last):
@@ -76,10 +77,11 @@ class bypass:
 def add(exchange, kind, rate, amount, size, date, obj):
     global history
     global historySet
+    global cli_args
 
     if exchange not in history:
         history[exchange] = {'buycur':0, 'buyusd':0, 'sellcur':0, 'sellusd':0, 'all': []}
-        history[exchange]['recent'] = list(map(lambda x: {'ttl': x, 'sellcount': x, 'buycount': x, 'buycur':0, 'buyusd':0, 'sellcur':0, 'sellusd':0}, range(100, 4000, 250)))
+        history[exchange]['recent'] = list(map(lambda x: {'ttl': x, 'sellcount': x, 'buycount': x, 'buycur':0, 'buyusd':0, 'sellcur':0, 'sellusd':0}, range(cli_args.start, cli_args.end, cli_args.step)))
 
     if obj['id'] not in historySet:
         historySet.add(obj['id'])
@@ -145,7 +147,13 @@ cli_parser.add_argument("--query", help="only show exchanges that match a regex"
 cli_parser.add_argument("--list", help="list exchanges you're active in", action='store_true')
 cli_parser.add_argument("--update", help="update the cache", action='store_true')
 cli_parser.add_argument("--debug", help="verbose", action='store_true')
+cli_parser.add_argument("--start", help="start value", default=100)
+cli_parser.add_argument("--step", help="start value", default=250)
+cli_parser.add_argument("--end", help="start value", default=4000)
 cli_args = cli_parser.parse_args()
+
+for i in ['start','step','end']:
+    setattr(cli_args, i, int(getattr(cli_args, i)))
 
 if cli_args.debug:
     logging.basicConfig(level=logging.DEBUG)
@@ -170,10 +178,13 @@ for exchange, cur in history.items():
         continue
 
     try:
-        print("\tbuy:  {:.2f} {:7.2f} {:.4f}\n\tsell: {:.2f} {:7.2f} {:.4f}".format(cur['buyusd'] / cur['buycur'], cur['buyusd'], cur['buycur'], cur['sellusd'] / cur['sellcur'], cur['sellusd'], cur['sellcur']))
+        print("\tbuy:  {:.2f} {:7.2f} {:.4f}\n\tsell: {:.2f} {:7.2f} {:.4f}".format(
+            cur['buyusd'] / cur['buycur'], cur['buyusd'], cur['buycur'], cur['sellusd'] / cur['sellcur'], cur['sellusd'], cur['sellcur']))
+
         for row in cur['recent']:
             buy = 0
             sell = 0
+
             if row['buycur'] > 0:
                 buy = row['buyusd'] / row['buycur']
             if row['sellcur'] > 0:
