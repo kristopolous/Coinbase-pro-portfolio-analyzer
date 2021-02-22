@@ -197,7 +197,7 @@ for exchange, cur in history.items():
         continue
 
     try:
-        print("\tbuy:  {:.2f} {:7.2f} {:.4f}\n".format(
+        print("\tbuy:  {:.2f} {:7.2f} {:.4f}".format(
             cur['buyusd'] / cur['buycur'], 
             cur['buyusd'], 
             cur['buycur']))
@@ -237,17 +237,19 @@ for exchange, cur in history.items():
             'sell': {'usd': 0, 'cur': 0}
             }
 
+        print("\tside  price  usd    amount date")
         for order in orderList:
             logging.warning(order)
             checkdate = order[4].strftime("%Y-%m-%d")
             kind = order[0]
+
             if checkdate != curdate:
                 for which in ['buy', 'sell']:
                     rate = 0
                     if accum[which]['cur']:
                         rate = accum[which]['usd'] / accum[which]['cur']
 
-                    print("\t{:4} {:6.0f} {:6.2f} {:6.4f} {}".format(
+                    print("\t\t{:4} {:8.0f} {:8.2f} {:8.4f} {}".format(
                         which, 
                         rate, 
                         accum[which]['usd'], 
@@ -256,12 +258,12 @@ for exchange, cur in history.items():
                     )
 
                 accum = { 'buy': {'usd': 0, 'cur': 0}, 'sell': {'usd': 0, 'cur': 0}}
-                print("\t-----")
+                print("\t\t-----")
                 curdate = checkdate
             accum[kind]['usd'] += order[2]
             accum[kind]['cur'] += order[3]
 
-            print("\t{:4} {} {:6.2f} {:6.4f} {}".format(
+            print("\t{:4} {:5} {:7.2f} {:7.4f} {}".format(
                 kind, 
                 order[1], 
                 order[2], 
