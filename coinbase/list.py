@@ -151,7 +151,7 @@ def crawl():
                 rate = amount / float(details['filled_size'])
 
             size = float(details['filled_size'])
-            print("-----", rate, details)
+
             add(exchange = details['product_id'], 
                 kind = details['side'], 
                 amount = amount, 
@@ -197,13 +197,15 @@ for exchange, cur in history.items():
         continue
 
     try:
-        print("\tbuy:  {:.2f} {:7.2f} {:.4f}\n\tsell: {:.2f} {:7.2f} {:.4f}".format(
+        print("\tbuy:  {:.2f} {:7.2f} {:.4f}\n".format(
             cur['buyusd'] / cur['buycur'], 
             cur['buyusd'], 
-            cur['buycur'], 
+            cur['buycur']))
+
+        print("\tsell: {:.2f} {:7.2f} {:.4f}".format(
             cur['sellusd'] / cur['sellcur'], 
-            cur['sellusd'], cur['sellcur'])
-        )
+            cur['sellusd'], 
+            cur['sellcur']))
 
         for row in cur['recent']:
             buy = 0
@@ -214,15 +216,20 @@ for exchange, cur in history.items():
             if row['sellcur'] > 0:
                 sell = row['sellusd'] / row['sellcur']
 
-            print("\t{:4} buy:  {:.2f} {:.2f} {:.4f} \n\t     sell: {:.2f} {:.2f}\n".format(row['ttl'], buy, row['buyusd'], 100 * ((sell / buy) - 1), sell, row['sellusd']))
+            print("\t{:4} buy:  {:.2f} {:.2f} {:.4f} \n\t     sell: {:.2f} {:.2f}\n".format(
+                row['ttl'], 
+                buy, 
+                row['buyusd'], 
+                100 * ((sell / buy) - 1), 
+                sell, 
+                row['sellusd'])
+            )
     except:
         pass
+
     orderList = reversed(sorted(cur['all'], key=itemgetter(4)))
-    """
-    for order in orderList:
-        print("{:4} {} {:6.2f} {:6.4f} {}".format(order[0], order[1], order[2], 100 * order[3], order[4].strftime("%Y-%m-%d %H:%M:%S")))
-    """
     orderList = list(orderList)
+
     if len(list(orderList)) > 0:
         curdate = orderList[0][4].strftime("%Y-%m-%d")
         accum = { 
@@ -231,7 +238,7 @@ for exchange, cur in history.items():
             }
 
         for order in orderList:
-            logging.debug(order)
+            logging.warning(order)
             checkdate = order[4].strftime("%Y-%m-%d")
             kind = order[0]
             if checkdate != curdate:
