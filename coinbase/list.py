@@ -161,7 +161,7 @@ def crawl():
                 obj = details)
 
 cli_parser = argparse.ArgumentParser(description='Historicals for coinbase pro.')
-cli_parser.add_argument("--query", help="only show exchanges that match a regex")
+cli_parser.add_argument("-q", "--query", help="only show exchanges that match a regex")
 cli_parser.add_argument("--list", help="list exchanges you're active in", action='store_true')
 cli_parser.add_argument("--update", help="update the cache", action='store_true')
 cli_parser.add_argument("--debug", help="verbose", action='store_true')
@@ -182,6 +182,7 @@ else:
 
 auth_client = bypass(cbpro.AuthenticatedClient(secret.key, secret.b64secret, secret.passphrase))
 account_list = auth_client.get_accounts()
+logging.debug("Account list {}".format(account_list))
 
 history = {}
 historySet = set()
