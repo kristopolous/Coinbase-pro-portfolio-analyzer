@@ -182,6 +182,11 @@ else:
 
 auth_client = bypass(cbpro.AuthenticatedClient(secret.key, secret.b64secret, secret.passphrase))
 account_list = auth_client.get_accounts()
+if type(account_list) is not list and account_list.get('message'):
+    print(account_list)
+    print("Maybe ntp update?")
+    sys.exit(-1)
+
 logging.debug("Account list {}".format(account_list))
 
 history = {}
