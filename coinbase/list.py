@@ -169,6 +169,7 @@ cli_parser.add_argument("--start", help="start value", default=100)
 cli_parser.add_argument("--step", help="start value", default=250)
 cli_parser.add_argument("--end", help="end value for analysis", default=4000)
 cli_parser.add_argument("--goback", help="How many orders to go back", default=0)
+cli_parser.add_argument("--average", help="Just show the averages", action='store_true')
 cli_args = cli_parser.parse_args()
 
 for i in ['start','step','end','goback']:
