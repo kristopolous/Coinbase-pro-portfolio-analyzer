@@ -40,7 +40,7 @@ class bypass:
         self.secret = secret
         self.ordercache = r.hgetall('coinhash')
 
-    def connect():
+    def connect(self):
         if not self.real: 
             self.real = cbpro.AuthenticatedClient(self.secret.key, self.secret.b64secret, self.secret.passphrase)
         return self.real
@@ -241,6 +241,7 @@ else:
 
 auth_client = bypass(secret)
 account_list = auth_client.get_accounts()
+
 if type(account_list) is not list and account_list.get('message'):
     print(account_list)
     print("Maybe ntp update?")
@@ -254,6 +255,10 @@ historySet = set()
 crawl()
 clock("crawl")
 
+def gol(amount):
+    sign = '+' if amount >= 0 else ''
+    return "{}{:<4d}".format(sign, round(amount))
+
 for exchange in sorted(history.keys()):
     cur = history[exchange]
     
@@ -265,25 +270,38 @@ for exchange in sorted(history.keys()):
         print(exchange)
         continue
 
-    try:
-        print("{:10} buy:  {:8.2f} {:8.2f} {:9.4f}".format(
-            exchange,
-            cur['buyusd'] / cur['buycur'], 
-            cur['buyusd'], 
-            cur['buycur']))
-
-        if cur['sellcur'] == 0:
-            l2 = 0
-        else:
-            l2 = cur['sellusd'] / cur['sellcur']
-
-        print("{} sell: {:8.2f} {:8.2f} {:9.4f}".format(
-            " " * 10,
-            l2,
-            cur['sellusd'], 
-            cur['sellcur']))
-    except:
+    if cur['buycur'] == 0:
         continue
+
+    ticker = auth_client.get_product_ticker(exchange)
+    price = float(ticker.get('price'))
+
+    avg_buy = cur['buyusd'] / cur['buycur']
+    print(" {:9} buy:  {:8.2f} {:8.2f} {:9.4f} {}".format(
+        exchange,
+        avg_buy,
+        cur['buyusd'], 
+        cur['buycur'],
+        gol((100 * price / avg_buy) - 100)
+        ))
+
+    if cur['sellcur'] == 0:
+        avg_sell = 0
+    else:
+        avg_sell = cur['sellusd'] / cur['sellcur']
+
+    if avg_sell:
+        delta = gol((100 * price / avg_sell) - 100)
+    else:
+        delta = '...'
+
+    print("{:8.2f}   sell: {:8.2f} {:8.2f} {:9.4f} {}".format(
+        price,
+        avg_sell,
+        cur['sellusd'], 
+        cur['sellcur'],
+        delta
+        ))
 
     if not cli_args.average:
         print("RECENT")
@@ -352,3 +370,4 @@ for exchange in sorted(history.keys()):
                 )
 
 
+clock("done")
