@@ -10,11 +10,14 @@ import logging
 import argparse
 import types
 import re
+import redis
 
 from operator import itemgetter
 from dateutil import parser
 from decimal import *
 getcontext().prec = 2
+
+r = redis.Redis('localhost', decode_responses=True)
 
 def hash(*kw):
     return hashlib.md5(json.dumps(kw).encode('utf-8')).hexdigest()
@@ -23,6 +26,7 @@ class bypass:
     def __init__(self, real):
         self.last = None
         self.real = real
+        self.ordercache = r.hgetall('coinhash')
 
     def clearcache(self, method, args):
        name = "cache/{}".format(hash(method, args))
@@ -43,33 +47,58 @@ class bypass:
             # We are going to skip over the caching system
             # until we figure out a bit more about how the 
             # system has changed
-            name = "cache/{}".format(hash(method, args))
+            key = hash(method, args)
+
+            name = "cache/{}".format(key)
             self.last = name
 
-            if cli_args.update:
-                self.clearcache(method, args)
+            # getorder for a specific order id *should* always
+            # return the same thing.
+            if method == 'get_order':
+                # we first try to get the value from the cache
+                try:
+                    data = self.ordercache.get(key)
+                    if data:
+                        return json.loads(data)
+                    else:
+                        data = getattr(self.real, method)(*args)
 
-            if not os.path.isfile(name):
-                logging.debug("need to cache ({}, {}) -> {}".format(method, args, name))
-                data = getattr(self.real, method)(*args)
+                        if isinstance(data, types.GeneratorType):
+                            data_list = [x for x in data]
+                            data = data_list
 
-                if isinstance(data, types.GeneratorType):
-                    data_list = [x for x in data]
-                    data = data_list
+                        r.hset('coinhash', key, json.dumps(data))
+                    return data
+
+
+                except Exception as ex:
+                    return getattr(self.real, method)(*args)
+
+            else:
+                if cli_args.update :
+                    self.clearcache(method, args)
+
+                if not os.path.isfile(name):
+                    logging.debug("need to cache ({}, {}) -> {}".format(method, args, name))
+                    data = getattr(self.real, method)(*args)
+
+                    if isinstance(data, types.GeneratorType):
+                        data_list = [x for x in data]
+                        data = data_list
+
+                    try:
+                        with open(name, 'w') as cache:
+                            json.dump(data, cache)
+                    except:
+                        logging.warning("Unable to cache: ({} {}), {} -> {}".format(method, *args, data, name))
 
                 try:
-                    with open(name, 'w') as cache:
-                        json.dump(data, cache)
-                except:
-                    logging.warning("Unable to cache: ({} {}), {} -> {}".format(method, *args, data, name))
+                    with open(name) as handle:
+                        return json.loads(handle.read())
 
-            try:
-                with open(name) as handle:
-                    return json.loads(handle.read())
-
-            except Exception as ex:
-                self.invalidate_last()
-                return getattr(self.real, method)(*args)
+                except Exception as ex:
+                    self.invalidate_last()
+                    return getattr(self.real, method)(*args)
 
         return cb
             
@@ -246,7 +275,7 @@ for exchange, cur in history.items():
 
         print("\tside  price  usd    amount date")
         for order in orderList:
-            logging.warning(order)
+            logging.debug(order)
             checkdate = order[4].strftime("%Y-%m-%d")
             kind = order[0]
 
