@@ -68,7 +68,18 @@ class bypass:
 
             # getorder for a specific order id *should* always
             # return the same thing.
-            if method == 'get_order':
+            if method == 'get_product_ticker':
+                data = r.get("cb:{}".format(key))
+                if not data:
+                    self.connect()
+                    data = getattr(self.real, method)(*args)
+
+                    r.set("cb:{}".format(key), json.dumps(data), 60 * 60)
+                else:
+                    data = json.loads(data)
+                return data
+
+            elif method == 'get_order':
                 # we first try to get the value from the cache
                 try:
                     data = self.ordercache.get(key)
@@ -278,11 +289,11 @@ for exchange in sorted(history.keys()):
 
     avg_buy = cur['buyusd'] / cur['buycur']
     print(" {:9} buy:  {:8.2f} {:8.2f} {:9.4f} {}".format(
-        exchange,
-        avg_buy,
-        cur['buyusd'], 
-        cur['buycur'],
-        gol((100 * price / avg_buy) - 100)
+            exchange,
+            avg_buy,
+            cur['buyusd'], 
+            cur['buycur'],
+            gol((100 * price / avg_buy) - 100)
         ))
 
     if cur['sellcur'] == 0:
@@ -295,15 +306,19 @@ for exchange in sorted(history.keys()):
     else:
         delta = '...'
 
-    print("{:8.2f}   sell: {:8.2f} {:8.2f} {:9.4f} {}".format(
-        price,
-        avg_sell,
-        cur['sellusd'], 
-        cur['sellcur'],
-        delta
+    print("{:8.2f}   sell: {:8.2f} {:8.2f} {:9.4f} {:6} {:>8.3f} ({:.2f})".format(
+            price,
+            avg_sell,
+            cur['sellusd'], 
+            cur['sellcur'],
+            delta,
+            cur['buycur'] - cur['sellcur'],
+            (cur['buycur'] - cur['sellcur']) * price
         ))
+    if cli_args.average:
+        print("")
 
-    if not cli_args.average:
+    else:
         print("RECENT")
         for row in cur['recent']:
             buy = 0
@@ -331,7 +346,7 @@ for exchange in sorted(history.keys()):
             accum = { 
                 'buy': {'usd': 0, 'cur': 0}, 
                 'sell': {'usd': 0, 'cur': 0}
-                }
+            }
 
             print("ALL")
             # unit price | how much spend | how much of unit
