@@ -11,6 +11,8 @@ import argparse
 import types
 import re
 import redis
+import time
+import datetime
 
 from operator import itemgetter
 from dateutil import parser
@@ -19,14 +21,29 @@ getcontext().prec = 2
 
 r = redis.Redis('localhost', decode_responses=True)
 
+START = time.time()
+LAST = START
+
+def clock(what):
+    global LAST
+    now = time.time()
+    print("TTL: {:4.5f} | DELTA: {:4.5f} | {}".format(now - START, now - LAST, what))
+    LAST = now
+    
 def hash(*kw):
     return hashlib.md5(json.dumps(kw).encode('utf-8')).hexdigest()
 
 class bypass:
-    def __init__(self, real):
+    def __init__(self, secret):
         self.last = None
-        self.real = real
+        self.real = None
+        self.secret = secret
         self.ordercache = r.hgetall('coinhash')
+
+    def connect():
+        if not self.real: 
+            self.real = cbpro.AuthenticatedClient(self.secret.key, self.secret.b64secret, self.secret.passphrase)
+        return self.real
 
     def clearcache(self, method, args):
        name = "cache/{}".format(hash(method, args))
@@ -49,9 +66,6 @@ class bypass:
             # system has changed
             key = hash(method, args)
 
-            name = "cache/{}".format(key)
-            self.last = name
-
             # getorder for a specific order id *should* always
             # return the same thing.
             if method == 'get_order':
@@ -61,6 +75,7 @@ class bypass:
                     if data:
                         return json.loads(data)
                     else:
+                        self.connect()
                         data = getattr(self.real, method)(*args)
 
                         if isinstance(data, types.GeneratorType):
@@ -72,14 +87,19 @@ class bypass:
 
 
                 except Exception as ex:
+                    self.connect()
                     return getattr(self.real, method)(*args)
 
             else:
+                name = "cache/{}".format(key)
+                self.last = name
+
                 if cli_args.update :
                     self.clearcache(method, args)
 
                 if not os.path.isfile(name):
                     logging.debug("need to cache ({}, {}) -> {}".format(method, args, name))
+                    self.connect()
                     data = getattr(self.real, method)(*args)
 
                     if isinstance(data, types.GeneratorType):
@@ -98,6 +118,7 @@ class bypass:
 
                 except Exception as ex:
                     self.invalidate_last()
+                    self.connect()
                     return getattr(self.real, method)(*args)
 
         return cb
@@ -149,9 +170,10 @@ def crawl():
             if not isinstance(order, dict):
                 continue
 
-            ix += 1
-            if cli_args.goback and ix > cli_args.goback:
-                continue
+            if cli_args.goback: 
+                ix += 1
+                if ix > cli_args.goback:
+                    continue
 
             if cli_args.query and order.get('details') and 'product_id' in order['details']:
                 if not re.search(cli_args.query, order['details']['product_id'], re.IGNORECASE):
@@ -168,6 +190,12 @@ def crawl():
                 print(details)
                 auth_client.invalidate_last()
                 continue
+
+            if cli_args.days:
+                if (datetime.datetime.now() - parser.parse(details['done_at']).replace(tzinfo=None)).days > cli_args.days:
+                    # this means break and go to the next exchange
+                    break
+
 
             if details['side'] == 'buy':
                 amount = float(details['executed_value']) + float(details['fill_fees'])
@@ -198,10 +226,11 @@ cli_parser.add_argument("--start", help="start value", default=100)
 cli_parser.add_argument("--step", help="start value", default=250)
 cli_parser.add_argument("--end", help="end value for analysis", default=4000)
 cli_parser.add_argument("--goback", help="How many orders to go back", default=0)
+cli_parser.add_argument("--days", help="How many days to go back", default=0)
 cli_parser.add_argument("--average", help="Just show the averages", action='store_true')
 cli_args = cli_parser.parse_args()
 
-for i in ['start','step','end','goback']:
+for i in ['start','step','end','goback', 'days']:
     setattr(cli_args, i, int(getattr(cli_args, i)))
 
 if cli_args.debug:
@@ -210,7 +239,7 @@ if cli_args.debug:
 else:
     logging.basicConfig(level=logging.WARNING)
 
-auth_client = bypass(cbpro.AuthenticatedClient(secret.key, secret.b64secret, secret.passphrase))
+auth_client = bypass(secret)
 account_list = auth_client.get_accounts()
 if type(account_list) is not list and account_list.get('message'):
     print(account_list)
@@ -219,30 +248,45 @@ if type(account_list) is not list and account_list.get('message'):
 
 logging.debug("Account list {}".format(account_list))
 
+clock("setup")
 history = {}
 historySet = set()
 crawl()
+clock("crawl")
 
-for exchange, cur in history.items():
+for exchange in sorted(history.keys()):
+    cur = history[exchange]
+    
     if cli_args.query:
         if not re.search(cli_args.query, exchange, re.IGNORECASE):
             continue
 
-    print(exchange)
     if cli_args.list:
+        print(exchange)
         continue
 
     try:
-        print("\tbuy:  {:.2f} {:7.2f} {:.4f}".format(
+        print("{:10} buy:  {:8.2f} {:8.2f} {:9.4f}".format(
+            exchange,
             cur['buyusd'] / cur['buycur'], 
             cur['buyusd'], 
             cur['buycur']))
 
-        print("\tsell: {:.2f} {:7.2f} {:.4f}".format(
-            cur['sellusd'] / cur['sellcur'], 
+        if cur['sellcur'] == 0:
+            l2 = 0
+        else:
+            l2 = cur['sellusd'] / cur['sellcur']
+
+        print("{} sell: {:8.2f} {:8.2f} {:9.4f}".format(
+            " " * 10,
+            l2,
             cur['sellusd'], 
             cur['sellcur']))
+    except:
+        continue
 
+    if not cli_args.average:
+        print("RECENT")
         for row in cur['recent']:
             buy = 0
             sell = 0
@@ -260,51 +304,51 @@ for exchange, cur in history.items():
                 sell, 
                 row['sellusd'])
             )
-    except:
-        pass
 
-    orderList = reversed(sorted(cur['all'], key=itemgetter(4)))
-    orderList = list(orderList)
+        orderList = reversed(sorted(cur['all'], key=itemgetter(4)))
+        orderList = list(orderList)
 
-    if len(list(orderList)) > 0:
-        curdate = orderList[0][4].strftime("%Y-%m-%d")
-        accum = { 
-            'buy': {'usd': 0, 'cur': 0}, 
-            'sell': {'usd': 0, 'cur': 0}
-            }
+        if len(list(orderList)) > 0:
+            curdate = orderList[0][4].strftime("%Y-%m-%d")
+            accum = { 
+                'buy': {'usd': 0, 'cur': 0}, 
+                'sell': {'usd': 0, 'cur': 0}
+                }
 
-        print("\tside  price  usd    amount date")
-        for order in orderList:
-            logging.debug(order)
-            checkdate = order[4].strftime("%Y-%m-%d")
-            kind = order[0]
+            print("ALL")
+            # unit price | how much spend | how much of unit
+            print("\tside   price  usd   amount date")
+            for order in orderList:
+                logging.debug(order)
+                checkdate = order[4].strftime("%Y-%m-%d")
+                kind = order[0]
 
-            if checkdate != curdate:
-                for which in ['buy', 'sell']:
-                    rate = 0
-                    if accum[which]['cur']:
-                        rate = accum[which]['usd'] / accum[which]['cur']
+                if checkdate != curdate:
+                    for which in ['buy', 'sell']:
+                        rate = 0
+                        if accum[which]['cur']:
+                            rate = accum[which]['usd'] / accum[which]['cur']
 
-                    print("\t\t{:4} {:8.0f} {:8.2f} {:8.4f} {}".format(
-                        which, 
-                        rate, 
-                        accum[which]['usd'], 
-                        accum[which]['cur'], 
-                        order[4].strftime("%Y-%m-%d"))
-                    )
+                        print("\t\t{:4} {:8.0f} {:8.2f} {:8.4f} {}".format(
+                            which, 
+                            rate, 
+                            accum[which]['usd'], 
+                            accum[which]['cur'], 
+                            order[4].strftime("%Y-%m-%d"))
+                        )
 
-                accum = { 'buy': {'usd': 0, 'cur': 0}, 'sell': {'usd': 0, 'cur': 0}}
-                print("\t\t-----")
-                curdate = checkdate
-            accum[kind]['usd'] += order[2]
-            accum[kind]['cur'] += order[3]
+                    accum = { 'buy': {'usd': 0, 'cur': 0}, 'sell': {'usd': 0, 'cur': 0}}
+                    print("\t\t-----")
+                    curdate = checkdate
+                accum[kind]['usd'] += order[2]
+                accum[kind]['cur'] += order[3]
 
-            print("\t{:4} {:5} {:7.2f} {:7.4f} {}".format(
-                kind, 
-                order[1], 
-                order[2], 
-                order[3], 
-                order[4].strftime("%Y-%m-%d %H:%M:%S"))
-            )
+                print("\t{:4} {:5} {:7.2f} {:7.4f} {}".format(
+                    kind, 
+                    order[1], 
+                    order[2], 
+                    order[3], 
+                    order[4].strftime("%Y-%m-%d %H:%M:%S"))
+                )
 
 
