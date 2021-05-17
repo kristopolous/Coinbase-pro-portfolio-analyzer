@@ -20,6 +20,9 @@ from decimal import *
 getcontext().prec = 2
 
 r = redis.Redis('localhost', decode_responses=True)
+history = {}
+historySet = set()
+balanceMap = {}
 
 START = time.time()
 LAST = START
@@ -30,6 +33,10 @@ def clock(what):
     print("TTL: {:4.5f} | DELTA: {:4.5f} | {}".format(now - START, now - LAST, what))
     LAST = now
     
+def gol(amount):
+    sign = '+' if amount >= 0 else ''
+    return "{}{:<4d}".format(sign, round(amount))
+
 def hash(*kw):
     return hashlib.md5(json.dumps(kw).encode('utf-8')).hexdigest()
 
@@ -172,11 +179,15 @@ def add(exchange, kind, rate, amount, size, date, obj):
         history[exchange]['all'].append([kind, round(float(rate)), amount, size, parser.parse(date)])
 
 def crawl():
-    ix = 0
     global cli_args
+    global balanceMap
+
+    ix = 0
     for account in account_list:
 
+        balanceMap[account['currency']] = float(account['balance'])
         history = auth_client.get_account_history(account['id'])
+
         for order in history:
             if not isinstance(order, dict):
                 continue
@@ -261,17 +272,14 @@ if type(account_list) is not list and account_list.get('message'):
 logging.debug("Account list {}".format(account_list))
 
 clock("setup")
-history = {}
-historySet = set()
 crawl()
 clock("crawl")
 
-def gol(amount):
-    sign = '+' if amount >= 0 else ''
-    return "{}{:<4d}".format(sign, round(amount))
 
 for exchange in sorted(history.keys()):
     cur = history[exchange]
+
+    unit = exchange.split('-')[0]
     
     if cli_args.query:
         if not re.search(cli_args.query, exchange, re.IGNORECASE):
@@ -285,15 +293,21 @@ for exchange in sorted(history.keys()):
         continue
 
     ticker = auth_client.get_product_ticker(exchange)
+    if not ticker.get('price'):
+        print(ticker)
+        continue
+
     price = float(ticker.get('price'))
 
     avg_buy = cur['buyusd'] / cur['buycur']
-    print(" {:9} buy:  {:8.2f} {:8.2f} {:9.4f} {}".format(
+    print(" {:9} buy:  {:8.2f} {:8.2f} {:9.4f} {:6} {:>8.3f} ({:.2f})".format(
             exchange,
             avg_buy,
             cur['buyusd'], 
             cur['buycur'],
-            gol((100 * price / avg_buy) - 100)
+            gol((100 * price / avg_buy) - 100),
+            balanceMap[unit], 
+            balanceMap[unit] * price, 
         ))
 
     if cur['sellcur'] == 0:
@@ -315,6 +329,7 @@ for exchange in sorted(history.keys()):
             cur['buycur'] - cur['sellcur'],
             (cur['buycur'] - cur['sellcur']) * price
         ))
+
     if cli_args.average:
         print("")
 
