@@ -27,6 +27,9 @@ balanceMap = {}
 START = time.time()
 LAST = START
 
+# a base64 uuidv4 to act as the redis prefix
+RPREFIX = 'JfB6wciaRLOrVqbMasWdXQ'
+
 def clock(what):
     global LAST
     now = time.time()
@@ -73,19 +76,19 @@ class bypass:
             # system has changed
             key = hash(method, args)
 
-            # getorder for a specific order id *should* always
-            # return the same thing.
-            if method == 'get_product_ticker':
-                data = r.get("cb:{}".format(key))
+            if method in ['get_product_ticker', 'get_accounts']:
+                data = r.get("{}:cb:{}".format(RPREFIX,key))
                 if not data:
                     self.connect()
                     data = getattr(self.real, method)(*args)
 
-                    r.set("cb:{}".format(key), json.dumps(data), 60 * 60)
+                    r.set("{}:cb:{}".format(RPREFIX, key), json.dumps(data), 60 * 60)
                 else:
                     data = json.loads(data)
                 return data
 
+            # getorder for a specific order id *should* always
+            # return the same thing.
             elif method == 'get_order':
                 # we first try to get the value from the cache
                 try:
@@ -257,9 +260,13 @@ for i in ['start','step','end','goback', 'days']:
 
 if cli_args.debug:
     logging.basicConfig(level=logging.DEBUG)
-
 else:
     logging.basicConfig(level=logging.WARNING)
+
+# we "expire" all the redis-cache expire items (prefixed with cb:)
+if cli_args.update:
+    for key in r.keys('{}:cb:*'.format(RPREFIX)):
+        r.delete(key)
 
 auth_client = bypass(secret)
 account_list = auth_client.get_accounts()
