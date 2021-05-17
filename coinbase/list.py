@@ -5,30 +5,26 @@ import cbpro
 import hashlib
 import json
 import sys
-import pdb
 import logging
 import argparse
 import types
 import re
 import redis
 import time
-import datetime
 
 from operator import itemgetter
 from dateutil import parser
 from decimal import *
 getcontext().prec = 2
 
-r = redis.Redis('localhost', decode_responses=True)
 history = {}
 historySet = set()
 balanceMap = {}
 
-START = time.time()
-LAST = START
-
 # a base64 uuidv4 to act as the redis prefix
 RPREFIX = 'JfB6wciaRLOrVqbMasWdXQ'
+START = time.time()
+LAST = START
 
 def clock(what):
     global LAST
@@ -182,6 +178,7 @@ def add(exchange, kind, rate, amount, size, date, obj):
         history[exchange]['all'].append([kind, round(float(rate)), amount, size, parser.parse(date)])
 
 def crawl():
+    import datetime
     global cli_args
     global balanceMap
 
@@ -268,6 +265,7 @@ if cli_args.update:
     for key in r.keys('{}:cb:*'.format(RPREFIX)):
         r.delete(key)
 
+r = redis.Redis('localhost', decode_responses=True)
 auth_client = bypass(secret)
 account_list = auth_client.get_accounts()
 
@@ -281,7 +279,6 @@ logging.debug("Account list {}".format(account_list))
 clock("setup")
 crawl()
 clock("crawl")
-
 
 for exchange in sorted(history.keys()):
     cur = history[exchange]
