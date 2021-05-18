@@ -48,6 +48,7 @@ class bypass:
 
     def connect(self):
         if not self.real: 
+            logging.debug("Connecting")
             self.real = cbpro.AuthenticatedClient(self.secret.key, self.secret.b64secret, self.secret.passphrase)
         return self.real
 
@@ -66,6 +67,10 @@ class bypass:
 
     def __getattr__(self, method):
         def cb(*args):
+            def runit():
+                self.connect()
+                return getattr(self.real, method)(*args)
+
             global cli_args
             # We are going to skip over the caching system
             # until we figure out a bit more about how the 
@@ -74,50 +79,40 @@ class bypass:
 
             if method in ['get_product_ticker', 'get_accounts']:
                 data = r.get("{}:cb:{}".format(RPREFIX,key))
-                if not data:
-                    self.connect()
-                    data = getattr(self.real, method)(*args)
+                if data:
+                    data = json.loads(data)
+                else:
+                    data = runit()
 
                     r.set("{}:cb:{}".format(RPREFIX, key), json.dumps(data), 60 * 60)
-                else:
-                    data = json.loads(data)
                 return data
 
             # getorder for a specific order id *should* always
             # return the same thing.
             elif method == 'get_order':
-                # we first try to get the value from the cache
-                try:
-                    data = self.ordercache.get(key)
-                    if data:
-                        return json.loads(data)
-                    else:
-                        self.connect()
-                        data = getattr(self.real, method)(*args)
+                data = self.ordercache.get(key)
+                if data:
+                    data = json.loads(data)
+                else:
+                    data = runit()
 
-                        if isinstance(data, types.GeneratorType):
-                            data_list = [x for x in data]
-                            data = data_list
+                    if isinstance(data, types.GeneratorType):
+                        data_list = [x for x in data]
+                        data = data_list
 
-                        r.hset('coinhash', key, json.dumps(data))
-                    return data
-
-
-                except Exception as ex:
-                    self.connect()
-                    return getattr(self.real, method)(*args)
+                    r.hset('coinhash', key, json.dumps(data))
+                return data
 
             else:
                 name = "cache/{}".format(key)
                 self.last = name
 
-                if cli_args.update :
+                if cli_args.update:
                     self.clearcache(method, args)
 
                 if not os.path.isfile(name):
                     logging.debug("need to cache ({}, {}) -> {}".format(method, args, name))
-                    self.connect()
-                    data = getattr(self.real, method)(*args)
+                    data = runit()
 
                     if isinstance(data, types.GeneratorType):
                         data_list = [x for x in data]
@@ -135,8 +130,7 @@ class bypass:
 
                 except Exception as ex:
                     self.invalidate_last()
-                    self.connect()
-                    return getattr(self.real, method)(*args)
+                    return runit()
 
         return cb
             
@@ -260,12 +254,12 @@ if cli_args.debug:
 else:
     logging.basicConfig(level=logging.WARNING)
 
+r = redis.Redis('localhost', decode_responses=True)
 # we "expire" all the redis-cache expire items (prefixed with cb:)
 if cli_args.update:
     for key in r.keys('{}:cb:*'.format(RPREFIX)):
         r.delete(key)
 
-r = redis.Redis('localhost', decode_responses=True)
 auth_client = bypass(secret)
 account_list = auth_client.get_accounts()
 
