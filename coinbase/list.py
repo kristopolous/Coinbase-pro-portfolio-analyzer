@@ -32,7 +32,16 @@ def clock(what):
     print("TTL: {:4.5f} | DELTA: {:4.5f} | {}".format(now - START, now - LAST, what))
     LAST = now
     
-def gol(amount):
+def gol(num, denom, zeroLists = []):
+    if not denom:
+        return '...'
+    amount = num / denom
+    amount -= 1
+    amount *= 100
+
+    if amount in zeroLists:
+        return '...'
+
     sign = '+' if amount >= 0 else ''
     return "{}{:<4d}".format(sign, round(amount)).strip()
 
@@ -303,7 +312,7 @@ for exchange in sorted(history.keys()):
             avg_buy,
             cur['buyusd'], 
             cur['buycur'],
-            gol((100 * price / avg_buy) - 100),
+            gol(price, avg_buy),
             balanceMap[unit], 
             balanceMap[unit] * price, 
         ))
@@ -313,17 +322,12 @@ for exchange in sorted(history.keys()):
     else:
         avg_sell = cur['sellusd'] / cur['sellcur']
 
-    if avg_sell:
-        delta = gol((100 * price / avg_sell) - 100)
-    else:
-        delta = '...'
-
     print("{:8.2f}   sell: {:8.2f} {:8.2f} {:9.4f} {:6} {:>8.3f} ({:.2f})".format(
             price,
             avg_sell,
             cur['sellusd'], 
             cur['sellcur'],
-            delta,
+            gol(price, avg_sell),
             cur['buycur'] - cur['sellcur'],
             (cur['buycur'] - cur['sellcur']) * price
         ))
@@ -336,10 +340,11 @@ for exchange in sorted(history.keys()):
     if breakeven > 200000 or breakeven < 0:
         breakeven = 0
 
-    print("{:>8.2f} {} {:>4} {:8.2f} ".format(
+    print("{:>8.2f} {:>6} {} {:>4} {:8.2f} ".format(
             breakeven,
-            " " * 11,
-            gol((100 * avg_sell / avg_buy) - 100),
+            gol(price, breakeven, [-100]),
+            " " * 4,
+            gol(avg_sell, avg_buy),
             cur['sellusd'] - cur['buyusd'], 
         ))
 
