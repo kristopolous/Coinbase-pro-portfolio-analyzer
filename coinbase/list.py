@@ -34,7 +34,7 @@ def clock(what):
     
 def gol(amount):
     sign = '+' if amount >= 0 else ''
-    return "{}{:<4d}".format(sign, round(amount))
+    return "{}{:<4d}".format(sign, round(amount)).strip()
 
 def hash(*kw):
     return hashlib.md5(json.dumps(kw).encode('utf-8')).hexdigest()
@@ -327,6 +327,22 @@ for exchange in sorted(history.keys()):
             cur['buycur'] - cur['sellcur'],
             (cur['buycur'] - cur['sellcur']) * price
         ))
+
+    if balanceMap[unit]:
+        breakeven = (cur['buyusd'] - cur['sellusd']) / balanceMap[unit]
+    else:
+        breakeven = 0
+
+    if breakeven > 200000 or breakeven < 0:
+        breakeven = 0
+
+    print("{:>8.2f} {} {:>4} {:8.2f} ".format(
+            breakeven,
+            " " * 11,
+            gol((100 * avg_sell / avg_buy) - 100),
+            cur['sellusd'] - cur['buyusd'], 
+        ))
+
 
     if cli_args.average:
         print("")
