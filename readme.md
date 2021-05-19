@@ -8,7 +8,7 @@ This tool seeks to do that without being too fancy. Let me show you an example:
 If I run the tool as such
 
 ```
-$ ./list.py --average
+$ ./cbport --average
 ```
 
 I'll get output like this (last one is a key)
@@ -116,3 +116,17 @@ Additionally:
  * My breakeven point to make that extra $0.25 back from the current $97.68 is currently impossible since my position is at 0.
 
 So if my investment goal was simply "make back principle" then I can claim success on this position.
+
+## Installation
+
+ 1. You'll need `redis` for the cache 
+ 2. Create a `secrets.py` file. 
+    * Look in the `coinbase` directory
+    * Copy `secrets.py.example` to `secrets.py`.
+    * Go to `https://www.coinbase.com/settings/api` and create an api key
+    * Insert the values into your secrets.py file.
+
+### Usage
+
+Use `./cbport --help`
+

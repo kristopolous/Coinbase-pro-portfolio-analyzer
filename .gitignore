@@ -1,5 +1,4 @@
 secret.py
-secret*
 *.pyc
 trades*txt
 order-history.json
