@@ -340,12 +340,18 @@ for exchange in sorted(history.keys()):
     if breakeven > 200000 or breakeven < 0:
         breakeven = 0
 
-    print("{:>8.2f} {:>6} {} {:>4} {:8.2f} ".format(
+    if balanceMap[unit] > 0:
+        liquidation_return = "{:9.2f}".format((balanceMap[unit] * price) + (cur['sellusd'] - cur['buyusd']))
+    else:
+        liquidation_return = '...'
+
+    print("{:>8.2f} {:>6} {} {:>4} {:8.2f} {:>9}".format(
             breakeven,
             gol(price, breakeven, [-100]),
             " " * 4,
-            gol(avg_sell, avg_buy),
+            gol(avg_sell, avg_buy, [-100]),
             cur['sellusd'] - cur['buyusd'], 
+            liquidation_return
         ))
 
 
