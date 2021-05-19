@@ -1,4 +1,4 @@
-# Coinbase pro portfolio analyzer
+# Coinbase Pro Portfolio Analyzer
 
 Coinbase doesn't really give great tools that allow you to make profit/loss judgements. 
 
@@ -30,7 +30,7 @@ I'll get output like this (last one is a key)
 ```
 
 Let me go over what this is, and yes I know this looks like a lot, but it's
-really not.  These all can be scoped bye a "region of interest" such as an
+really not.  These all can be scoped by a "region of interest" such as an
 amount of time, money, or starting from when your balance for a particular 
 currency was last at 0 (as in liquidated/empty).
 
