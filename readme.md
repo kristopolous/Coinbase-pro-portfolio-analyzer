@@ -73,7 +73,7 @@ trader lingo, if it helps.
 ### Row 3: action-centric
 
  * O - The break-even price needed to sell your existing position in COIN and make your principle USD back.
- * P - How far the current price is from your break-even.
+ * P - How far, as a percent, the current price is from your break-even.
  * Q - The percentage difference between your average sell and average buy (or ... if you haven't sold)
  * R - How much of your principle USD is still in the market 
  * S - What your total USD return would be if you sold all your COIN at the current price (profit/liquidation return)
