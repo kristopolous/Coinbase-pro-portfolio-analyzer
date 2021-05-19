@@ -108,7 +108,7 @@ I can see here that I
  1. Bought $303.21 worth of ATOM averaging $16.12. 
  2. Sold $302.95 averaging $20.75.
  3. Am down only $0.25 from my principle (the amount of money I put in). Effectively I got all my money back minus 25 cents.
- 4. transferred the remaining ATOM (about $95.78 worth) to somewhere else (in this case on regular coinbase for the staking reward).
+ 4. Transferred the remaining ATOM (about $95.78 worth) to somewhere else (in this case on regular coinbase for the staking reward).
 
 Additionally:
  
