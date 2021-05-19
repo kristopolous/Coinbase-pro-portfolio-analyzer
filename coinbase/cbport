@@ -9,7 +9,7 @@ import logging
 import argparse
 import types
 import re
-import redis
+import sqlite3
 import time
 
 from operator import itemgetter
@@ -21,10 +21,53 @@ history = {}
 historySet = set()
 balanceMap = {}
 
-# a base64 uuidv4 to act as the redis prefix
-RPREFIX = 'JfB6wciaRLOrVqbMasWdXQ'
 START = time.time()
 LAST = START
+DIR = "{}/{}".format(os.getenv("HOME"), '.cbport')
+
+_handle_cache = {}
+
+if not os.path.isdir(DIR):
+    os.mkdir(DIR)
+
+def all(handle, sql):
+    return handle['c'].execute(sql).fetchall()
+
+def one(handle, sql):
+    return handle['c'].execute(sql).fetchone()
+
+def sqlCursor(cur, createIfNotExists=True):
+    global _handle_cache
+
+    if not cur in _handle_cache:
+        sqlname = "{}/full.sql".format(DIR)
+
+        exists = os.path.exists(sqlname) and os.path.getsize(sqlname) > 10000
+
+        if not createIfNotExists and not exists:
+            return Null
+
+        conn = sqlite3.connect(sqlname)
+        c = conn.cursor()
+
+        if not exists:
+            c.execute('''CREATE TABLE IF NOT EXISTS cache (
+                    key text unique,
+                    type text,
+                    value text,
+                    date integer)''')
+
+            #c.execute('CREATE UNIQUE INDEX idx_history_gid ON history (gid)');
+            #c.execute('create index idx_date on history(date)');
+
+            conn.commit()
+
+        _handle_cache[cur] = {
+          'c': c,
+          'conn': conn
+        }
+
+    return _handle_cache[cur]
 
 def clock(what):
     global LAST
@@ -159,7 +202,7 @@ def add(exchange, kind, rate, amount, size, date, obj):
             'buyusd': 0, 
             'sellcur': 0, 
             'sellusd': 0
-        }, range(cli_args.start, cli_args.end, cli_args.step)))
+        }, range(0, cli_args.end, cli_args.step)))
 
     if obj['id'] not in historySet:
         historySet.add(obj['id'])
@@ -185,7 +228,6 @@ def crawl():
     global cli_args
     global balanceMap
 
-    ix = 0
     for account in account_list:
 
         balanceMap[account['currency']] = float(account['balance'])
@@ -195,10 +237,6 @@ def crawl():
             if not isinstance(order, dict):
                 continue
 
-            if cli_args.goback: 
-                ix += 1
-                if ix > cli_args.goback:
-                    continue
 
             if cli_args.query and order.get('details') and 'product_id' in order['details']:
                 if not re.search(cli_args.query, order['details']['product_id'], re.IGNORECASE):
@@ -243,22 +281,22 @@ def crawl():
                 obj = details)
 
 cli_parser = argparse.ArgumentParser(description='Coinbase pro portfolio tools.')
+cli_parser.add_argument("--fromzero", help="Only consider trades since the last liquidated (< $0.50 holding) position", default=0)
+cli_parser.add_argument("-d", "--days", help="How many days to go back (default: all)", default=0)
 cli_parser.add_argument("-q", "--query", help="only show exchanges that match a regex")
-cli_parser.add_argument("--average", help="Just show the averages", action='store_true')
-cli_parser.add_argument("--list", help="List exchanges you're active in", action='store_true')
-cli_parser.add_argument("--update", help="Update the cache", action='store_true')
-cli_parser.add_argument("--debug", help="Verbose", action='store_true')
+cli_parser.add_argument("-u", "--update", help="Update/invalidate the cache", action='store_true')
+cli_parser.add_argument("-v", "--verbose", help="Debugging messages", action='store_true')
+cli_parser.add_argument("-a", "--average", help="Just show the averages", action='store_true')
+cli_parser.add_argument("-l", "--list", help="List exchanges for the specified period", action='store_true')
 cli_parser.add_argument("--start", help="Start value", default=100)
 cli_parser.add_argument("--step", help="Step value", default=250)
 cli_parser.add_argument("--end", help="End value for analysis", default=4000)
-cli_parser.add_argument("--goback", help="How many orders to go back", default=0)
-cli_parser.add_argument("--days", help="How many days to go back", default=0)
 cli_args = cli_parser.parse_args()
 
-for i in ['start','step','end','goback', 'days']:
+for i in ['step','end', 'days']:
     setattr(cli_args, i, int(getattr(cli_args, i)))
 
-if cli_args.debug:
+if cli_args.verbose:
     logging.basicConfig(level=logging.DEBUG)
 else:
     logging.basicConfig(level=logging.WARNING)
