@@ -29,7 +29,7 @@ LAST = START
 def clock(what):
     global LAST
     now = time.time()
-    print("TTL: {:4.5f} | DELTA: {:4.5f} | {}".format(now - START, now - LAST, what))
+    logging.info("TTL: {:4.5f} | DELTA: {:4.5f} | {}".format(now - START, now - LAST, what))
     LAST = now
     
 def gol(num, denom, zeroLists = []):
