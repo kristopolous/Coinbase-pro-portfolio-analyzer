@@ -7,7 +7,9 @@ This tool seeks to do that without being too fancy. Let me show you an example:
 
 If I run the tool as such
 
+```
 $ ./list.py --average
+```
 
 I'll get output like this (last one is a guide)
 
@@ -33,7 +35,7 @@ really not.  These all can be scoped bye a "region of interest" such as an
 amount of time, money, or starting from when your balance for a particular 
 currency was last at 0 (as in liquidated/empty).
 
-Notes: 
+**Notes:** 
 
 The right hand side of the exchange we'll be calling dollars here but it works
 for any exchange (such as BTC-ETH for instance). It's a shorthand for the 
