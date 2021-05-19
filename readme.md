@@ -123,8 +123,8 @@ So if my investment goal was simply "make back principle" then I can claim succe
  2. Create a `secrets.py` file. 
     * Look in the `coinbase` directory
     * Copy `secrets.py.example` to `secrets.py`.
-    * Go to `https://www.coinbase.com/settings/api` and create an api key
-    * Insert the values into your secrets.py file.
+    * Go to [https://www.coinbase.com/settings/api](https://www.coinbase.com/settings/api) to create an API key.
+    * Insert the values into your `secrets.py` file.
 
 ### Usage
 
