@@ -91,7 +91,8 @@ For instance:
  * If I liquidated my position I'd walk away losing $26.02 (loss)
 
 A note about (M), I had transferred 92.282 - 77.787 (14.544) NU in from somewhere else. This calculation
-can remind me either that I have placed stuff you put in coinbase elsewhere or you brought it in.
+can remind you either that you have transferred out some COIN quantity you bought in coinbasepro or that 
+you've brought in some COIN quantity from somewhere else (another exchange/private wallet/reward, etc).
 
 It also allows you to do computation say if you bought LTC on coinbase and then put it over to say, regular
 Coinbase, Celsius or Blockfi. For instance, Coinbase offers a staking reward for ATOM so I'll see this:
