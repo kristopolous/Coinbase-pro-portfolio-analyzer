@@ -108,11 +108,11 @@ I can see here that I
  1. Bought $303.21 worth of ATOM averaging $16.12. 
  2. Sold $302.95 averaging $20.75.
  3. Am down only $0.25 from my principle (the amount of money I put in). Effectively I got all my money back minus 25 cents.
- 4. Transferred the remaining ATOM (about $95.78 worth) to somewhere else (in this case on regular coinbase for the staking reward).
+ 4. Transferred the remaining ATOM (about $97.68 worth) to somewhere else (in this case on regular coinbase for the staking reward).
 
 Additionally:
  
  * The overall profit of all my trades so far is +29% (bought things at $16.12, sold them at $20.75).
- * My breakeven point to make that extra $0.25 back from the current $95.78 I have out of the exchange is effectively 0.
+ * My breakeven point to make that extra $0.25 back from the current $97.68 is currently impossible since my position is at 0.
 
 So if my investment goal was simply "make back principle" then I can claim success on this position.
