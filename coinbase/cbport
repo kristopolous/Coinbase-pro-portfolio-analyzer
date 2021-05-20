@@ -78,7 +78,9 @@ class bypass:
         def cb(*args):
             def runit():
                 self.connect()
-                return getattr(self.real, method)(*args)
+                res = getattr(self.real, method)(*args)
+                #print(method, *args, res)
+                return res
 
             global cli_args
             # We are going to skip over the caching system
@@ -194,7 +196,6 @@ def crawl():
             if not isinstance(order, dict):
                 continue
 
-
             if cli_args.query and order.get('details') and 'product_id' in order['details']:
                 if not re.search(cli_args.query, order['details']['product_id'], re.IGNORECASE):
                     continue
@@ -306,8 +307,8 @@ for exchange in sorted(history.keys()):
         bal = "{:>8.3f}".format(balanceMap[unit])
         bal_usd = "{:.2f}".format(balanceMap[unit] * price)
     else:
-        bal = "{:>8}".format('---')
-        bal_usd = "{:5}".format('---')
+        bal = "{:>8}".format('...')
+        bal_usd = "{:5}".format('...')
     
     print(" {:9} buy:  {:8.2f} {:8.2f} {:9.4f} {:6} {} ({})".format(
             exchange,
@@ -339,16 +340,19 @@ for exchange in sorted(history.keys()):
     else:
         breakeven = 0
 
-    if breakeven > 200000 or breakeven < 0:
+    if breakeven > 200000 or breakeven < 0.001:
         breakeven = 0
+        break_str = "{:>8}".format("...")
+    else:
+        break_str = "{:>8.2f}".format(breakeven)
 
     if balanceMap[unit] > 0:
         liquidation_return = "{:9.2f}".format((balanceMap[unit] * price) + (cur['sellusd'] - cur['buyusd']))
     else:
         liquidation_return = '...'
 
-    print("{:>8.2f} {:>6} {} {:>4} {:8.2f} {:>9}".format(
-            breakeven,
+    print("{} {:>6} {} {:>4} {:8.2f} {:>9}".format(
+            break_str,
             gol(price, breakeven, [-100]),
             " " * 4,
             gol(avg_sell, avg_buy, [-100]),
