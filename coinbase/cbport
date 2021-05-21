@@ -303,7 +303,7 @@ for exchange in sorted(history.keys()):
     price = float(ticker.get('price'))
 
     avg_buy = cur['buyusd'] / cur['buycur']
-    if balanceMap[unit] > 0.5:
+    if balanceMap[unit] * price > 0.5:
         bal = "{:>8.3f}".format(balanceMap[unit])
         bal_usd = "{:.2f}".format(balanceMap[unit] * price)
     else:
