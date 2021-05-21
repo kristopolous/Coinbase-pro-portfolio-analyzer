@@ -236,7 +236,7 @@ def crawl():
             size = float(details['filled_size'])
 
             exchange = details['product_id']
-            r.sadd('{}:cb:exchange', exchange)
+            r.sadd('{}:cb:exchange'.format(RPREFIX), exchange)
 
             if cli_args.combine and 'USDC' in details['product_id']:
                 proposed_combine = exchange.replace('USDC', 'USD')
@@ -275,9 +275,9 @@ else:
     logging.basicConfig(level=logging.WARNING)
 
 r = redis.Redis('localhost', decode_responses=True)
-# we "expire" all the redis-cache expire items (prefixed with cb:)
-seen_exchanges = r.smembers('{}:cb:exchange')
+seen_exchanges = r.smembers('{}:cb:exchange'.format(RPREFIX))
 
+# we "expire" all the redis-cache expire items (prefixed with cb:)
 if cli_args.update:
     for key in r.keys('{}:cb:*'.format(RPREFIX)):
         r.delete(key)
@@ -315,8 +315,8 @@ for exchange in sorted(history.keys()):
         print(exchange)
         continue
 
-    if cur['buycur'] == 0:
-        continue
+    #if cur['buycur'] == 0:
+    #    continue
 
     ticker = auth_client.get_product_ticker(exchange)
     if not ticker.get('price'):
@@ -325,7 +325,8 @@ for exchange in sorted(history.keys()):
     else:
         price = float(ticker.get('price'))
 
-    avg_buy = cur['buyusd'] / cur['buycur']
+    avg_buy = cur['buyusd'] / cur['buycur'] if cur['buycur'] > 0 else 0
+
     if balanceMap[unit] * price > 0.5:
         bal = "{:>8.3f}".format(balanceMap[unit])
         bal_usd = "{:.2f}".format(balanceMap[unit] * price)
@@ -344,10 +345,7 @@ for exchange in sorted(history.keys()):
             bal_usd
         ))
 
-    if cur['sellcur'] == 0:
-        avg_sell = 0
-    else:
-        avg_sell = cur['sellusd'] / cur['sellcur']
+    avg_sell = cur['sellusd'] / cur['sellcur'] if cur['sellcur'] > 0 else 0
 
     print("{:8.2f}   sell: {:8.2f} {:8.2f} {:9.4f} {:6} {:>8.3f} ({:.2f})".format(
             price,
@@ -404,11 +402,15 @@ for exchange in sorted(history.keys()):
             if row['sellcur'] > 0:
                 sell = row['sellusd'] / row['sellcur']
 
+            if buy > 0:
+                frac = 100 * ((sell / buy) - 1)
+            else:
+                frac = 0
             print("\t{:4} buy:  {:.2f} {:.2f} {:.4f} \n\t     sell: {:.2f} {:.2f}\n".format(
                 row['ttl'], 
                 buy, 
                 row['buyusd'], 
-                100 * ((sell / buy) - 1), 
+                frac,
                 sell, 
                 row['sellusd'])
             )
