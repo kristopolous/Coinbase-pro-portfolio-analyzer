@@ -11,6 +11,8 @@ import types
 import re
 import redis
 import time
+import locale
+locale.setlocale(locale.LC_ALL, '')
 
 from operator import itemgetter
 from dateutil import parser
@@ -32,6 +34,9 @@ def clock(what):
     logging.info("TTL: {:4.5f} | DELTA: {:4.5f} | {}".format(now - START, now - LAST, what))
     LAST = now
     
+def bign(what):
+    return locale.format_string('%.2f', what, grouping=True)
+
 def gol(num, denom, zeroLists = []):
     if not denom:
         return '...'
@@ -230,7 +235,16 @@ def crawl():
 
             size = float(details['filled_size'])
 
-            add(exchange = details['product_id'], 
+            exchange = details['product_id']
+            r.sadd('{}:cb:exchange', exchange)
+
+            if cli_args.combine and 'USDC' in details['product_id']:
+                proposed_combine = exchange.replace('USDC', 'USD')
+                # only combine if the other exchange actually exists.
+                if proposed_combine in seen_exchanges:
+                    exchange = proposed_combine
+
+            add(exchange = exchange,
                 kind = details['side'], 
                 amount = amount, 
                 date = details['done_at'], 
@@ -246,6 +260,7 @@ cli_parser.add_argument("-u", "--update", help="Update/invalidate the cache", ac
 cli_parser.add_argument("-v", "--verbose", help="Debugging messages", action='store_true')
 cli_parser.add_argument("-a", "--average", help="Just show the averages", action='store_true')
 cli_parser.add_argument("-l", "--list", help="List exchanges for the specified period", action='store_true')
+cli_parser.add_argument("-c", "--combine", help="Combine USDC and USD markets as one grouping", action='store_true')
 cli_parser.add_argument("--start", help="Start value", default=100)
 cli_parser.add_argument("--step", help="Step value", default=250)
 cli_parser.add_argument("--end", help="End value for analysis", default=4000)
@@ -261,6 +276,8 @@ else:
 
 r = redis.Redis('localhost', decode_responses=True)
 # we "expire" all the redis-cache expire items (prefixed with cb:)
+seen_exchanges = r.smembers('{}:cb:exchange')
+
 if cli_args.update:
     for key in r.keys('{}:cb:*'.format(RPREFIX)):
         r.delete(key)
@@ -279,6 +296,12 @@ clock("setup")
 crawl()
 clock("crawl")
 
+ttl = {
+    'buy': 0,
+    'sell': 0,
+    'bal': 0,
+    'derived': 0
+}
 for exchange in sorted(history.keys()):
     cur = history[exchange]
 
@@ -297,10 +320,10 @@ for exchange in sorted(history.keys()):
 
     ticker = auth_client.get_product_ticker(exchange)
     if not ticker.get('price'):
-        print(ticker)
-        continue
-
-    price = float(ticker.get('price'))
+        print("Note: Unable to get price for {}: {}. Using $1.00 for now".format(exchange, ticker))
+        price = 1.00
+    else:
+        price = float(ticker.get('price'))
 
     avg_buy = cur['buyusd'] / cur['buycur']
     if balanceMap[unit] * price > 0.5:
@@ -310,7 +333,8 @@ for exchange in sorted(history.keys()):
         bal = "{:>8}".format('...')
         bal_usd = "{:5}".format('...')
     
-    print(" {:9} buy:  {:8.2f} {:8.2f} {:9.4f} {:6} {} ({})".format(
+
+    print("{:10} buy:  {:8.2f} {:8.2f} {:9.4f} {:6} {} ({})".format(
             exchange,
             avg_buy,
             cur['buyusd'], 
@@ -360,6 +384,11 @@ for exchange in sorted(history.keys()):
             liquidation_return
         ))
 
+
+    ttl['buy'] += cur['buyusd']
+    ttl['sell'] += cur['sellusd']
+    ttl['bal'] += balanceMap[unit] * price
+    ttl['derived'] += (cur['buycur'] - cur['sellcur']) * price
 
     if cli_args.average:
         print("")
@@ -430,5 +459,20 @@ for exchange in sorted(history.keys()):
                     order[4].strftime("%Y-%m-%d %H:%M:%S"))
                 )
 
+
+print("""TOTAL: 
+ bought: {:>10}
+   sold: {:>10}
+    p/l: {:>10}
+--
+    bal: {:>10}
+derived: {:>10}
+""".format(
+    bign(ttl['buy']),
+    bign(ttl['sell']),
+    bign(ttl['sell'] - ttl['buy']),
+    bign(ttl['bal']),
+    bign(ttl['derived'])
+    ))
 
 clock("done")
