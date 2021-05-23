@@ -185,7 +185,13 @@ def add(exchange, kind, rate, amount, size, date, obj):
                 row[usd] += amount
                 row[checker] -= amount
 
-        history[exchange]['all'].append([kind, round(float(rate)), amount, size, parser.parse(date)])
+        history[exchange]['all'].append({
+            'side': kind, 
+            'price': float(rate), 
+            'amount': amount, 
+            'size': size, 
+            'date': parser.parse(date)
+        })
 
 def crawl():
     import datetime
@@ -336,26 +342,26 @@ for exchange in sorted(history.keys()):
     
 
     print("{:10} buy:  {:8.2f} {:8.2f} {:9.4f} {:6} {} ({})".format(
-            exchange,
-            avg_buy,
-            cur['buyusd'], 
-            cur['buycur'],
-            gol(price, avg_buy),
-            bal,
-            bal_usd
-        ))
+        exchange,
+        avg_buy,
+        cur['buyusd'], 
+        cur['buycur'],
+        gol(price, avg_buy),
+        bal,
+        bal_usd
+    ))
 
     avg_sell = cur['sellusd'] / cur['sellcur'] if cur['sellcur'] > 0 else 0
 
     print("{:8.2f}   sell: {:8.2f} {:8.2f} {:9.4f} {:6} {:>8.3f} ({:.2f})".format(
-            price,
-            avg_sell,
-            cur['sellusd'], 
-            cur['sellcur'],
-            gol(price, avg_sell),
-            cur['buycur'] - cur['sellcur'],
-            (cur['buycur'] - cur['sellcur']) * price
-        ))
+        price,
+        avg_sell,
+        cur['sellusd'], 
+        cur['sellcur'],
+        gol(price, avg_sell),
+        cur['buycur'] - cur['sellcur'],
+        (cur['buycur'] - cur['sellcur']) * price
+    ))
 
     if balanceMap[unit]:
         breakeven = (cur['buyusd'] - cur['sellusd']) / balanceMap[unit]
@@ -415,11 +421,11 @@ for exchange in sorted(history.keys()):
                 row['sellusd'])
             )
 
-        orderList = reversed(sorted(cur['all'], key=itemgetter(4)))
+        orderList = reversed(sorted(cur['all'], key=itemgetter('date')))
         orderList = list(orderList)
 
         if len(list(orderList)) > 0:
-            curdate = orderList[0][4].strftime("%Y-%m-%d")
+            curdate = orderList[0].get('date').strftime("%Y-%m-%d")
             accum = { 
                 'buy': {'usd': 0, 'cur': 0}, 
                 'sell': {'usd': 0, 'cur': 0}
@@ -430,8 +436,8 @@ for exchange in sorted(history.keys()):
             print("\tside   price  usd   amount date")
             for order in orderList:
                 logging.debug(order)
-                checkdate = order[4].strftime("%Y-%m-%d")
-                kind = order[0]
+                checkdate = order.get('date').strftime("%Y-%m-%d")
+                kind = order.get('side')
 
                 if checkdate != curdate:
                     for which in ['buy', 'sell']:
@@ -439,26 +445,36 @@ for exchange in sorted(history.keys()):
                         if accum[which]['cur']:
                             rate = accum[which]['usd'] / accum[which]['cur']
 
-                        print("\t\t{:4} {:8.0f} {:8.2f} {:8.4f} {}".format(
+                        if rate > 1000:
+                            rate_str = "{:8.2f}".format(rate)
+                            #rate_str = "{:8.0f}".format(rate)
+                        else:
+                            rate_str = "{:8.2f}".format(rate)
+    
+                        print("\t\t{:4} {} {:8.2f} {:8.4f} {}".format(
                             which, 
-                            rate, 
+                            rate_str, 
                             accum[which]['usd'], 
                             accum[which]['cur'], 
-                            order[4].strftime("%Y-%m-%d"))
+                            order.get('date').strftime("%Y-%m-%d"))
                         )
 
-                    accum = { 'buy': {'usd': 0, 'cur': 0}, 'sell': {'usd': 0, 'cur': 0}}
+                    accum = { 
+                        'buy': {'usd': 0, 'cur': 0}, 
+                        'sell': {'usd': 0, 'cur': 0}
+                    }
                     print("\t\t-----")
                     curdate = checkdate
-                accum[kind]['usd'] += order[2]
-                accum[kind]['cur'] += order[3]
 
-                print("\t{:4} {:5} {:7.2f} {:7.4f} {}".format(
+                accum[kind]['usd'] += order.get('price')
+                accum[kind]['cur'] += order.get('amount')
+
+                print("\t{:4} {:7.2f} {:7.2f} {:7.4f} {}".format(
                     kind, 
-                    order[1], 
-                    order[2], 
-                    order[3], 
-                    order[4].strftime("%Y-%m-%d %H:%M:%S"))
+                    order.get('price'),
+                    order.get('amount'),
+                    order.get('size'),
+                    order.get('date').strftime("%Y-%m-%d %H:%M:%S"))
                 )
 
 
