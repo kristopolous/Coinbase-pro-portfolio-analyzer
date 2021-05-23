@@ -431,9 +431,8 @@ for exchange in sorted(history.keys()):
                 'sell': {'usd': 0, 'cur': 0}
             }
 
-            print("ALL")
             # unit price | how much spend | how much of unit
-            print("\tside   price  usd   amount date")
+            print("---\t{:4} {:>7} {:>7} {:>7} {}".format("side","price","usd","amount","date"))
             for order in orderList:
                 logging.debug(order)
                 checkdate = order.get('date').strftime("%Y-%m-%d")
