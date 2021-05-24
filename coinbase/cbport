@@ -2,6 +2,7 @@
 import secret
 import os
 import cbpro 
+import math
 import hashlib
 import json
 import sys
@@ -9,9 +10,11 @@ import logging
 import argparse
 import types
 import re
-import redis
+import sqlite3
 import time
 import locale
+import redis
+from bson import json_util
 locale.setlocale(locale.LC_ALL, '')
 
 from operator import itemgetter
@@ -22,11 +25,63 @@ getcontext().prec = 2
 history = {}
 historySet = set()
 balanceMap = {}
+_handle = None
 
-# a base64 uuidv4 to act as the redis prefix
 RPREFIX = 'JfB6wciaRLOrVqbMasWdXQ'
 START = time.time()
 LAST = START
+DIR = "{}/{}".format(os.getenv("HOME"), '.cbport')
+
+if not os.path.isdir(DIR):
+    os.mkdir(DIR)
+
+def all(handle, sql):
+    return sqlCursor().get('c').execute(sql).fetchall()
+
+def one(sql):
+    return sqlCursor().get('c').execute(sql).fetchone()
+
+def sqlCursor(createIfNotExists=True):
+    global _handle
+
+    if not _handle:
+        sqlname = "{}/full.sql".format(DIR)
+
+        exists = os.path.exists(sqlname) and os.path.getsize(sqlname) > 10000
+
+        if not createIfNotExists and not exists:
+            return Null
+
+        conn = sqlite3.connect(sqlname)
+        c = conn.cursor()
+
+        if not exists:
+            c.execute('''CREATE TABLE IF NOT EXISTS trade (
+                    hash text unique,
+                    exchange text,
+                    side text,
+                    price float,
+                    amount float,
+                    size float,
+                    date integer
+                    )''')
+
+            c.execute('''CREATE TABLE IF NOT EXISTS cache (
+                    hash text unique,
+                    type text,
+                    value text,
+                    date integer)''')
+
+            c.execute('create index idx_exchange on trade(exchange)');
+
+            conn.commit()
+
+        _handle = {
+          'c': c,
+          'conn': conn
+        }
+
+    return _handle
 
 def clock(what):
     global LAST
@@ -94,13 +149,14 @@ class bypass:
             key = hash(method, args)
 
             if method in ['get_product_ticker', 'get_accounts']:
+
                 data = r.get("{}:cb:{}".format(RPREFIX,key))
                 if data:
                     data = json.loads(data)
                 else:
                     data = runit()
 
-                    r.set("{}:cb:{}".format(RPREFIX, key), json.dumps(data), 60 * 60)
+                    r.set("{}:cb:{}".format(RPREFIX, key), json.dumps(data, default=json_util.default), 60 * 60)
                 return data
 
             # getorder for a specific order id *should* always
@@ -116,7 +172,7 @@ class bypass:
                         data_list = [x for x in data]
                         data = data_list
 
-                    r.hset('coinhash', key, json.dumps(data))
+                    r.hset('coinhash', key, json.dumps(data, default=json_util.default))
                 return data
 
             else:
@@ -129,10 +185,12 @@ class bypass:
                 if not os.path.isfile(name):
                     logging.debug("need to cache ({}, {}) -> {}".format(method, args, name))
                     data = runit()
+                    print(method, data)
 
                     if isinstance(data, types.GeneratorType):
                         data_list = [x for x in data]
                         data = data_list
+                        print(method, data)
 
                     try:
                         with open(name, 'w') as cache:
@@ -267,6 +325,7 @@ cli_parser.add_argument("-v", "--verbose", help="Debugging messages", action='st
 cli_parser.add_argument("-a", "--average", help="Just show the averages", action='store_true')
 cli_parser.add_argument("-l", "--list", help="List exchanges for the specified period", action='store_true')
 cli_parser.add_argument("-c", "--combine", help="Combine USDC and USD markets as one grouping", action='store_true')
+cli_parser.add_argument("-g", "--graph", help="Unicode price graph", action='store_true')
 cli_parser.add_argument("--start", help="Start value", default=100)
 cli_parser.add_argument("--step", help="Step value", default=250)
 cli_parser.add_argument("--end", help="End value for analysis", default=4000)
@@ -308,8 +367,56 @@ ttl = {
     'bal': 0,
     'derived': 0
 }
+
+# We want to normalize all the graphs unlike some tools
+# that just do self-referential floating graphs .. those are dumb
+if cli_args.graph:
+    hist_24hr = {}
+    max_delta = 0
+
+    for exchange in sorted(history.keys()):
+        res = auth_client.get_product_24hr_stats(exchange)
+        for i in ['open','high','low','last']:
+            res[i] = float(res.get(i))
+
+        res['delta'] = res['high'] / res['low'] - 1
+        hist_24hr[exchange] = res
+        max_delta = max(max_delta, res['delta'])
+
+draw = [chr(x) for x in range(ord('\U0001FB75'), ord('\U0001FB7D'))]
+draw[0] = "\u2594"
+draw[7] = "\u2581"
+
+res = 32
 for exchange in sorted(history.keys()):
     cur = history[exchange]
+
+
+    hist = hist_24hr[exchange]
+
+    g = []
+    for i in range(8):
+        g.append([' ', ' '])
+
+    hist_frac = round(res * (hist['delta']))
+    open_pos = hist_frac - round(res * (hist['open'] / hist['low'] - 1))
+    last_pos = hist_frac - round(res * (hist['last'] / hist['low'] - 1))
+
+    g[math.floor(hist_frac / 8)][0] =draw[hist_frac % 8]
+    g[math.floor(open_pos / 8)][0] = draw[open_pos % 8]
+    g[math.floor(last_pos / 8)][1] = draw[last_pos % 8]
+    g = [''.join(x) for x in g]
+
+    """
+    print(hist_frac, open_pos, last_pos, 
+    hist['high'] / hist['low'],
+    hist['last'] / hist['low'],
+    hist['open'], hist['last'], hist['low'], hist['high'])
+    print(hist)
+    """
+
+
+
 
     unit = exchange.split('-')[0]
     
@@ -341,7 +448,8 @@ for exchange in sorted(history.keys()):
         bal_usd = "{:5}".format('...')
     
 
-    print("{:10} buy:  {:8.2f} {:8.2f} {:9.4f} {:6} {} ({})".format(
+    print("{}{:10} buy:  {:8.2f} {:8.2f} {:9.4f} {:6} {} ({})".format(
+        g[0],
         exchange,
         avg_buy,
         cur['buyusd'], 
@@ -353,7 +461,8 @@ for exchange in sorted(history.keys()):
 
     avg_sell = cur['sellusd'] / cur['sellcur'] if cur['sellcur'] > 0 else 0
 
-    print("{:8.2f}   sell: {:8.2f} {:8.2f} {:9.4f} {:6} {:>8.3f} ({:.2f})".format(
+    print("{}{:8.2f}   sell: {:8.2f} {:8.2f} {:9.4f} {:6} {:>8.3f} ({:.2f})".format(
+        g[1],
         price,
         avg_sell,
         cur['sellusd'], 
@@ -379,7 +488,8 @@ for exchange in sorted(history.keys()):
     else:
         liquidation_return = '...'
 
-    print("{} {:>6} {} {:>4} {:8.2f} {:>9}".format(
+    print("{}{} {:>6} {} {:>4} {:8.2f} {:>9}".format(
+            g[2],
             break_str,
             gol(price, breakeven, [-100]),
             " " * 4,
@@ -395,7 +505,7 @@ for exchange in sorted(history.keys()):
     ttl['derived'] += (cur['buycur'] - cur['sellcur']) * price
 
     if cli_args.average:
-        print("")
+        print(g[3])
 
     else:
         print("RECENT")
