@@ -155,8 +155,9 @@ has the largest delta. The first column is open, second is low, third is last. T
 So that means that in this example both SUSHI and TRB are up. On a percentage points basis, SUSHI is up more than TRB (you can see that
 in the `T` labeled field as well)
 
+```
 $ cbport -cgad 300
-
+```
 ![graph](https://raw.githubusercontent.com/kristopolous/Coinbase-pro-portfolio-analyzer/master/res.png)
 
 # Installation
