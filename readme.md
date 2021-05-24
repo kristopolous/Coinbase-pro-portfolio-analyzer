@@ -5,15 +5,11 @@ Coinbase doesn't really give great tools that allow you to make profit/loss judg
 This tool seeks to do that without being too fancy. Let me show you an example:
 
 
+## Summary (average) view
 If I run the tool as such
 
 ```
-$ ./cbport --average
-```
-
-I'll get output like this (last one is a key)
-
-```
+$ ./cbport -a
 ...
  NU-USD    buy:      0.51    91.52  181.1291 -21      92.282 (36.98)
     0.40   sell:     0.69    71.79  103.3419 -42      77.787 (31.17)
@@ -111,6 +107,13 @@ I can see here that I
  3. Am down only $0.25 from my principle (the amount of money I put in). Effectively I got all my money back minus 25 cents.
  4. Transferred the remaining ATOM (about $97.68 worth) to somewhere else (in this case on regular coinbase for the staking reward).
 
+Additionally:
+ 
+ * The overall profit of all my trades so far is +29% (bought things at $16.12, sold them at $20.75).
+ * My breakeven point to make that extra $0.25 back from the current $97.68 is currently impossible since my position is at 0.
+
+So if my investment goal was simply "make back principle" then I can claim success on this position.
+
 ## Step analysis
 The `--step` and `--end` break up your investments per exchange to see
 how in aggregate you are doing. Let's take BCH:
@@ -158,16 +161,11 @@ has the largest delta. The first column is open, second is low, third is last. T
 
 So that means that in this example both SUSHI and TRB are up. On a percentage points basis, SUSHI is up more than TRB (you can see that
 in the `T` labeled field as well)
+
+$ cbport -cgad 300
 ![graph](https://raw.githubusercontent.com/kristopolous/Coinbase-pro-portfolio-analyzer/master/res.png)
 
-Additionally:
- 
- * The overall profit of all my trades so far is +29% (bought things at $16.12, sold them at $20.75).
- * My breakeven point to make that extra $0.25 back from the current $97.68 is currently impossible since my position is at 0.
-
-So if my investment goal was simply "make back principle" then I can claim success on this position.
-
-## Installation
+# Installation
 
  1. You'll need `redis` for the cache 
  2. Create a `secrets.py` file. 
