@@ -150,9 +150,10 @@ did the P/L perform.
 The `-g` option will give you these nifty little lines in front.
 
 What you're seeing is a percentage change in the past 24 hours. They are all normalized as in the exchange with the most change
-has the largest delta. The first column is open, second is low, third is last. The top is always the high.
+has the largest delta. The first column is open, second is low, third is last. The top is always the high (the ANSI underline of the line
+above forms the ceiling in this case)
 
-So that means that in this example both SUSHI and TRB are up. On a percentage points basis, SUSHI is up more than TRB (you can see that
+So that means that in this example both MKR and MIR are up. On a percentage points basis, MKR is up more than MIR (you can see that
 in the `T` labeled field as well)
 
 ```

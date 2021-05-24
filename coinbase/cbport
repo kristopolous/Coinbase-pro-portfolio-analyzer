@@ -501,7 +501,8 @@ for exchange in sorted(history.keys()):
     ttl['derived'] += (cur['buycur'] - cur['sellcur']) * price
 
     if cli_args.average:
-        print(g[3])
+        # This is just underlining
+        print( chr(27) + '[4m' + g[3] + chr(27) + '[0m' )
 
     else:
         for row in cur['recent']:
