@@ -1,16 +1,26 @@
 # Coinbase Pro Portfolio Analyzer
 
-Coinbase doesn't really give great tools that allow you to make profit/loss judgements. 
+Features:
 
-This tool seeks to do that without being too fancy.
+  * Average Buy / Sell
+  * Total Buy / Sell
+  * Breakeven points
+  * P/L per-currency
+  * Snapshot peformance graphs
+  * Optional combination of USD and USDC markets on a per-currency basis
+  * ROI slice by investment amount, liquidation date, or historic date
+  * Includes assessments of currency amounts that exited coinbase
+  * Written in Python3 and runs on the command line.
+  * Fully Documented
 
+![graph](https://raw.githubusercontent.com/kristopolous/Coinbase-pro-portfolio-analyzer/master/pn.png)
 
 ## Summary (average) view
 Let's start with the average buy/sell, current holdings, and how the current traded price fairs
 with respect to your averages for a given exchange.
 
 ```
-$ ./cbport -a
+$ cbport -a
 ...
  NU-USD    buy:      0.51    91.52  181.1291 -21      92.282 (36.98)
     0.40   sell:     0.69    71.79  103.3419 -42      77.787 (31.17)
@@ -180,5 +190,5 @@ $ cbport -cgad 300
 
 ### Usage
 
-Use `./cbport --help`
+Use `cbport --help`
 
