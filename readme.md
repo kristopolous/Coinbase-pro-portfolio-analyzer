@@ -169,6 +169,12 @@ $ cbport -cgad 300
     * Go to [https://www.coinbase.com/settings/api](https://www.coinbase.com/settings/api) to create an API key.
     * Insert the values into your `secrets.py` file.
 
+## Notes
+
+ * Prices are on a 1 hour cache
+ * Trade history is cached but not updated unless you explicitly ask "-u" or "--update".
+ * Settled trades (historicals) are stored without any cache updating rules.
+
 ### Usage
 
 Use `./cbport --help`

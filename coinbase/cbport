@@ -148,7 +148,7 @@ class bypass:
             # system has changed
             key = hash(method, args)
 
-            if method in ['get_product_ticker', 'get_accounts']:
+            if method in ['get_product_ticker', 'get_accounts', 'get_product_24hr_stats']:
 
                 data = r.get("{}:cb:{}".format(RPREFIX,key))
                 if data:
@@ -409,14 +409,6 @@ for exchange in sorted(history.keys()):
         g[math.floor(hist_frac / 8)][1] =draw[hist_frac % 8]
         g[math.floor(last_pos / 8)][2] = draw[last_pos % 8]
         g = [''.join(x) for x in g]
-
-        """
-        print(hist_frac, open_pos, last_pos, 
-        hist['high'] / hist['low'],
-        hist['last'] / hist['low'],
-        hist['open'], hist['last'], hist['low'], hist['high'])
-        print(hist)
-        """
 
 
 
