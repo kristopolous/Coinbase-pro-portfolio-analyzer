@@ -163,6 +163,7 @@ So that means that in this example both SUSHI and TRB are up. On a percentage po
 in the `T` labeled field as well)
 
 $ cbport -cgad 300
+
 ![graph](https://raw.githubusercontent.com/kristopolous/Coinbase-pro-portfolio-analyzer/master/res.png)
 
 # Installation
