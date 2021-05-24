@@ -111,6 +111,45 @@ I can see here that I
  3. Am down only $0.25 from my principle (the amount of money I put in). Effectively I got all my money back minus 25 cents.
  4. Transferred the remaining ATOM (about $97.68 worth) to somewhere else (in this case on regular coinbase for the staking reward).
 
+## Step analysis
+The `--step` and `--end` break up your investments per exchange to see
+how in aggregate you are doing. Let's take BCH:
+
+
+```
+$ cbport -q BCH -c --step 10 --end 200
+...
+          10 buy:    959.87    20.00 10.5387
+             sell:  1061.03    30.03
+
+          20 buy:   1082.72    30.00 -2.0035
+             sell:  1061.03    30.03
+
+          A  buy:   B          C     D
+             sell:  E          F    
+
+          30 buy:   1049.44    40.00 1.1039
+             sell:  1061.03    30.03
+
+          40 buy:   1029.84    50.00 2.2380
+             sell:  1052.88    59.60
+
+```
+
+### Guide
+The reason this exists is because sometimes considering EVERYTHING since the beginning of time doesn't really guide you on how your most recent amount of money you put in is performing.
+
+Sometimes my interest isn't so much as in whether this is still a profitable decision overall in as much as whether it's a profitable decision for the last say, $100 I've bought.  So this allows a consideration for ONLY recent money.
+
+ * A - In the last $A bought and $A sold, or as close as we can come, how 
+did the P/L perform.
+ * B - average buy prices over A
+ * C - buy amount we're considering (trying to approximate A)
+ * D - P/L % (as in I was up 10%, down 2, up 1, up 2 etc)
+ * E - Average sell
+ * F - sell consider
+
+
 ## Unicode graph (-g)
 The `-g` option will give you these nifty little lines in front.
 

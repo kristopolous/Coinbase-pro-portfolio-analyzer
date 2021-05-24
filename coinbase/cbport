@@ -222,7 +222,7 @@ def add(exchange, kind, rate, amount, size, date, obj):
             'buyusd': 0, 
             'sellcur': 0, 
             'sellusd': 0
-        }, range(0, cli_args.end, cli_args.step)))
+        }, range(cli_args.step, cli_args.end, cli_args.step)))
 
     if obj['id'] not in historySet:
         historySet.add(obj['id'])
@@ -324,7 +324,6 @@ cli_parser.add_argument("-a", "--average", help="Just show the averages", action
 cli_parser.add_argument("-l", "--list", help="List exchanges for the specified period", action='store_true')
 cli_parser.add_argument("-c", "--combine", help="Combine USDC and USD markets as one grouping", action='store_true')
 cli_parser.add_argument("-g", "--graph", help="Unicode price graph", action='store_true')
-cli_parser.add_argument("--start", help="Start value", default=100)
 cli_parser.add_argument("--step", help="Step value", default=250)
 cli_parser.add_argument("--end", help="End value for analysis", default=4000)
 cli_args = cli_parser.parse_args()
@@ -513,7 +512,6 @@ for exchange in sorted(history.keys()):
         print(g[3])
 
     else:
-        print("RECENT")
         for row in cur['recent']:
             buy = 0
             sell = 0
@@ -527,7 +525,7 @@ for exchange in sorted(history.keys()):
                 frac = 100 * ((sell / buy) - 1)
             else:
                 frac = 0
-            print("\t{:4} buy:  {:.2f} {:.2f} {:.4f} \n\t     sell: {:.2f} {:.2f}\n".format(
+            print("\t{:4} buy:  {:8.2f} {:8.2f} {:.4f} \n\t     sell: {:8.2f} {:8.2f}\n".format(
                 row['ttl'], 
                 buy, 
                 row['buyusd'], 
