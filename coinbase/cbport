@@ -185,12 +185,10 @@ class bypass:
                 if not os.path.isfile(name):
                     logging.debug("need to cache ({}, {}) -> {}".format(method, args, name))
                     data = runit()
-                    print(method, data)
 
                     if isinstance(data, types.GeneratorType):
                         data_list = [x for x in data]
                         data = data_list
-                        print(method, data)
 
                     try:
                         with open(name, 'w') as cache:
