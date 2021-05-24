@@ -154,7 +154,9 @@ has the largest delta. The first column is open, second is low, third is last. T
 above forms the ceiling in this case)
 
 So that means that in this example both MKR and MIR are up. On a percentage points basis, MKR is up more than MIR (you can see that
-in the `T` labeled field as well)
+in the `T` labeled field as well). Here MKR is a currency I hold 0 of and it's now +7% of my average sale which means I lost money
+by selling it too early. For MIR, it's somewhat the opposite. I've put $19.82 in and it's at $8.07 right now. If I liquidated now I
+will be down $11.75 so I might as well either hold or buy more or if I have given up all hope just take my $8 back ... decisions decisions...
 
 ```
 $ cbport -cgad 300
