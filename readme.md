@@ -133,8 +133,7 @@ $ cbport -q BCH -c --step 10 --end 200
 
 ```
 
-### Guide
-The reason this exists is because sometimes considering EVERYTHING since the beginning of time doesn't really guide you on how your most recent amount of money you put in is performing.
+Sometimes considering EVERYTHING since the beginning of time doesn't really guide you on how your most recent amount of money you put in is performing.
 
 Sometimes my interest isn't so much as in whether this is still a profitable decision overall in as much as whether it's a profitable decision for the last say, $100 I've bought.  So this allows a consideration for ONLY recent money.
 
