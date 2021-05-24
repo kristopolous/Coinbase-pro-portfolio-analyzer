@@ -112,7 +112,7 @@ I can see here that I
  4. Transferred the remaining ATOM (about $97.68 worth) to somewhere else (in this case on regular coinbase for the staking reward).
 
 ## Unicode graph (-g)
-The `-gr` option will give you these nifty little lines in front.
+The `-g` option will give you these nifty little lines in front.
 
 What you're seeing is a percentage change in the past 24 hours. They are all normalized as in the exchange with the most change
 has the largest delta. The first column is open, second is low, third is last. The top is always the high.
