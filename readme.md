@@ -17,15 +17,15 @@ I'll get output like this (last one is a key)
 ...
  NU-USD    buy:      0.51    91.52  181.1291 -21      92.282 (36.98)
     0.40   sell:     0.69    71.79  103.3419 -42      77.787 (31.17)
-    0.21    +87       +37   -19.73     17.24
+    0.21    +87       +37   -19.73     17.24 +4
 
  OGN-USD   buy:      2.39    49.93   20.8500 -52      20.850 (23.91)
     1.15   sell:     0.00     0.00    0.0000 ...      20.850 (23.91)
-    2.39    -52       ...   -49.93    -26.02
+    2.39    -52       ...   -49.93    -26.02 -4
 
  A         buy:       B         C        D    E          F   ( G   )
     H      sell:      I         J        K    L          M   ( N   )
-    O        P        Q         R        S
+    O        P        Q         R        S    T
 ...
 ```
 
@@ -77,6 +77,7 @@ trader lingo, if it helps.
  * Q - The percentage difference between your average sell and average buy (or `...` if you haven't sold)
  * R - How much of your principle USD is still in the market 
  * S - What your total USD return would be if you sold all your COIN at the current price (profit/liquidation return)
+ * T - The change in the past 24 hours
  
 For instance:
 
@@ -100,7 +101,7 @@ Coinbase, Celsius or Blockfi. For instance, Coinbase offers a staking reward for
 ```
  ATOM-USD  buy:     16.12   303.21   18.8050 +44       0.000 (0.00)
    23.23   sell:    20.75   302.95   14.6000 +12       4.205 (97.68)
-    0.00    ...       +29    -0.25       ...
+    0.00    ...       +29    -0.25       ... +3
 ```
 
 I can see here that I
@@ -109,6 +110,16 @@ I can see here that I
  2. Sold $302.95 averaging $20.75.
  3. Am down only $0.25 from my principle (the amount of money I put in). Effectively I got all my money back minus 25 cents.
  4. Transferred the remaining ATOM (about $97.68 worth) to somewhere else (in this case on regular coinbase for the staking reward).
+
+## Unicode graph (-g)
+The `-gr` option will give you these nifty little lines in front.
+
+What you're seeing is a percentage change in the past 24 hours. They are all normalized as in the exchange with the most change
+has the largest delta. The first column is open, second is low, third is last. The top is always the high.
+
+So that means that in this example both SUSHI and TRB are up. On a percentage points basis, SUSHI is up more than TRB (you can see that
+in the `T` labeled field as well)
+![graph](https://raw.githubusercontent.com/kristopolous/Coinbase-pro-portfolio-analyzer/master/res.png)
 
 Additionally:
  
