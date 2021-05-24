@@ -2,11 +2,12 @@
 
 Coinbase doesn't really give great tools that allow you to make profit/loss judgements. 
 
-This tool seeks to do that without being too fancy. Let me show you an example:
+This tool seeks to do that without being too fancy.
 
 
 ## Summary (average) view
-If I run the tool as such
+Let's start with the average buy/sell, current holdings, and how the current traded price fairs
+with respect to your averages for a given exchange.
 
 ```
 $ ./cbport -a
@@ -24,13 +25,6 @@ $ ./cbport -a
     O        P        Q         R        S    T
 ...
 ```
-
-Let me go over what this is, and yes I know this looks like a lot, but it's
-really not.  These all can be scoped by a "region of interest" such as an
-amount of time, money, or starting from when your balance for a particular 
-currency was last at 0 (as in liquidated/empty).
-
-**Notes:** 
 
 The right hand side of the exchange we'll be calling dollars here but it works
 for any exchange (such as BTC-ETH for instance). It's a shorthand for the 
