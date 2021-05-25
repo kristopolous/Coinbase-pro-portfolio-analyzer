@@ -256,8 +256,10 @@ def crawl():
 
     for account in account_list:
 
-        balanceMap[account['currency']] = float(account['balance'])
+        cur = account['currency']
+        balanceMap[cur] = float(account['balance'])
         history = auth_client.get_account_history(account['id'])
+        cur_ttl = balanceMap[cur]
 
         for order in history:
             if not isinstance(order, dict):
@@ -285,17 +287,23 @@ def crawl():
                     break
 
 
+            size = float(details['filled_size'])
+
             if details['side'] == 'buy':
                 amount = float(details['executed_value']) + float(details['fill_fees'])
+                cur_ttl -= size
             else:
                 amount = float(details['executed_value']) + float(details['fill_fees'])
+                cur_ttl += size
 
             if 'price' in details:
                 rate = details['price']
             else:
                 rate = amount / float(details['filled_size'])
 
-            size = float(details['filled_size'])
+            if cli_args.fromzero:
+                if cur_ttl * details['price'] < 0.5:
+                    break
 
             exchange = details['product_id']
             r.sadd('{}:cb:exchange'.format(RPREFIX), exchange)
@@ -315,7 +323,7 @@ def crawl():
                 obj = details)
 
 cli_parser = argparse.ArgumentParser(description='Coinbase pro portfolio tools.')
-cli_parser.add_argument("--fromzero", help="Only consider trades since the last liquidated (< $0.50 holding) position", default=0)
+cli_parser.add_argument("-z", "--fromzero", help="Only consider trades since the last liquidated (< $0.50 holding) position", default=0)
 cli_parser.add_argument("-d", "--days", help="How many days to go back (default: all)", default=0)
 cli_parser.add_argument("-q", "--query", help="only show exchanges that match a regex")
 cli_parser.add_argument("-u", "--update", help="Update/invalidate the cache", action='store_true')
@@ -380,7 +388,9 @@ for exchange in sorted(history.keys()):
 
         res['delta'] = res['high'] / res['low'] - 1
         hist_24hr[exchange] = res
-        max_delta = max(max_delta, res['delta'])
+
+        if res['delta']:
+            max_delta = max(max_delta, res['delta'])
     except:
         pass
 
