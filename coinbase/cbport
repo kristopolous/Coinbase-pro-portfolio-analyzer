@@ -362,7 +362,9 @@ ttl = {
     'buy': 0,
     'sell': 0,
     'bal': 0,
-    'derived': 0
+    'bal_buy': 0,
+    'derived': 0,
+    'derived_buy': 0
 }
 
 # We want to normalize all the graphs unlike some tools
@@ -409,8 +411,6 @@ for exchange in sorted(history.keys()):
         g[math.floor(hist_frac / 8)][1] =draw[hist_frac % 8]
         g[math.floor(last_pos / 8)][2] = draw[last_pos % 8]
         g = [''.join(x) for x in g]
-
-
 
 
     unit = exchange.split('-')[0]
@@ -498,7 +498,9 @@ for exchange in sorted(history.keys()):
     ttl['buy'] += cur['buyusd']
     ttl['sell'] += cur['sellusd']
     ttl['bal'] += balanceMap[unit] * price
+    ttl['bal_buy'] += balanceMap[unit] * avg_buy
     ttl['derived'] += (cur['buycur'] - cur['sellcur']) * price
+    ttl['derived_buy'] += (cur['buycur'] - cur['sellcur']) * avg_buy
 
     if cli_args.average:
         # This is just underlining
@@ -587,15 +589,16 @@ print("""TOTAL:
  bought: {:>10}
    sold: {:>10}
     p/l: {:>10}
---
-    bal: {:>10}
-derived: {:>10}
+         {:>10} {:>10} {:>10}
+    bal: {:>10} {:>10} {:>10}
+derived: {:>10} {:>10} {:>10}
 """.format(
     bign(ttl['buy']),
     bign(ttl['sell']),
     bign(ttl['sell'] - ttl['buy']),
-    bign(ttl['bal']),
-    bign(ttl['derived'])
+    'current', 'buy', 'p/l',
+    bign(ttl['bal']),       bign(ttl['bal_buy']),       bign(ttl['bal'] - ttl['bal_buy']),
+    bign(ttl['derived']),   bign(ttl['derived_buy']),   bign(ttl['derived'] - ttl['derived_buy'])
     ))
 
 clock("done")
