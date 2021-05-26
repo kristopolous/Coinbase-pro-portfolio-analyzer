@@ -405,7 +405,11 @@ for exchange in sorted(history.keys()):
     cur = history[exchange]
 
     g = []
-    hist = hist_24hr[exchange]
+    hist = hist_24hr.get(exchange)
+
+    if not hist:
+        continue
+
     if not cli_args.graph:
         g = [''] * 4
     else:
@@ -495,15 +499,15 @@ for exchange in sorted(history.keys()):
         liquidation_return = '...'
 
     print("{}{} {:>6} {} {:>4} {:8.2f} {:>9} {}".format(
-            g[2],
-            break_str,
-            gol(price, breakeven, [-100]),
-            " " * 4,
-            gol(avg_sell, avg_buy, [-100]),
-            cur['sellusd'] - cur['buyusd'], 
-            liquidation_return,
-            gol(hist['last'], hist['open'])
-        ))
+        g[2],
+        break_str,
+        gol(price, breakeven, [-100]),
+        " " * 4,
+        gol(avg_sell, avg_buy, [-100]),
+        cur['sellusd'] - cur['buyusd'], 
+        liquidation_return,
+        gol(hist['last'], hist['open'])
+    ))
 
 
     ttl['buy'] += cur['buyusd']
