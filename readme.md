@@ -15,12 +15,12 @@ Features:
 
 ![graph](https://raw.githubusercontent.com/kristopolous/Coinbase-pro-portfolio-analyzer/master/pn.png)
 
-## Summary (average) view
+## Summary view
 Let's start with the average buy/sell, current holdings, and how the current traded price fairs
 with respect to your averages for a given exchange.
 
 ```
-$ cbport -a
+$ cbport -s
 ...
  NU-USD    buy:      0.51    91.52  181.1291 -21      92.282 (36.98)
     0.40   sell:     0.69    71.79  103.3419 -42      77.787 (31.17)

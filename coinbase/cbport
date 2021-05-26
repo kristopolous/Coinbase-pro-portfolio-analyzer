@@ -325,10 +325,11 @@ def crawl():
 cli_parser = argparse.ArgumentParser(description='Coinbase pro portfolio tools.')
 cli_parser.add_argument("-z", "--fromzero", help="Only consider trades since the last liquidated (< $0.50 holding) position", default=0)
 cli_parser.add_argument("-d", "--days", help="How many days to go back (default: all)", default=0)
+cli_parser.add_argument("-a", "--amount", help="How many dollars to go back (default: all)", default=0)
 cli_parser.add_argument("-q", "--query", help="only show exchanges that match a regex")
 cli_parser.add_argument("-u", "--update", help="Update/invalidate the cache", action='store_true')
 cli_parser.add_argument("-v", "--verbose", help="Debugging messages", action='store_true')
-cli_parser.add_argument("-a", "--average", help="Just show the averages", action='store_true')
+cli_parser.add_argument("-s", "--summary", help="Just show the summary", action='store_true')
 cli_parser.add_argument("-l", "--list", help="List exchanges for the specified period", action='store_true')
 cli_parser.add_argument("-c", "--combine", help="Combine USDC and USD markets as one grouping", action='store_true')
 cli_parser.add_argument("-g", "--graph", help="Unicode price graph", action='store_true')
@@ -512,7 +513,7 @@ for exchange in sorted(history.keys()):
     ttl['derived'] += (cur['buycur'] - cur['sellcur']) * price
     ttl['derived_buy'] += (cur['buycur'] - cur['sellcur']) * avg_buy
 
-    if cli_args.average:
+    if cli_args.summary:
         # This is just underlining
         print( chr(27) + '[4m' + g[3] + chr(27) + '[0m' )
 
