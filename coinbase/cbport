@@ -24,6 +24,7 @@ getcontext().prec = 2
 
 history = {}
 historySet = set()
+stopFlag = set()
 balanceMap = {}
 _handle = None
 
@@ -253,6 +254,7 @@ def crawl():
     import datetime
     global cli_args
     global balanceMap
+    global stopFlag
 
     for account in account_list:
 
@@ -263,6 +265,10 @@ def crawl():
 
         for order in history:
             if not isinstance(order, dict):
+                continue
+
+            if cur in stopFlag:
+                print("stopped", cur)
                 continue
 
             if cli_args.query and order.get('details') and 'product_id' in order['details']:
@@ -297,13 +303,15 @@ def crawl():
                 cur_ttl += size
 
             if 'price' in details:
-                rate = details['price']
+                rate = float(details['price'])
             else:
                 rate = amount / float(details['filled_size'])
 
             if cli_args.fromzero:
-                if cur_ttl * details['price'] < 0.5:
+                if cur_ttl * rate < 0.5:
+                    stopFlag.add(cur)
                     break
+
 
             exchange = details['product_id']
             r.sadd('{}:cb:exchange'.format(RPREFIX), exchange)
@@ -323,7 +331,7 @@ def crawl():
                 obj = details)
 
 cli_parser = argparse.ArgumentParser(description='Coinbase pro portfolio tools.')
-cli_parser.add_argument("-z", "--fromzero", help="Only consider trades since the last liquidated (< $0.50 holding) position", default=0)
+cli_parser.add_argument("-z", "--fromzero", help="Only consider trades since the last liquidated (< $0.50 holding) position", action='store_true')
 cli_parser.add_argument("-d", "--days", help="How many days to go back (default: all)", default=0)
 cli_parser.add_argument("-a", "--amount", help="How many dollars to go back (default: all)", default=0)
 cli_parser.add_argument("-q", "--query", help="only show exchanges that match a regex")
@@ -337,7 +345,7 @@ cli_parser.add_argument("--step", help="Step value", default=250)
 cli_parser.add_argument("--end", help="End value for analysis", default=4000)
 cli_args = cli_parser.parse_args()
 
-for i in ['step','end', 'days']:
+for i in ['step','end','amount','days']:
     setattr(cli_args, i, int(getattr(cli_args, i)))
 
 if cli_args.verbose:
