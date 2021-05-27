@@ -124,7 +124,7 @@ exchanges by regular expression (such as say, to only look at LTC or USDC).
 For instance if I wanted to look at only the last $80 or so I invested in Litecoin I can do this:
 
 ```
-$ cbport -q LTC -a 80 -s
+$ cbport -sq LTC -a 80
 LTC-USD    buy:    219.19    75.00    0.3422 -10       0.025 (4.94)
   196.43   sell:   173.27    78.74    0.4545 +13      -0.112 (-22.06)
      ...    ...       -21     3.74      8.68 +1
@@ -144,7 +144,7 @@ that becomes.
 Let's look at Litecoin again but now over the past 10 days.
 
 ```
-$ cbport -q LTC -ud 10 -s
+$ cbport -usq LTC -d 10:
 LTC-USD    buy:    197.74    10.00    0.0506 0         0.076 (14.93)
   197.13   sell:   160.73   130.12    0.8096 +23      -0.759 (-149.62)
      ...    ...       -19   120.12    135.05 +1
