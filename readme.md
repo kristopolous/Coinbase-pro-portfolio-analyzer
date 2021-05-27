@@ -117,7 +117,7 @@ Additionally:
 So if my investment goal was simply "make back principle" then I can claim success on this position.
 
 ## Filtering
-You can look at your investments by COIN amount bought/sold (`-a`), since liquidation (`-z`), or number of days (`-d`). You can also filter 
+You can look at your investments by USD amount bought/sold (`-a`), since liquidation (`-z`), or number of days (`-d`). You can also filter 
 exchanges by regular expression (such as say, to only look at LTC or USDC).
 
 ### Amount
