@@ -121,6 +121,8 @@ So if my investment goal was simply "make back principle" then I can claim succe
 You can look at your investments by USD amount bought/sold (`-a`), since liquidation (`-z`), or number of days (`-d`). You can also filter 
 exchanges by regular expression (such as say, to only look at LTC or USDC).
 
+If multiple boundary types are supplied, the aggregation stops at the first condition satisfied. (`-v` will show what it is per currency/exchange)
+
 > **SUPER IMPORTANT!** In a filtered view, your Region of Interest changes! This means the summary numbers do as well. Before executing trades please make sure you know what you're looking at!
 
 ### Amount
