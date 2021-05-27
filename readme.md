@@ -35,7 +35,7 @@ $ cbport -s
 ...
 ```
 
-The right hand side of the exchange we'll be calling dollars here but it works
+The right hand side of the exchange we'll be calling USD here but it works
 for any exchange (such as BTC-ETH for instance). It's a shorthand for the 
 presumed largest use-case which is buying and selling with USD.
 
