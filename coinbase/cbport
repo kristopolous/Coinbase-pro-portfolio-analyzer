@@ -24,7 +24,6 @@ getcontext().prec = 2
 
 history = {}
 historySet = set()
-stopFlag = set()
 balanceMap = {}
 _handle = None
 
@@ -254,21 +253,17 @@ def crawl():
     import datetime
     global cli_args
     global balanceMap
-    global stopFlag
 
     for account in account_list:
 
         cur = account['currency']
         balanceMap[cur] = float(account['balance'])
-        history = auth_client.get_account_history(account['id'])
+        orderList = auth_client.get_account_history(account['id'])
         cur_ttl = balanceMap[cur]
+        stopFlag = 0x0
 
-        for order in history:
+        for order in orderList:
             if not isinstance(order, dict):
-                continue
-
-            if cur in stopFlag:
-                print("stopped", cur)
                 continue
 
             if cli_args.query and order.get('details') and 'product_id' in order['details']:
@@ -289,30 +284,11 @@ def crawl():
 
             if cli_args.days:
                 if (datetime.datetime.now() - parser.parse(details['done_at']).replace(tzinfo=None)).days > cli_args.days:
-                    # this means break and go to the next exchange
+                    logging.debug("Ending {} based on days".format(cur))
                     break
 
 
             size = float(details['filled_size'])
-
-            if details['side'] == 'buy':
-                amount = float(details['executed_value']) + float(details['fill_fees'])
-                cur_ttl -= size
-            else:
-                amount = float(details['executed_value']) + float(details['fill_fees'])
-                cur_ttl += size
-
-            if 'price' in details:
-                rate = float(details['price'])
-            else:
-                rate = amount / float(details['filled_size'])
-
-            if cli_args.fromzero:
-                if cur_ttl * rate < 0.5:
-                    stopFlag.add(cur)
-                    break
-
-
             exchange = details['product_id']
             r.sadd('{}:cb:exchange'.format(RPREFIX), exchange)
 
@@ -322,6 +298,39 @@ def crawl():
                 if proposed_combine in seen_exchanges:
                     exchange = proposed_combine
 
+            if stopFlag == 0x3:
+                logging.debug("Ending {} based on amount".format(cur))
+                break
+
+            if details['side'] == 'buy':
+                amount = float(details['executed_value']) + float(details['fill_fees'])
+                if cli_args.amount and history.get(exchange) and cli_args.amount < amount + history[exchange].get('buyusd'):
+                    if not stopFlag & 0x1:
+                        stopFlag |= 0x1
+                        logging.debug("Stopping buy  count for {} {}".format(cur, history[exchange].get('buyusd')))
+                    continue
+
+                cur_ttl -= size
+            else:
+                amount = float(details['executed_value']) + float(details['fill_fees'])
+                if cli_args.amount and history.get(exchange) and cli_args.amount < amount + history[exchange].get('sellusd'):
+                    if not stopFlag & 0x2:
+                        stopFlag |= 0x2
+                        logging.debug("Stopping sell count for {} {}".format(cur, history[exchange].get('sellusd')))
+                    continue
+
+                cur_ttl += size
+
+            if 'price' in details:
+                rate = float(details['price'])
+            else:
+                rate = amount / float(details['filled_size'])
+
+            if cli_args.fromzero:
+                if cur_ttl * rate < 0.5:
+                    break
+
+
             add(exchange = exchange,
                 kind = details['side'], 
                 amount = amount, 
@@ -329,6 +338,7 @@ def crawl():
                 size = size, 
                 rate = rate, 
                 obj = details)
+
 
 cli_parser = argparse.ArgumentParser(description='Coinbase pro portfolio tools.')
 cli_parser.add_argument("-z", "--fromzero", help="Only consider trades since the last liquidated (< $0.50 holding) position", action='store_true')
