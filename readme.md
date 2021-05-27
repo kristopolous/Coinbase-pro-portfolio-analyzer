@@ -10,7 +10,8 @@ Features:
   * Optional combination of USD and USDC markets on a per-currency basis
   * ROI slice by investment amount, liquidation date, or historic date
   * Includes assessments of currency amounts that exited coinbase
-  * Written in Python3 and runs on the command line.
+  * DOES NOT execute trades or otherwise modify any positions or holdings
+  * Written in Python3 and runs on the command line
 
 ![graph](https://raw.githubusercontent.com/kristopolous/Coinbase-pro-portfolio-analyzer/master/pn.png)
 
@@ -144,7 +145,7 @@ that becomes.
 Let's look at Litecoin again but now over the past 10 days.
 
 ```
-$ cbport -usq LTC -d 10:
+$ cbport -usq LTC -d 10
 LTC-USD    buy:    197.74    10.00    0.0506 0         0.076 (14.93)
   197.13   sell:   160.73   130.12    0.8096 +23      -0.759 (-149.62)
      ...    ...       -19   120.12    135.05 +1
