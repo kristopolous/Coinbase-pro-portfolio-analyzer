@@ -118,7 +118,8 @@ Additionally:
 So if my investment goal was simply "make back principle" then I can claim success on this position.
 
 ## Filtering
-You can look at your investments by amount (`-a`), since liquidation (`-z`), or number of days (`-d`). You can also filter 
+You can look at your investments by amount (`-a`), since liquidation (`-z`), or number of days (`-d`). You can also filter by
+regular expression (such as say, only look at LTC).
 
 ### Amount
 For instance if I wanted to look at only the last $80 or so I invested in Litecoin I can do this:
