@@ -142,7 +142,7 @@ TOTAL:
 Here I can see that the last $80 I bought LTC with I averaged at $219.19 and the last $80 I sold I averaged at $173.27. This
 of course means that I sold more than I bought for those $80, not great.
 
-This could tell me for instance, that maybe for my next $80 I'd like to buy averaging below 219 and sell averaging above whatever
+This could tell me for instance, that maybe for my next $80 I'd like to buy averaging below $219 and sell averaging above whatever
 that becomes.
 
 ### Days
@@ -249,7 +249,7 @@ $ cbport -cgsd 300
  * Prices are on a 1 hour cache
  * Trade history is cached but not updated unless you explicitly ask "-u" or "--update".
  * Settled trades (historicals) are stored without any cache updating rules.
- * None of the numbers above reflect my actual holdings. Do not ever disclose your portfolio balance to an untrusted party (it can be used for password recovery and account hijacking)
+ * None of the numbers above reflect my actual holdings. Do not ever disclose your positions to an untrusted party (it can be used for password recovery and account hijacking)
 
 ### Usage
 
