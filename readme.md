@@ -229,7 +229,7 @@ by selling it too early. For MIR, it's somewhat the opposite. I've put $19.82 in
 will be down $11.75 so I might as well either hold or buy more or if I have given up all hope just take my $8 back ... decisions decisions...
 
 ```
-$ cbport -cgad 300
+$ cbport -cgsd 300
 ```
 ![graph](https://raw.githubusercontent.com/kristopolous/Coinbase-pro-portfolio-analyzer/master/res.png)
 
