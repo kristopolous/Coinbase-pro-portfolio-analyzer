@@ -32,7 +32,6 @@ $ cbport -s
  A         buy:       B         C        D    E          F   ( G   )
     H      sell:      I         J        K    L          M   ( N   )
     O        P        Q         R        S    T
-...
 ```
 
 The right hand side of the exchange we'll be calling USD here but it works
@@ -45,8 +44,8 @@ instrument (usually a crypto coin) in the LHS of an exchange.
 The PRICE (in caps) is the last trade price as returned by coinbase (there's a 1 hour redis
 cache on the value that can be purged with --update)
 
-For example, if you're buying bitcoins with dollars, the exchange would be BTC-USD and
-bitcoins is COIN and dollars USD. The parenthetical at the end will refer to
+For example, if you're buying Bitcoin with dollars, the exchange would be BTC-USD and
+Bitcoin is COIN and dollars here is USD. The parenthetical at the end will refer to
 trader lingo, if it helps.
 
 ### Row 1: buy-centric
@@ -66,7 +65,7 @@ trader lingo, if it helps.
  * J - Total USD you've sold COIN
  * K - Total COIN you've sold
  * L - Percentage difference of the PRICE from your average sell
- * M - COMPUTED total COIN you have (this should account for transfer outs but not transfer ins)
+ * M - COMPUTED total COIN you have (this should account for aggregate transfers both ways)
  * N - How much USD this is.
 
 ### Row 3: action-centric
@@ -118,8 +117,8 @@ Additionally:
 So if my investment goal was simply "make back principle" then I can claim success on this position.
 
 ## Filtering
-You can look at your investments by amount (`-a`), since liquidation (`-z`), or number of days (`-d`). You can also filter by
-regular expression (such as say, only look at LTC).
+You can look at your investments by COIN amount bought/sold (`-a`), since liquidation (`-z`), or number of days (`-d`). You can also filter 
+exchanges by regular expression (such as say, to only look at LTC or USDC).
 
 ### Amount
 For instance if I wanted to look at only the last $80 or so I invested in Litecoin I can do this:
@@ -142,7 +141,7 @@ This could tell me for instance, that maybe for my next $80 I'd like to buy aver
 that becomes.
 
 ### Days
-Let's look at litecoin again but now over the past 10 days.
+Let's look at Litecoin again but now over the past 10 days.
 
 ```
 $ cbport -q LTC -ud 10 -s
@@ -186,34 +185,32 @@ how in aggregate you are doing. Let's take BCH:
 ```
 $ cbport -q BCH -c --step 10 --end 200
 ...
-          10 buy:    959.87    20.00 10.5387
-             sell:  1061.03    30.03
+  10 buy:    959.87    20.00 10.5387
+     sell:  1061.03    30.03
 
-          20 buy:   1082.72    30.00 -2.0035
-             sell:  1061.03    30.03
+  20 buy:   1082.72    30.00 -2.0035
+     sell:  1061.03    30.03
 
-          A  buy:   B          C     D
-             sell:  E          F    
+  A  buy:   B          C     D
+     sell:  E          F    
 
-          30 buy:   1049.44    40.00 1.1039
-             sell:  1061.03    30.03
+  30 buy:   1049.44    40.00 1.1039
+     sell:  1061.03    30.03
 
-          40 buy:   1029.84    50.00 2.2380
-             sell:  1052.88    59.60
+  40 buy:   1029.84    50.00 2.2380
+     sell:  1052.88    59.60
 
 ```
 
-Sometimes considering EVERYTHING since the beginning of time doesn't really guide you on how your most recent amount of money you put in is performing.
-
-Sometimes my interest isn't so much as in whether this is still a profitable decision overall in as much as whether it's a profitable decision for the last say, $100 I've bought.  So this allows a consideration for ONLY recent money.
+Sometimes the interest isn't so much as in whether this is still a profitable decision overall in as much as whether it's a profitable decision for the last say, $100 bought.  So this allows a consideration for ONLY recent money.
 
  * A - In the last $A bought and $A sold, or as close as we can come, how 
 did the P/L perform.
- * B - average buy prices over A
- * C - buy amount we're considering (trying to approximate A)
+ * B - Average buy prices over A
+ * C - Bought amount we're considering (trying to approximate A)
  * D - P/L % (as in I was up 10%, down 2, up 1, up 2 etc)
  * E - Average sell
- * F - sell consider
+ * F - The total amount sold used for the calculation
 
 
 ## Unicode graph (-g)
