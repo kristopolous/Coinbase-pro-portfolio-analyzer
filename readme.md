@@ -11,7 +11,6 @@ Features:
   * ROI slice by investment amount, liquidation date, or historic date
   * Includes assessments of currency amounts that exited coinbase
   * Written in Python3 and runs on the command line.
-  * Fully Documented
 
 ![graph](https://raw.githubusercontent.com/kristopolous/Coinbase-pro-portfolio-analyzer/master/pn.png)
 
@@ -117,6 +116,66 @@ Additionally:
  * My breakeven point to make that extra $0.25 back from the current $97.68 is currently impossible since my position is at 0.
 
 So if my investment goal was simply "make back principle" then I can claim success on this position.
+
+## Filtering
+You can look at your investments by amount (`-a`), since liquidation (`-z`), or number of days (`-d`). You can also filter 
+
+### Amount
+For instance if I wanted to look at only the last $80 or so I invested in Litecoin I can do this:
+
+```
+$ cbport -q LTC -a 80 -s
+LTC-USD    buy:    219.19    75.00    0.3422 -10       0.025 (4.94)
+  196.43   sell:   173.27    78.74    0.4545 +13      -0.112 (-22.06)
+     ...    ...       -21     3.74      8.68 +1
+
+TOTAL: 
+ bought:      75.03
+   sold:      78.74
+    p/l:       3.71
+```
+Here I can see that the last $80 I bought LTC with I averaged at $219.19 and the last $80 I sold I averaged at $173.27. This
+of course means that I sold more than I bought for those $80, not great.
+
+This could tell me for instance, that maybe for my next $80 I'd like to buy averaging below 219 and sell averaging above whatever
+that becomes.
+
+### Days
+Let's look at litecoin again but now over the past 10 days.
+
+```
+$ cbport -q LTC -ud 10 -s
+LTC-USD    buy:    197.74    10.00    0.0506 0         0.076 (14.93)
+  197.13   sell:   160.73   130.12    0.8096 +23      -0.759 (-149.62)
+     ...    ...       -19   120.12    135.05 +1
+
+TOTAL:
+ bought:      10.00
+   sold:     130.12
+    p/l:     120.12
+```
+
+After the first assessment I decided to buy $10 at the market rate. I ran with the `-u` option to pull down my latest trades
+and reflect that.
+
+### Zero
+Let's look at MakerCoin for the last one. Coinbase had a reward system where they gave a small amount of makercoin out. That
+was my starting balance. You can see that in the `N` slot (bottom right of the summary) below:
+
+```
+MKR-USD    buy:   2862.84   129.98    0.0454 +30       0.003 (9.80)
+ 3734.57   sell:  2992.85   142.51    0.0476 +25      -0.002 (-8.28)
+     ...    ...        +5    12.54     22.34 0
+
+TOTAL:
+ bought:     129.98
+   sold:     142.51
+    p/l:      12.54
+```
+
+Here I can see that I sold for 5% more than I bought for. Alright I mean it's up 25% probably should have held that
+$129 worth and I would have had $38 in profits instead of $12 but oh well, que sera sera.
+
 
 ## Step analysis
 The `--step` and `--end` break up your investments per exchange to see
