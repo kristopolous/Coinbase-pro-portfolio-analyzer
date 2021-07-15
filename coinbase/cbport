@@ -393,7 +393,7 @@ account_list = auth_client.get_accounts()
 
 if type(account_list) is not list and account_list.get('message'):
     print(account_list)
-    print("Maybe ntp update?")
+    print("Try ntp update or disabling ipv6.")
     auth_client.invalidate_last()
     sys.exit(-1)
 
