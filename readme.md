@@ -10,7 +10,8 @@ Features:
   * Optional combination of USD and USDC markets on a per-currency basis
   * ROI slice by investment amount, liquidation date, or historic date
   * Includes assessments of currency amounts that exited coinbase
-  * Written in Python3 and runs on the command line.
+  * DOES NOT execute trades or otherwise modify any positions or holdings
+  * Written in Python3 and runs on the command line
 
 ![graph](https://raw.githubusercontent.com/kristopolous/Coinbase-pro-portfolio-analyzer/master/pn.png)
 
@@ -120,6 +121,10 @@ So if my investment goal was simply "make back principle" then I can claim succe
 You can look at your investments by USD amount bought/sold (`-a`), since liquidation (`-z`), or number of days (`-d`). You can also filter 
 exchanges by regular expression (such as say, to only look at LTC or USDC).
 
+If multiple boundary types are supplied, the aggregation stops at the first condition satisfied. (`-v` will show what it is per currency/exchange)
+
+> **SUPER IMPORTANT!** In a filtered view, your Region of Interest changes! This means the summary numbers do as well. Before executing trades please make sure you know what you're looking at!
+
 ### Amount
 For instance if I wanted to look at only the last $80 or so I invested in Litecoin I can do this:
 
@@ -137,14 +142,14 @@ TOTAL:
 Here I can see that the last $80 I bought LTC with I averaged at $219.19 and the last $80 I sold I averaged at $173.27. This
 of course means that I sold more than I bought for those $80, not great.
 
-This could tell me for instance, that maybe for my next $80 I'd like to buy averaging below 219 and sell averaging above whatever
+This could tell me for instance, that maybe for my next $80 I'd like to buy averaging below $219 and sell averaging above whatever
 that becomes.
 
 ### Days
 Let's look at Litecoin again but now over the past 10 days.
 
 ```
-$ cbport -usq LTC -d 10:
+$ cbport -usq LTC -d 10
 LTC-USD    buy:    197.74    10.00    0.0506 0         0.076 (14.93)
   197.13   sell:   160.73   130.12    0.8096 +23      -0.759 (-149.62)
      ...    ...       -19   120.12    135.05 +1
@@ -244,6 +249,7 @@ $ cbport -cgsd 300
  * Prices are on a 1 hour cache
  * Trade history is cached but not updated unless you explicitly ask "-u" or "--update".
  * Settled trades (historicals) are stored without any cache updating rules.
+ * None of the numbers above reflect my actual holdings. Do not ever disclose your positions to an untrusted party (it can be used for password recovery and account hijacking)
 
 ### Usage
 
