@@ -110,7 +110,7 @@ def hash(*kw):
 
 class bypass:
     def __init__(self, secret):
-        self.last = None
+        self.last = ['','']
         self.real = None
         self.secret = secret
         self.ordercache = r.hgetall('coinhash')
@@ -130,9 +130,18 @@ class bypass:
            logging.warning("No file: {}".format(name))
 
     def invalidate_last(self):
-        if os.path.exists(self.last):
-            logging.debug("Removing {}".format(self.last))
-            os.unlink(self.last)
+        logging.debug("Invalidating :: {}".format(json.dumps(self.last)))
+
+        if self.last[0] == 'file':
+            if os.path.exists(self.last[1]):
+                logging.debug("Removing {}".format(self.last))
+                os.unlink(self.last)
+
+        elif self.last[0] == 'redis':
+            r.delete(self.last[1])
+
+        elif self.last[0] == 'redis/hash':
+            r.hdel(self.last[1], self.last[2])
 
     def __getattr__(self, method):
         def cb(*args):
@@ -148,15 +157,20 @@ class bypass:
             # system has changed
             key = hash(method, args)
 
+            logging.debug("Exec :: {}({})".format(method, json.dumps(args)))
+
             if method in ['get_product_ticker', 'get_accounts', 'get_product_24hr_stats']:
 
-                data = r.get("{}:cb:{}".format(RPREFIX,key))
+                key_redis = "{}:cb:{}".format(RPREFIX,key)
+                data = r.get(key_redis)
                 if data:
                     data = json.loads(data)
                 else:
                     data = runit()
 
-                    r.set("{}:cb:{}".format(RPREFIX, key), json.dumps(data, default=json_util.default), 60 * 60)
+                    r.set(key_redis, json.dumps(data, default=json_util.default), 60 * 60)
+
+                self.last = ['redis', key_redis]
                 return data
 
             # getorder for a specific order id *should* always
@@ -173,11 +187,14 @@ class bypass:
                         data = data_list
 
                     r.hset('coinhash', key, json.dumps(data, default=json_util.default))
+
+                self.last = ['redis/hash', 'coinhash', key]
+
                 return data
 
             else:
                 name = "cache/{}".format(key)
-                self.last = name
+                self.last = ['file', name]
 
                 if cli_args.update:
                     self.clearcache(method, args)
@@ -377,6 +394,7 @@ account_list = auth_client.get_accounts()
 if type(account_list) is not list and account_list.get('message'):
     print(account_list)
     print("Maybe ntp update?")
+    auth_client.invalidate_last()
     sys.exit(-1)
 
 logging.debug("Account list {}".format(account_list))
