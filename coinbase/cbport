@@ -357,7 +357,7 @@ def crawl():
                 obj = details)
 
 
-cli_parser = argparse.ArgumentParser(description='Coinbase pro portfolio tools.')
+cli_parser = argparse.ArgumentParser(description='Coinbase pro portfolio analysis. https://github.com/kristopolous/Coinbase-pro-portfolio-analyzer')
 cli_parser.add_argument("-z", "--fromzero", help="Only consider trades since the last liquidated (< $0.50 holding) position", action='store_true')
 cli_parser.add_argument("-d", "--days", help="How many days to go back (default: all)", default=0)
 cli_parser.add_argument("-a", "--amount", help="How many dollars to go back (default: all)", default=0)
