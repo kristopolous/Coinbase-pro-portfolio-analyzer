@@ -370,12 +370,25 @@ cli_parser.add_argument("-s", "--summary", help="Just show the summary", action=
 cli_parser.add_argument("-l", "--list", help="List exchanges for the specified period", action='store_true')
 cli_parser.add_argument("-c", "--combine", help="Combine USDC and USD markets as one grouping", action='store_true')
 cli_parser.add_argument("-g", "--graph", help="Unicode price graph", action='store_true')
-cli_parser.add_argument("--step", help="Step value", default=250)
-cli_parser.add_argument("--end", help="End value for analysis", default=4000)
+cli_parser.add_argument("--step", help="Step value")
+cli_parser.add_argument("--end", help="End value for analysis")
 cli_args = cli_parser.parse_args()
 
 for i in ['step','end','amount','days']:
-    setattr(cli_args, i, int(getattr(cli_args, i)))
+    if getattr(cli_args, i) is not None:
+        setattr(cli_args, i, int(getattr(cli_args, i)))
+
+if cli_args.amount and cli_args.end is None:
+    cli_args.end = cli_args.amount
+    if cli_args.step is None:
+        cli_args.step = max(5, cli_args.end/10)
+
+# we want to assign it ONLY after checking to see if it was manually specified.
+if cli_args.step is None:
+    cli_args.step = 250
+
+if cli_args.end is None:
+    cli_args.end = 4000
 
 if cli_args.verbose:
     logging.basicConfig(level=logging.DEBUG)
