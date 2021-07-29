@@ -381,7 +381,7 @@ for i in ['step','end','amount','days']:
 if cli_args.amount and cli_args.end is None:
     cli_args.end = cli_args.amount
     if cli_args.step is None:
-        cli_args.step = max(5, cli_args.end/10)
+        cli_args.step = int(max(5, cli_args.end/10))
 
 # we want to assign it ONLY after checking to see if it was manually specified.
 if cli_args.step is None:
@@ -390,6 +390,7 @@ if cli_args.step is None:
 if cli_args.end is None:
     cli_args.end = 4000
 
+print(cli_args)
 if cli_args.verbose:
     logging.basicConfig(level=logging.DEBUG)
 else:
