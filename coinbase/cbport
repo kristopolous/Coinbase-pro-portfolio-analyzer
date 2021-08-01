@@ -400,7 +400,6 @@ if cli_args.step is None:
 if cli_args.end is None:
     cli_args.end = 4000
 
-print(cli_args)
 if cli_args.verbose:
     logging.basicConfig(level=logging.DEBUG)
 else:
