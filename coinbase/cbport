@@ -239,8 +239,8 @@ def add(exchange, kind, rate, amount, size, date, obj):
         history[exchange] = {'buycur':0, 'buyusd':0, 'sellcur':0, 'sellusd':0, 'all': []}
         history[exchange]['recent'] = list(map(lambda x: {
             'ttl': x, 
-            'sellcount': x, 
-            'buycount': x, 
+            'sellcount': .98 * x, 
+            'buycount': .98 * x, 
             'buycur': 0, 
             'buyusd': 0, 
             'sellcur': 0, 
@@ -583,6 +583,7 @@ for exchange in sorted(history.keys()):
         print( chr(27) + '[4m' + g[3] + chr(27) + '[0m' )
 
     else:
+        print("")
         for row in cur['recent']:
             buy = 0
             sell = 0
@@ -592,28 +593,21 @@ for exchange in sorted(history.keys()):
             if row['sellcur'] > 0:
                 sell = row['sellusd'] / row['sellcur']
 
-            if buy > 0:
-                frac = 100 * ((sell / buy) - 1)
-            else:
-                frac = 0
-            #print(row)
-            print(" {:4} {} buy:  {:8.2f} {:8.2f} {}\n      {} sell: {:8.2f} {:8.2f} {:.4f}\n".format(
-                row['ttl'], 
-                dp(row['buydate']),
-                buy,
-                row['buyusd'],
-                gol( price, buy),
-
-                dp(row['selldate']),
-                sell, 
-                row['sellusd'],
-                frac)
-            )
+            print("\n".join([
+                "  {:4} {} buy:  {:8.2f} {:8.2f} {:3}  ",
+                "       {} sell: {:8.2f} {:8.2f} {:3}  {}",
+                ""
+            ]).format(
+                row['ttl'], dp(row['buydate']),  buy,  row['buyusd'],  gol( price, buy ), 
+                dp(row['selldate']), sell, row['sellusd'], gol( price, sell ), gol(sell,buy)
+            ))
 
         orderList = reversed(sorted(cur['all'], key=itemgetter('date')))
         orderList = list(orderList)
 
-        if len(list(orderList)) > 0 and cli_args.breakdown:
+        if not cli_args.breakdown:
+            print("")
+        elif len(list(orderList)) > 0:
             curdate = orderList[0].get('date').strftime("%Y-%m-%d")
             accum = { 
                 'buy': {'usd': 0, 'cur': 0}, 
