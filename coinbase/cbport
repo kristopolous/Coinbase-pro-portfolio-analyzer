@@ -236,7 +236,14 @@ def add(exchange, kind, rate, amount, size, date, obj):
     global cli_args
 
     if exchange not in history:
-        history[exchange] = {'buycur':0, 'buyusd':0, 'sellcur':0, 'sellusd':0, 'all': []}
+        history[exchange] = {
+            'buycur':0, 
+            'buyusd':0, 
+            'sellcur':0, 
+            'sellusd':0, 
+            'maxprofit':0,
+            'all': []
+        }
         history[exchange]['recent'] = list(map(lambda x: {
             'ttl': x, 
             'sellcount': .98 * x, 
@@ -260,6 +267,8 @@ def add(exchange, kind, rate, amount, size, date, obj):
 
         history[exchange][cur] += amount / float(rate)
         history[exchange][usd] += amount
+
+        history[exchange]['maxprofit'] = max(history[exchange]['sellusd'] - history[exchange]['buyusd'], history[exchange]['maxprofit'])
 
         for row in history[exchange]['recent']:
             if row[checker] > 0:
@@ -369,17 +378,18 @@ def crawl():
 
 cli_parser = argparse.ArgumentParser(description="""Coinbase pro portfolio analysis.
 github.com/kristopolous/Coinbase-pro-portfolio-analyzer""")
-cli_parser.add_argument("-z", "--fromzero", help="Only consider trades since the last liquidated (< $0.50 holding) position", action='store_true')
-cli_parser.add_argument("-d", "--days", help="How many days to go back (default: all)", default=0)
 cli_parser.add_argument("-a", "--amount", help="How many dollars to go back (default: all)", default=0)
+cli_parser.add_argument("-b", "--breakdown", help="All orders for the ROI period", action='store_true')
+cli_parser.add_argument("-c", "--combine", help="Combine USDC and USD markets as one grouping", action='store_true')
+cli_parser.add_argument("-d", "--days", help="How many days to go back (default: all)", default=0)
+cli_parser.add_argument("-g", "--graph", help="Unicode price graph", action='store_true')
+cli_parser.add_argument("-l", "--list", help="List exchanges for the specified period", action='store_true')
+cli_parser.add_argument("-m", "--maxprofit", help="Compute based on beating max historical profit, not breakeven", action='store_true')
 cli_parser.add_argument("-q", "--query", help="only show exchanges that match a regex")
+cli_parser.add_argument("-s", "--summary", help="Just show the summary", action='store_true')
 cli_parser.add_argument("-u", "--update", help="Update/invalidate the cache", action='store_true')
 cli_parser.add_argument("-v", "--verbose", help="Debugging messages", action='store_true')
-cli_parser.add_argument("-b", "--breakdown", help="All orders for the ROI period", action='store_true')
-cli_parser.add_argument("-s", "--summary", help="Just show the summary", action='store_true')
-cli_parser.add_argument("-l", "--list", help="List exchanges for the specified period", action='store_true')
-cli_parser.add_argument("-c", "--combine", help="Combine USDC and USD markets as one grouping", action='store_true')
-cli_parser.add_argument("-g", "--graph", help="Unicode price graph", action='store_true')
+cli_parser.add_argument("-z", "--fromzero", help="Only consider trades since the last liquidated (< $0.50 holding) position", action='store_true')
 cli_parser.add_argument("--step", help="Step value")
 cli_parser.add_argument("--end", help="End value for analysis")
 cli_args = cli_parser.parse_args()
@@ -511,12 +521,21 @@ for exchange in sorted(history.keys()):
 
     avg_buy = cur['buyusd'] / cur['buycur'] if cur['buycur'] > 0 else 0
 
-    if balanceMap[unit] * price > 0.5:
+
+    marker = ''
+    unaccounted = cur['buycur'] - cur['sellcur']
+    if balanceMap[unit] * price > .5:
         bal = "{:>8.3f}".format(balanceMap[unit])
         bal_usd = "{:.2f}".format(balanceMap[unit] * price)
     else:
         bal = "{:>8}".format('...')
         bal_usd = "{:5}".format('...')
+
+    if unaccounted > balanceMap[unit]:
+        bal_num = unaccounted
+        marker = '*'
+    else:
+        bal_num = balanceMap[unit]
     
 
     print("{}{:10} buy:  {:8.2f} {:8.2f} {:9.4f} {:6} {} ({})".format(
@@ -532,7 +551,7 @@ for exchange in sorted(history.keys()):
 
     avg_sell = cur['sellusd'] / cur['sellcur'] if cur['sellcur'] > 0 else 0
 
-    print("{}{:8.2f}   sell: {:8.2f} {:8.2f} {:9.4f} {:6} {:>8.3f} ({:.2f})".format(
+    print("{}{:8.2f}   sell: {:8.2f} {:8.2f} {:9.4f} {:6} {:>8.3f} ({:.2f}{})".format(
         g[1],
         price,
         avg_sell,
@@ -540,11 +559,14 @@ for exchange in sorted(history.keys()):
         cur['sellcur'],
         gol(price, avg_sell),
         cur['buycur'] - cur['sellcur'],
-        (cur['buycur'] - cur['sellcur']) * price
+        (cur['buycur'] - cur['sellcur']) * price,
+        marker
     ))
 
-    if balanceMap[unit]:
-        breakeven = (cur['buyusd'] - cur['sellusd']) / balanceMap[unit]
+    baseline = cur['maxprofit'] if cli_args.maxprofit else 0
+
+    if bal_num:
+        breakeven = (baseline + cur['buyusd'] - cur['sellusd']) / bal_num
     else:
         breakeven = 0
 
@@ -554,12 +576,12 @@ for exchange in sorted(history.keys()):
     else:
         break_str = "{:>8.2f}".format(breakeven)
 
-    if balanceMap[unit] > 0:
-        liquidation_return = "{:9.2f}".format((balanceMap[unit] * price) + (cur['sellusd'] - cur['buyusd']))
+    if bal_num > 0:
+        liquidation_return = "{:9.2f}".format((bal_num * price) + (cur['sellusd'] - cur['buyusd']))
     else:
         liquidation_return = '...'
 
-    print("{}{} {:>6} {} {:>4} {:8.2f} {:>9} {}".format(
+    print("{}{} {:>6} {} {:>4} {:8.2f} {:>9} {:4} {:>10.3f}".format(
         g[2],
         break_str,
         gol(price, breakeven, [-100]),
@@ -567,14 +589,15 @@ for exchange in sorted(history.keys()):
         gol(avg_sell, avg_buy, [-100]),
         cur['sellusd'] - cur['buyusd'], 
         liquidation_return,
-        gol(hist['last'], hist['open'])
+        gol(hist['last'], hist['open']),
+        cur['maxprofit']
     ))
 
 
     ttl['buy'] += cur['buyusd']
     ttl['sell'] += cur['sellusd']
-    ttl['bal'] += balanceMap[unit] * price
-    ttl['bal_buy'] += balanceMap[unit] * avg_buy
+    ttl['bal'] += bal_num * price
+    ttl['bal_buy'] += bal_num * avg_buy
     ttl['derived'] += (cur['buycur'] - cur['sellcur']) * price
     ttl['derived_buy'] += (cur['buycur'] - cur['sellcur']) * avg_buy
 
