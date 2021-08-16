@@ -24,15 +24,15 @@ $ cbport -s
 ...
  NU-USD    buy:      0.51    91.52  181.1291 -21      92.282 (36.98)
     0.40   sell:     0.69    71.79  103.3419 -42      77.787 (31.17)
-    0.21    +87       +37   -19.73     17.24 +4
+    0.21    +87       +37   -19.73     17.24 +4        0.000
 
  OGN-USD   buy:      2.39    49.93   20.8500 -52      20.850 (23.91)
     1.15   sell:     0.00     0.00    0.0000 ...      20.850 (23.91)
-    2.39    -52       ...   -49.93    -26.02 -4
+    2.39    -52       ...   -49.93    -26.02 -4        1.231
 
  A         buy:       B         C        D    E          F   ( G   )
     H      sell:      I         J        K    L          M   ( N   )
-    O        P        Q         R        S    T
+    O        P        Q         R        S    T          U
 ```
 
 The right hand side of the exchange we'll be calling USD here but it works
@@ -77,6 +77,7 @@ trader lingo, if it helps.
  * R - How much of your principle USD is still in the market 
  * S - What your total USD return would be if you sold all your COIN at the current price (profit/liquidation return)
  * T - The change in the past 24 hours
+ * U - This is your highest return point. Instead of say "breaking even" you want to increase your returns, you can do math from this number.
  
 For instance:
 
@@ -100,7 +101,7 @@ Coinbase, Celsius or Blockfi. For instance, Coinbase offers a staking reward for
 ```
  ATOM-USD  buy:     16.12   303.21   18.8050 +44       0.000 (0.00)
    23.23   sell:    20.75   302.95   14.6000 +12       4.205 (97.68)
-    0.00    ...       +29    -0.25       ... +3
+    0.00    ...       +29    -0.25       ... +3        0.000
 ```
 
 I can see here that I
@@ -132,7 +133,7 @@ For instance if I wanted to look at only the last $80 or so I invested in Liteco
 $ cbport -sq LTC -a 80
 LTC-USD    buy:    219.19    75.00    0.3422 -10       0.025 (4.94)
   196.43   sell:   173.27    78.74    0.4545 +13      -0.112 (-22.06)
-     ...    ...       -21     3.74      8.68 +1
+     ...    ...       -21     3.74      8.68 +1        0.000
 
 TOTAL: 
  bought:      75.03
@@ -152,7 +153,7 @@ Let's look at Litecoin again but now over the past 10 days.
 $ cbport -usq LTC -d 10
 LTC-USD    buy:    197.74    10.00    0.0506 0         0.076 (14.93)
   197.13   sell:   160.73   130.12    0.8096 +23      -0.759 (-149.62)
-     ...    ...       -19   120.12    135.05 +1
+     ...    ...       -19   120.12    135.05 +1        0.000
 
 TOTAL:
  bought:      10.00
@@ -170,7 +171,7 @@ was my starting balance. You can see that in the `N` slot (bottom right of the s
 ```
 MKR-USD    buy:   2862.84   129.98    0.0454 +30       0.003 (9.80)
  3734.57   sell:  2992.85   142.51    0.0476 +25      -0.002 (-8.28)
-     ...    ...        +5    12.54     22.34 0
+     ...    ...        +5    12.54     22.34 0         0.000
 
 TOTAL:
  bought:     129.98
