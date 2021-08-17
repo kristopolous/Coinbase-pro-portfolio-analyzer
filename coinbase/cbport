@@ -328,11 +328,13 @@ def crawl():
             exchange = details['product_id']
             r.sadd('{}:cb:exchange'.format(RPREFIX), exchange)
 
-            if cli_args.combine and details['product_id'] in ['USDC', 'USDT']:
-                proposed_combine = exchange.replace(details['product_id'], 'USD')
-                # only combine if the other exchange actually exists.
-                if proposed_combine in seen_exchanges:
-                    exchange = proposed_combine
+            if cli_args.combine:
+                lhs,rhs = details.get('product_id').split('-')
+                if rhs in ['USDC', 'USDT']:
+                    proposed_combine = exchange.replace(rhs, 'USD')
+                    # only combine if the other exchange actually exists.
+                    if proposed_combine in seen_exchanges:
+                        exchange = proposed_combine
 
             if stopFlag == 0x3:
                 logging.debug("Ending {} based on amount".format(cur))
