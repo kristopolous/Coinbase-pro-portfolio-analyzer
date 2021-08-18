@@ -328,8 +328,8 @@ def crawl():
             exchange = details['product_id']
             r.sadd('{}:cb:exchange'.format(RPREFIX), exchange)
 
-            if cli_args.combine and 'USDC' in details['product_id']:
-                proposed_combine = exchange.replace('USDC', 'USD')
+            if cli_args.combine and details['product_id'] in ['USDC', 'USDT']:
+                proposed_combine = exchange.replace(details['product_id'], 'USD')
                 # only combine if the other exchange actually exists.
                 if proposed_combine in seen_exchanges:
                     exchange = proposed_combine
@@ -380,7 +380,7 @@ cli_parser = argparse.ArgumentParser(description="""Coinbase pro portfolio analy
 github.com/kristopolous/Coinbase-pro-portfolio-analyzer""")
 cli_parser.add_argument("-a", "--amount", help="How many dollars to go back (default: all)", default=0)
 cli_parser.add_argument("-b", "--breakdown", help="All orders for the ROI period", action='store_true')
-cli_parser.add_argument("-c", "--combine", help="Combine USDC and USD markets as one grouping", action='store_true')
+cli_parser.add_argument("-c", "--combine", help="Combine USD* and USD markets as one grouping", action='store_true')
 cli_parser.add_argument("-d", "--days", help="How many days to go back (default: all)", default=0)
 cli_parser.add_argument("-g", "--graph", help="Unicode price graph", action='store_true')
 cli_parser.add_argument("-l", "--list", help="List exchanges for the specified period", action='store_true')
