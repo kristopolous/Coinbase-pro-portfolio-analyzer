@@ -30,6 +30,7 @@ _handle = None
 RPREFIX = 'JfB6wciaRLOrVqbMasWdXQ'
 START = time.time()
 LAST = START
+FEE = 0.005
 DIR = "{}/{}".format(os.getenv("HOME"), '.cbport')
 
 if not os.path.isdir(DIR):
@@ -230,18 +231,20 @@ class bypass:
         return cb
             
             
-def add(exchange, kind, rate, amount, size, date, obj):
+def add(exchange, kind, fee, rate, amount, size, date, obj):
     global history
     global historySet
     global cli_args
 
     if exchange not in history:
         history[exchange] = {
-            'buycur':0, 
-            'buyusd':0, 
-            'sellcur':0, 
-            'sellusd':0, 
-            'maxprofit':0,
+            'buycur': 0, 
+            'buyusd': 0, 
+            'buyfee': 0, 
+            'sellcur': 0, 
+            'sellusd': 0, 
+            'sellfee': 0, 
+            'maxprofit': 0,
             'all': []
         }
         history[exchange]['recent'] = list(map(lambda x: {
@@ -250,8 +253,10 @@ def add(exchange, kind, rate, amount, size, date, obj):
             'buycount': .98 * x, 
             'buycur': 0, 
             'buyusd': 0, 
+            'buyfee': 0,
             'sellcur': 0, 
             'sellusd': 0,
+            'sellfee': 0,
             'buydate': None,
             'selldate': None
         }, range(cli_args.step, cli_args.end, cli_args.step)))
@@ -264,9 +269,11 @@ def add(exchange, kind, rate, amount, size, date, obj):
         usd = '{}usd'.format(kind)
         checker = '{}count'.format(kind)
         when = '{}date'.format(kind)
+        fee_key = '{}fee'.format(kind)
 
         history[exchange][cur] += amount / float(rate)
         history[exchange][usd] += amount
+        history[exchange][fee_key] += fee
 
         history[exchange]['maxprofit'] = max(history[exchange]['sellusd'] - history[exchange]['buyusd'], history[exchange]['maxprofit'])
 
@@ -281,6 +288,7 @@ def add(exchange, kind, rate, amount, size, date, obj):
             'side': kind, 
             'price': float(rate), 
             'amount': amount, 
+            'fee': fee,
             'size': size, 
             'date': parser.parse(date)
         })
@@ -350,7 +358,7 @@ def crawl():
 
                 cur_ttl -= size
             else:
-                amount = float(details['executed_value']) + float(details['fill_fees'])
+                amount = float(details['executed_value']) - float(details['fill_fees'])
                 if cli_args.amount and history.get(exchange) and cli_args.amount < amount + history[exchange].get('sellusd'):
                     if not stopFlag & 0x2:
                         stopFlag |= 0x2
@@ -371,6 +379,7 @@ def crawl():
 
             add(exchange = exchange,
                 kind = details['side'], 
+                fee = float(details['fill_fees']),
                 amount = amount, 
                 date = details['done_at'], 
                 size = size, 
@@ -442,6 +451,7 @@ clock("crawl")
 
 ttl = {
     'buy': 0,
+    'fee': 0,
     'sell': 0,
     'bal': 0,
     'bal_buy': 0,
@@ -568,7 +578,7 @@ for exchange in sorted(history.keys()):
     baseline = cur['maxprofit'] if cli_args.maxprofit else 0
 
     if bal_num:
-        breakeven = (baseline + cur['buyusd'] - cur['sellusd']) / bal_num
+        breakeven = (baseline + cur['buyusd'] - (cur['sellusd'])) / (bal_num * ( 1 - FEE ))
     else:
         breakeven = 0
 
@@ -597,6 +607,7 @@ for exchange in sorted(history.keys()):
 
 
     ttl['buy'] += cur['buyusd']
+    #ttl['fee'] += cur['buyfee']
     ttl['sell'] += cur['sellusd']
     ttl['bal'] += bal_num * price
     ttl['bal_buy'] += bal_num * avg_buy
