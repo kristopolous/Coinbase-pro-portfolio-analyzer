@@ -170,7 +170,7 @@ class bypass:
 
                 key_redis = "{}:cb:{}".format(RPREFIX,key)
                 data = r.get(key_redis)
-                if data:
+                if data and not cli_args.update:
                     data = json.loads(data)
                 else:
                     data = runit()
@@ -390,7 +390,8 @@ def crawl():
 cli_parser = argparse.ArgumentParser(description="""Coinbase pro portfolio analysis.
 github.com/kristopolous/Coinbase-pro-portfolio-analyzer""")
 cli_parser.add_argument("-a", "--amount", help="How many dollars to go back (default: all)", default=0)
-cli_parser.add_argument("-b", "--breakdown", help="All orders for the ROI period", action='store_true')
+cli_parser.add_argument("-b", "--balances", help="Show balances and exit", action='store_true')
+cli_parser.add_argument("-t", "--trades", help="All orders for the ROI period", action='store_true')
 cli_parser.add_argument("-c", "--combine", help="Combine USD* and USD markets as one grouping", action='store_true')
 cli_parser.add_argument("-d", "--days", help="How many days to go back (default: all)", default=0)
 cli_parser.add_argument("-g", "--graph", help="Unicode price graph", action='store_true')
@@ -444,6 +445,26 @@ if type(account_list) is not list and account_list.get('message'):
     sys.exit(-1)
 
 logging.debug("Account list {}".format(account_list))
+if cli_args.balances:
+    bMap = {}
+    for account in account_list:
+        bMap[account['currency']] = account['balance']
+
+    pList = auth_client.get_products()
+    for i in pList: 
+        cur = i.get('base_currency')
+        if cur not in bMap:
+            bMap[cur] = 0
+
+    for i in sorted(bMap.keys()):
+        amount = float(bMap[i])
+        if amount > 0:
+            amount = "{:>11.4f}".format(amount)
+        else:
+            amount = "{:>11}".format("---")
+        print("{:<5} {}".format(i, amount))
+
+    sys.exit(1)
 
 clock("setup")
 crawl()
@@ -641,7 +662,7 @@ for exchange in sorted(history.keys()):
         orderList = reversed(sorted(cur['all'], key=itemgetter('date')))
         orderList = list(orderList)
 
-        if not cli_args.breakdown:
+        if not cli_args.trades:
             print("")
         elif len(list(orderList)) > 0:
             curdate = orderList[0].get('date').strftime("%Y-%m-%d")
