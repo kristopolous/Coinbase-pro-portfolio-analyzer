@@ -461,8 +461,8 @@ if cli_args.balances:
         if amount > 0:
             amount = "{:>11.4f}".format(amount)
         else:
-            amount = "{:>11}".format("---")
-        print("{:<5} {}".format(i, amount))
+            amount = "{:>11}".format("0")
+        print("{} {:<5}".format(amount, i))
 
     sys.exit(1)
 
