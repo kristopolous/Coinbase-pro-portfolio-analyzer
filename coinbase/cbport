@@ -33,6 +33,21 @@ LAST = START
 FEE = 0.005
 DIR = "{}/{}".format(os.getenv("HOME"), '.cbport')
 
+# We want to normalize all the graphs unlike some tools
+# that just do self-referential floating graphs .. those are dumb
+hist_24hr = {}
+max_delta = 0
+
+ttl = {
+    'buy': 0,
+    'fee': 0,
+    'sell': 0,
+    'bal': 0,
+    'bal_buy': 0,
+    'derived': 0,
+    'derived_buy': 0
+}
+
 if not os.path.isdir(DIR):
     os.mkdir(DIR)
 
@@ -470,20 +485,6 @@ clock("setup")
 crawl()
 clock("crawl")
 
-ttl = {
-    'buy': 0,
-    'fee': 0,
-    'sell': 0,
-    'bal': 0,
-    'bal_buy': 0,
-    'derived': 0,
-    'derived_buy': 0
-}
-
-# We want to normalize all the graphs unlike some tools
-# that just do self-referential floating graphs .. those are dumb
-hist_24hr = {}
-max_delta = 0
 
 for exchange in sorted(history.keys()):
     try:
