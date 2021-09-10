@@ -496,7 +496,8 @@ for exchange in sorted(history.keys()):
         hist_24hr[exchange] = res
 
         if res['delta']:
-            max_delta = max(max_delta, res['delta'])
+            # cap it at 100%
+            max_delta = min(max(max_delta, res['delta']), 1)
     except:
         pass
 
@@ -505,6 +506,13 @@ if cli_args.graph:
     draw[0] = "\u2594"
     draw[7] = "\u2581"
     res = 27
+
+def between(x,low,high):
+    if x < low :
+        return low
+    if x > high :
+        return high
+    return x
 
 for exchange in sorted(history.keys()):
     cur = history[exchange]
@@ -522,10 +530,9 @@ for exchange in sorted(history.keys()):
             g.append([' ', ' ',' '])
 
         res_cur = res / max_delta
-        hist_frac = round(res_cur * (hist['delta']))
-        open_pos = hist_frac - round(res_cur * (hist['open'] / hist['low'] - 1))
-        last_pos = hist_frac - round(res_cur * (hist['last'] / hist['low'] - 1))
-        # print(hist_frac,open_pos,last_pos)
+        hist_frac = between(round(res_cur * (min(hist['delta'], 1))), 0, res-1)
+        open_pos = between(hist_frac - round(res_cur * (hist['open'] / hist['low'] - 1)), 0, res-1)
+        last_pos = between(hist_frac - round(res_cur * (hist['last'] / hist['low'] - 1)), 0, res-1)
 
         g[math.floor(open_pos / 8)][0] = draw[open_pos % 8]
         g[math.floor(hist_frac / 8)][1] =draw[hist_frac % 8]
