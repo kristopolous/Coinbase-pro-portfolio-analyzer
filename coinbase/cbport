@@ -290,7 +290,6 @@ def add(exchange, kind, fee, rate, amount, size, date, obj):
         history[exchange][usd] += amount
         history[exchange][fee_key] += fee
 
-        history[exchange]['maxprofit'] = max(history[exchange]['sellusd'] - history[exchange]['buyusd'], history[exchange]['maxprofit'])
 
         for row in history[exchange]['recent']:
             if row[checker] > 0:
@@ -321,6 +320,7 @@ def crawl():
         cur_ttl = balanceMap[cur]
         stopFlag = 0x0
 
+        # [ newest -> oldest ]
         for order in orderList:
             if not isinstance(order, dict):
                 continue
@@ -400,6 +400,20 @@ def crawl():
                 size = size, 
                 rate = rate, 
                 obj = details)
+
+    # [ oldest -> newest ]
+    for exchange, obj in history.items():
+        buy = 0
+        sell = 0
+        profit = 0
+        for record in reversed(obj['all']):
+            if record['side'] == 'buy':
+                buy += record['amount']
+            else:
+                sell += record['amount']
+            profit = max(sell - buy, profit)
+
+        history[exchange]['maxprofit'] = profit
 
 
 cli_parser = argparse.ArgumentParser(description="""Coinbase pro portfolio analysis.
