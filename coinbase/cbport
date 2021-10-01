@@ -353,7 +353,7 @@ def crawl():
 
             if cli_args.combine:
                 lhs,rhs = details.get('product_id').split('-')
-                if rhs in ['USDC', 'USDT']:
+                if rhs in ['USDC', 'USDT','UST']:
                     proposed_combine = exchange.replace(rhs, 'USD')
                     # only combine if the other exchange actually exists.
                     if proposed_combine in seen_exchanges:
