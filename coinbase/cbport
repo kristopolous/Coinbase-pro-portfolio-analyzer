@@ -487,11 +487,22 @@ if cli_args.balances:
 
     for i in sorted(bMap.keys()):
         amount = float(bMap[i])
+        usd = 0
+        price = 0
+
+        ticker = auth_client.get_product_ticker("{}-USD".format(i))
+        if ticker and ticker.get('price'):
+            price = float(ticker.get('price'))
+
         if amount > 0:
+            if price:
+              usd = amount * float(ticker.get('price'))
+
             amount = "{:>11.4f}".format(amount)
         else:
             amount = "{:>11}".format("0")
-        print("{} {:<5}".format(amount, i))
+
+        print("{} {:>8.2f} {:<10} {:>8.2f}".format(amount, usd, i, price))
 
     sys.exit(1)
 
