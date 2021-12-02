@@ -32,6 +32,7 @@ START = time.time()
 LAST = START
 FEE = 0.005
 DIR = "{}/{}".format(os.getenv("HOME"), '.cbport')
+perfStats = {}
 
 # We want to normalize all the graphs unlike some tools
 # that just do self-referential floating graphs .. those are dumb
@@ -50,6 +51,16 @@ ttl = {
 
 if not os.path.isdir(DIR):
     os.mkdir(DIR)
+
+def perf(what=None):
+    global perfStats
+    if what is None:
+        return perfStats
+
+    if what not in perfStats:
+        perfStats[what] = 0
+
+    perfStats[what] += 1
 
 def all(handle, sql):
     return sqlCursor().get('c').execute(sql).fetchall()
@@ -135,11 +146,14 @@ class bypass:
         self.last = ['','']
         self.real = None
         self.secret = secret
+
         self.ordercache = r.hgetall('coinhash')
 
     def connect(self):
         if not self.real: 
             logging.debug("Connecting")
+
+            perf('net')
             self.real = cbpro.AuthenticatedClient(self.secret.key, self.secret.b64secret, self.secret.passphrase)
         return self.real
 
@@ -152,7 +166,7 @@ class bypass:
            logging.warning("No file: {}".format(name))
 
     def invalidate_last(self):
-        logging.debug("Invalidating :: {}".format(json.dumps(self.last)))
+        #logging.debug("Invalidating :: {}".format(json.dumps(self.last)))
 
         if self.last[0] == 'file':
             if os.path.exists(self.last[1]):
@@ -160,15 +174,19 @@ class bypass:
                 os.unlink(self.last)
 
         elif self.last[0] == 'redis':
+            perf('redis_del')
             r.delete(self.last[1])
 
         elif self.last[0] == 'redis/hash':
+            perf('redis_hdel')
             r.hdel(self.last[1], self.last[2])
+
 
     def __getattr__(self, method):
         def cb(*args):
             def runit():
                 self.connect()
+                perf('net')
                 res = getattr(self.real, method)(*args)
                 #print(method, *args, res)
                 return res
@@ -179,17 +197,21 @@ class bypass:
             # system has changed
             key = hash(method, args)
 
-            logging.debug("Exec :: {}({})".format(method, json.dumps(args)))
+            #logging.debug("Exec :: {}({})".format(method, json.dumps(args)))
 
             if method in ['get_product_ticker', 'get_accounts', 'get_product_24hr_stats']:
 
                 key_redis = "{}:cb:{}".format(RPREFIX,key)
+
+                perf('redis_out')
                 data = r.get(key_redis)
                 if data and not cli_args.update:
+                    perf('json')
                     data = json.loads(data)
                 else:
                     data = runit()
 
+                    perf('redis_set')
                     r.set(key_redis, json.dumps(data, default=json_util.default), 60 * 60)
 
                 self.last = ['redis', key_redis]
@@ -200,6 +222,7 @@ class bypass:
             elif method == 'get_order':
                 data = self.ordercache.get(key)
                 if data:
+                    perf('json')
                     data = json.loads(data)
                 else:
                     data = runit()
@@ -208,6 +231,7 @@ class bypass:
                         data_list = [x for x in data]
                         data = data_list
 
+                    perf('redis_hset')
                     r.hset('coinhash', key, json.dumps(data, default=json_util.default))
 
                 self.last = ['redis/hash', 'coinhash', key]
@@ -230,12 +254,14 @@ class bypass:
                         data = data_list
 
                     try:
+                        perf('file')
                         with open(name, 'w') as cache:
                             json.dump(data, cache)
                     except:
                         logging.warning("Unable to cache: ({} {}), {} -> {}".format(method, *args, data, name))
 
                 try:
+                    perf('file')
                     with open(name) as handle:
                         return json.loads(handle.read())
 
@@ -337,7 +363,7 @@ def crawl():
                 continue
 
             if 'side' not in details:
-                print(details)
+                logging.warning(details)
                 auth_client.invalidate_last()
                 continue
 
@@ -349,7 +375,6 @@ def crawl():
 
             size = float(details['filled_size'])
             exchange = details['product_id']
-            r.sadd('{}:cb:exchange'.format(RPREFIX), exchange)
 
             if cli_args.combine:
                 lhs,rhs = details.get('product_id').split('-')
@@ -510,6 +535,7 @@ clock("setup")
 crawl()
 clock("crawl")
 
+print(perf())
 
 for exchange in sorted(history.keys()):
     try:
@@ -604,7 +630,7 @@ for exchange in sorted(history.keys()):
         bal_num = balanceMap[unit]
     
 
-    print("{}{:10} buy:  {:8.2f} {:8.2f} {:9.4f} {:6} {} ({})".format(
+    print("{}{:>11}  buy:  {:8.2f} {:8.2f} {:9.4f} {:6} {} ({})".format(
         g[0],
         exchange,
         avg_buy,
@@ -617,7 +643,7 @@ for exchange in sorted(history.keys()):
 
     avg_sell = cur['sellusd'] / cur['sellcur'] if cur['sellcur'] > 0 else 0
 
-    print("{}{:8.2f}   sell: {:8.2f} {:8.2f} {:9.4f} {:6} {:>8.3f} ({:.2f}{})".format(
+    print("{}{:11.2f}  sell: {:8.2f} {:8.2f} {:9.4f} {:6} {:>8.3f} ({:.2f}{})".format(
         g[1],
         price,
         avg_sell,
@@ -638,16 +664,16 @@ for exchange in sorted(history.keys()):
 
     if breakeven > 200000 or breakeven < 0.001:
         breakeven = 0
-        break_str = "{:>8}".format("...")
+        break_str = "{:>11}".format("...")
     else:
-        break_str = "{:>8.2f}".format(breakeven)
+        break_str = "{:>11.2f}".format(breakeven)
 
     if bal_num > 0:
         liquidation_return = "{:9.2f}".format((bal_num * price) + (cur['sellusd'] - cur['buyusd']))
     else:
         liquidation_return = '...'
 
-    print("{}{} {:>6} {} {:>4} {:8.2f} {:>9} {:4} {:>10.3f}".format(
+    print("{}{} {:>5} {} {:>4} {:8.2f} {:>9} {:4} {:>10.3f}".format(
         g[2],
         break_str,
         gol(price, breakeven, [-100]),
@@ -680,8 +706,17 @@ for exchange in sorted(history.keys()):
 
             if row['buycur'] > 0:
                 buy = row['buyusd'] / row['buycur']
+
             if row['sellcur'] > 0:
                 sell = row['sellusd'] / row['sellcur']
+
+            """
+            x = 4
+            while buy < 0.01 and x > 0:
+                buy /= 100
+                sell /= 100
+                x -= 1
+            """
 
             print("\n".join([
                 "  {:4} {} buy:  {:8.2f} {:8.2f} {:3}  ",
