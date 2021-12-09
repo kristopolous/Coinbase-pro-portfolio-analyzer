@@ -375,10 +375,14 @@ def crawl():
 
             size = float(details['filled_size'])
             exchange = details['product_id']
+            if exchange not in seen_exchanges:
+                perf('redis_sadd')
+                r.sadd('{}:cb-const:exchange'.format(RPREFIX), exchange)
+                seen_exchanges.add(exchange)
 
             if cli_args.combine:
                 lhs,rhs = details.get('product_id').split('-')
-                if rhs in ['USDC', 'USDT','UST']:
+                if rhs in ['USDC', 'USDT', 'UST']:
                     proposed_combine = exchange.replace(rhs, 'USD')
                     # only combine if the other exchange actually exists.
                     if proposed_combine in seen_exchanges:
@@ -482,7 +486,7 @@ else:
     logging.basicConfig(level=logging.WARNING)
 
 r = redis.Redis('localhost', decode_responses=True)
-seen_exchanges = r.smembers('{}:cb:exchange'.format(RPREFIX))
+seen_exchanges = set(r.smembers('{}:cb-const:exchange'.format(RPREFIX)))
 
 # we "expire" all the redis-cache expire items (prefixed with cb:)
 if cli_args.update:
