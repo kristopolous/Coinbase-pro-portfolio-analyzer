@@ -33,6 +33,9 @@ LAST = START
 FEE = 0.005
 DIR = "{}/{}".format(os.getenv("HOME"), '.cbport')
 perfStats = {}
+CONST = {
+    'coinhash': '{}:cb-const:coinhash'.format(RPREFIX)
+}
 
 # We want to normalize all the graphs unlike some tools
 # that just do self-referential floating graphs .. those are dumb
@@ -147,7 +150,7 @@ class bypass:
         self.real = None
         self.secret = secret
 
-        self.ordercache = r.hgetall('coinhash')
+        self.ordercache = r.hgetall(CONST['coinhash'])
 
     def connect(self):
         if not self.real: 
@@ -232,9 +235,9 @@ class bypass:
                         data = data_list
 
                     perf('redis_hset')
-                    r.hset('coinhash', key, json.dumps(data, default=json_util.default))
+                    r.hset(CONST['coinhash'], key, json.dumps(data, default=json_util.default))
 
-                self.last = ['redis/hash', 'coinhash', key]
+                self.last = ['redis/hash', CONST['coinhash'], key]
 
                 return data
 
